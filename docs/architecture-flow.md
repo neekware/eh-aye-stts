@@ -44,14 +44,29 @@ graph TB
     Config[Environment Variables<br/>TTSConfig] --> AS
     Config --> TL
 
-    style User fill:#e1f5fe
-    style CLI fill:#e1f5fe
-    style API fill:#81c784
-    style AS fill:#81c784
-    style PR fill:#ffb74d
-    style CCP fill:#ffb74d
-    style CC fill:#f8bbd0
-    style Config fill:#b0bec5
+    style User fill:#4fc3f7,stroke:#0288d1,stroke-width:2px,color:#000
+    style CLI fill:#4fc3f7,stroke:#0288d1,stroke-width:2px,color:#000
+    style API fill:#66bb6a,stroke:#2e7d32,stroke-width:2px,color:#000
+    style AS fill:#66bb6a,stroke:#2e7d32,stroke-width:2px,color:#000
+    style ED fill:#ab47bc,stroke:#6a1b9a,stroke-width:2px,color:#000
+    style TL fill:#ffa726,stroke:#e65100,stroke-width:2px,color:#000
+    style TP fill:#ffca28,stroke:#f57c00,stroke-width:2px,color:#000
+    style Say fill:#e0e0e0,stroke:#616161,stroke-width:2px,color:#000
+    style OAI fill:#e0e0e0,stroke:#616161,stroke-width:2px,color:#000
+    style EL fill:#e0e0e0,stroke:#616161,stroke-width:2px,color:#000
+    style PR fill:#ff7043,stroke:#d84315,stroke-width:2px,color:#000
+    style BP fill:#a1887f,stroke:#4e342e,stroke-width:2px,color:#000
+    style CP fill:#90a4ae,stroke:#37474f,stroke-width:2px,color:#000
+    style CCP fill:#ff8a65,stroke:#bf360c,stroke-width:2px,color:#000
+    style CC fill:#f48fb1,stroke:#ad1457,stroke-width:2px,color:#000
+    style Config fill:#78909c,stroke:#263238,stroke-width:2px,color:#000
+    style Hooks fill:#ce93d8,stroke:#6a1b9a,stroke-width:2px,color:#000
+    style PTU fill:#b39ddb,stroke:#4527a0,stroke-width:2px,color:#000
+    style PSTU fill:#b39ddb,stroke:#4527a0,stroke-width:2px,color:#000
+    style Not fill:#b39ddb,stroke:#4527a0,stroke-width:2px,color:#000
+    style Stop fill:#b39ddb,stroke:#4527a0,stroke-width:2px,color:#000
+    style Agent fill:#b39ddb,stroke:#4527a0,stroke-width:2px,color:#000
+    style SubAgent fill:#b39ddb,stroke:#4527a0,stroke-width:2px,color:#000
 ```
 
 ## Component Descriptions

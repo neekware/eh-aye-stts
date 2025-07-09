@@ -8,11 +8,12 @@ import {
   SubagentStopEvent,
   AgentEvent,
 } from '../../types';
+import { VERSION } from '../../utils/version';
 
 export class ClaudeCodePlugin extends BasePlugin {
   name = 'claude-code';
   description = 'Provides audio notifications for Claude Code events';
-  version = '1.0.0';
+  version = VERSION;
 
   init(context: PluginContext): void {
     super.init(context);

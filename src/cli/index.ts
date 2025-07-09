@@ -6,6 +6,7 @@ import { SettingsManager } from '../installer/settings-manager';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { promises as fs } from 'fs';
+import { VERSION } from '../utils/version';
 
 // Type definitions for command options
 interface DetectOptions {
@@ -36,7 +37,7 @@ const program = new Command();
 program
   .name('stts')
   .description('Smart Text-to-Speech installer for development tools')
-  .version('1.0.0');
+  .version(VERSION);
 
 // Detect command
 program
