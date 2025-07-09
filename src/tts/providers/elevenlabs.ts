@@ -149,6 +149,26 @@ export class ElevenLabsProvider extends BaseTTSProvider {
         return { stability: 0.4, similarity_boost: 0.6 };
       case 'disappointed':
         return { stability: 0.7, similarity_boost: 0.3 };
+      case 'excited':
+        return { stability: 0.15, similarity_boost: 0.8 };
+      case 'sarcastic':
+        return { stability: 0.45, similarity_boost: 0.65 };
+      case 'calm':
+        return { stability: 0.75, similarity_boost: 0.5 };
+      case 'angry':
+        return { stability: 0.25, similarity_boost: 0.4 };
+      case 'empathetic':
+        return { stability: 0.6, similarity_boost: 0.7 };
+      case 'confused':
+        return { stability: 0.35, similarity_boost: 0.55 };
+      case 'hopeful':
+        return { stability: 0.5, similarity_boost: 0.65 };
+      case 'fearful':
+        return { stability: 0.3, similarity_boost: 0.45 };
+      case 'melancholic':
+        return { stability: 0.65, similarity_boost: 0.35 };
+      case 'curious':
+        return { stability: 0.4, similarity_boost: 0.7 };
       case 'neutral':
       default:
         return { stability: 0.5, similarity_boost: 0.5 };
@@ -182,6 +202,46 @@ export class ElevenLabsProvider extends BaseTTSProvider {
       case 'disappointed':
         contextualPrefix = '';
         nextText = ' she said disappointedly.';
+        break;
+      case 'excited':
+        contextualPrefix = '';
+        nextText = ' she exclaimed with tremendous enthusiasm!';
+        break;
+      case 'sarcastic':
+        contextualPrefix = '';
+        nextText = ' she said sarcastically, with a hint of irony.';
+        break;
+      case 'calm':
+        contextualPrefix = '';
+        nextText = ' she said calmly and steadily.';
+        break;
+      case 'angry':
+        contextualPrefix = '';
+        nextText = ' she said angrily, with frustration in her voice.';
+        break;
+      case 'empathetic':
+        contextualPrefix = '';
+        nextText = ' she said with understanding and compassion.';
+        break;
+      case 'confused':
+        contextualPrefix = '';
+        nextText = ' she said, sounding puzzled and uncertain.';
+        break;
+      case 'hopeful':
+        contextualPrefix = '';
+        nextText = ' she said hopefully, with optimism.';
+        break;
+      case 'fearful':
+        contextualPrefix = '';
+        nextText = ' she said fearfully, with worry in her voice.';
+        break;
+      case 'melancholic':
+        contextualPrefix = '';
+        nextText = ' she said sadly, with a melancholic tone.';
+        break;
+      case 'curious':
+        contextualPrefix = '';
+        nextText = ' she asked curiously, with genuine interest.';
         break;
     }
 

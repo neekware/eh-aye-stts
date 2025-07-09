@@ -80,7 +80,23 @@ export class TTSLoader {
   }
 
   private isEmotion(value: string): boolean {
-    const emotions = ['cheerful', 'neutral', 'concerned', 'urgent', 'disappointed'];
+    const emotions = [
+      'cheerful',
+      'neutral',
+      'concerned',
+      'urgent',
+      'disappointed',
+      'excited',
+      'sarcastic',
+      'calm',
+      'angry',
+      'empathetic',
+      'confused',
+      'hopeful',
+      'fearful',
+      'melancholic',
+      'curious',
+    ];
     return emotions.includes(value);
   }
 }

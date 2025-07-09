@@ -141,6 +141,36 @@ export class OpenAIProvider extends BaseTTSProvider {
         case 'disappointed':
           instruction = 'Speak sympathetically and softly: ';
           break;
+        case 'excited':
+          instruction = 'Speak with extreme enthusiasm and energy: ';
+          break;
+        case 'sarcastic':
+          instruction = 'Speak with sarcasm and subtle irony: ';
+          break;
+        case 'calm':
+          instruction = 'Speak in a calm, peaceful, and composed manner: ';
+          break;
+        case 'angry':
+          instruction = 'Speak with controlled anger and frustration: ';
+          break;
+        case 'empathetic':
+          instruction = 'Speak with deep understanding and compassion: ';
+          break;
+        case 'confused':
+          instruction = 'Speak with confusion and uncertainty: ';
+          break;
+        case 'hopeful':
+          instruction = 'Speak with hope and optimism: ';
+          break;
+        case 'fearful':
+          instruction = 'Speak with fear and anxiety: ';
+          break;
+        case 'melancholic':
+          instruction = 'Speak with sadness and melancholy: ';
+          break;
+        case 'curious':
+          instruction = 'Speak with curiosity and interest: ';
+          break;
       }
       return instruction + text;
     }
@@ -155,6 +185,26 @@ export class OpenAIProvider extends BaseTTSProvider {
         return text + '...';
       case 'disappointed':
         return text + '.';
+      case 'excited':
+        return text + '!!!';
+      case 'sarcastic':
+        return '"' + text + '"';
+      case 'calm':
+        return text + '.';
+      case 'angry':
+        return text.toUpperCase() + '!';
+      case 'empathetic':
+        return text + '...';
+      case 'confused':
+        return text + '?';
+      case 'hopeful':
+        return text + '...';
+      case 'fearful':
+        return '...' + text + '!';
+      case 'melancholic':
+        return text + '...';
+      case 'curious':
+        return text + '?';
       default:
         return text;
     }

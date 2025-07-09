@@ -1,6 +1,21 @@
 export type VoiceGender = 'male' | 'female';
 
-export type Emotion = 'cheerful' | 'neutral' | 'concerned' | 'urgent' | 'disappointed';
+export type Emotion =
+  | 'cheerful'
+  | 'neutral'
+  | 'concerned'
+  | 'urgent'
+  | 'disappointed'
+  | 'excited'
+  | 'sarcastic'
+  | 'calm'
+  | 'angry'
+  | 'empathetic'
+  | 'confused'
+  | 'hopeful'
+  | 'fearful'
+  | 'melancholic'
+  | 'curious';
 
 export interface TTSConfig {
   priority?: string[];
