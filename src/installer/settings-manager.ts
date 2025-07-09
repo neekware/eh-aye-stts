@@ -1,9 +1,11 @@
 import { promises as fs } from 'fs';
-import { dirname, join } from 'path';
+import { dirname, join, basename } from 'path';
 import { ClaudeSettings, HookMatcher } from '../types';
 import chalk from 'chalk';
 
 export class SettingsManager {
+  private readonly MAX_BACKUPS = 5;
+
   constructor(private settingsPath: string) {}
 
   async loadSettings(): Promise<ClaudeSettings> {
@@ -22,7 +24,101 @@ export class SettingsManager {
     await fs.writeFile(this.settingsPath, JSON.stringify(settings, null, 2));
   }
 
+  async backupSettings(): Promise<string | null> {
+    try {
+      // Check if settings file exists
+      await fs.access(this.settingsPath);
+
+      // Create backup filename with timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      const backupPath = `${this.settingsPath}.backup-${timestamp}`;
+
+      // Copy current settings to backup
+      await fs.copyFile(this.settingsPath, backupPath);
+
+      // Clean up old backups
+      await this.cleanupOldBackups();
+
+      return backupPath;
+    } catch (error) {
+      // Settings file doesn't exist, no backup needed
+      return null;
+    }
+  }
+
+  private async cleanupOldBackups(): Promise<void> {
+    const dir = dirname(this.settingsPath);
+    const settingsName = basename(this.settingsPath);
+    // Escape special regex characters in filename and build pattern
+    const escapedName = settingsName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const backupPattern = new RegExp(
+      '^' + escapedName + '\\.backup-\\d{4}-\\d{2}-\\d{2}T\\d{2}-\\d{2}-\\d{2}$'
+    );
+
+    try {
+      const files = await fs.readdir(dir);
+      const backups = files
+        .filter((f) => backupPattern.test(f))
+        .sort()
+        .reverse();
+
+      // Remove old backups, keeping only MAX_BACKUPS
+      for (let i = this.MAX_BACKUPS; i < backups.length; i++) {
+        await fs.unlink(join(dir, backups[i]));
+      }
+    } catch (error) {
+      // Directory doesn't exist or can't be read, ignore
+    }
+  }
+
+  async listBackups(): Promise<string[]> {
+    const dir = dirname(this.settingsPath);
+    const settingsName = basename(this.settingsPath);
+    // Escape special regex characters in filename and build pattern
+    const escapedName = settingsName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const backupPattern = new RegExp(
+      '^' + escapedName + '\\.backup-\\d{4}-\\d{2}-\\d{2}T\\d{2}-\\d{2}-\\d{2}$'
+    );
+
+    try {
+      const files = await fs.readdir(dir);
+      return files
+        .filter((f) => backupPattern.test(f))
+        .sort()
+        .reverse()
+        .map((f) => join(dir, f));
+    } catch (error) {
+      return [];
+    }
+  }
+
+  async restoreFromBackup(backupPath: string): Promise<void> {
+    // Verify backup file exists
+    await fs.access(backupPath);
+
+    // Create a backup of current settings before restoring
+    const currentBackup = await this.backupSettings();
+
+    try {
+      // Restore from backup
+      await fs.copyFile(backupPath, this.settingsPath);
+      console.log(chalk.green(`✓ Restored settings from: ${backupPath}`));
+    } catch (error) {
+      // If restore fails, try to restore the current backup
+      if (currentBackup) {
+        await fs.copyFile(currentBackup, this.settingsPath);
+      }
+      throw error;
+    }
+  }
+
   async installHooks(hookScriptsPath: string): Promise<void> {
+    // Create backup before modifying settings
+    const backupPath = await this.backupSettings();
+    if (backupPath) {
+      console.log(chalk.gray(`📁 Created backup: ${basename(backupPath)}`));
+    }
+
     const settings = await this.loadSettings();
 
     // Initialize hooks structure
@@ -84,6 +180,12 @@ export class SettingsManager {
   }
 
   async removeHooks(): Promise<void> {
+    // Create backup before modifying settings
+    const backupPath = await this.backupSettings();
+    if (backupPath) {
+      console.log(chalk.gray(`📁 Created backup: ${basename(backupPath)}`));
+    }
+
     const settings = await this.loadSettings();
 
     if (!settings.hooks) {

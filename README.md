@@ -196,6 +196,11 @@ stts config --disable-audio
 # Add custom dangerous command patterns
 stts config --add-dangerous-command "sudo rm"
 stts config --add-dangerous-command "DROP TABLE"
+
+# Backup and restore settings
+stts status --backups      # List available backups
+stts restore               # Restore from backup (interactive)
+stts restore 1             # Restore backup #1 directly
 ```
 
 Configuration is loaded in this order (later sources override earlier ones):
@@ -316,11 +321,11 @@ graph TB
 | JSON        | 11      | 563      | 75       | 466      | 22       |
 | JavaScript  | 2       | 111      | 84       | 9        | 18       |
 | License     | 1       | 21       | 17       | 0        | 4        |
-| Markdown    | 14      | 1768     | 998      | 310      | 460      |
+| Markdown    | 14      | 1791     | 1008     | 318      | 465      |
 | Shell       | 2       | 69       | 47       | 11       | 11       |
-| TypeScript  | 67      | 5772     | 4486     | 387      | 899      |
+| TypeScript  | 68      | 5998     | 4664     | 403      | 931      |
 | YAML        | 5       | 216      | 180      | 4        | 32       |
-| **Total**   | **105** | **8596** | **5919** | **1217** | **1460** |
+| **Total**   | **106** | **8845** | **6107** | **1241** | **1497** |
 
 _Last updated: 2025-07-09_
 

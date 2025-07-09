@@ -135,11 +135,29 @@ The STTS hooks are designed to be safe:
 
 - **Install**: Only adds STTS-specific hooks, preserves existing hooks
 - **Uninstall**: Only removes STTS hooks, leaves other hooks untouched
+- **Automatic Backups**: Creates timestamped backups before any modification
+- **Easy Recovery**: Restore from backup if something goes wrong
 
 Pattern matching for STTS hooks:
 
 ```javascript
 /stts\/dist\/hooks\/|@ehaye\/stts|node .*\/stts\/dist\/hooks\//;
+```
+
+#### Backup Management
+
+```bash
+# Check available backups
+npm run dev -- status --backups
+
+# Restore from backup
+npm run dev -- restore          # Interactive
+npm run dev -- restore 1        # Restore backup #1
+
+# Backups are automatically created when:
+# - Installing hooks (enable command)
+# - Removing hooks (disable command)
+# - Modifying config
 ```
 
 ### 6. **Development Workflow**
