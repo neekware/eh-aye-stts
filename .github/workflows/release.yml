@@ -1,10 +1,22 @@
 name: Release
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+    inputs:
+      release-type:
+        description: 'Release type (patch, minor, major, or auto)'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+  # Optional: Uncomment to enable release branch pattern
+  # push:
+  #   branches:
+  #     - release
 
 permissions:
   contents: write
@@ -50,4 +62,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx semantic-release
+        run: |
+          if [ "${{ github.event.inputs.release-type }}" != "auto" ] && [ "${{ github.event.inputs.release-type }}" != "" ]; then
+            npx semantic-release --no-ci --force-release=${{ github.event.inputs.release-type }}
+          else
+            npx semantic-release
+          fi
