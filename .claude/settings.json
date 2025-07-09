@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": ["Bash(npm run build:*)", "Bash(npm run lint:*)", "Bash(npm test)"],
+    "deny": []
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '📋 LEVER Check: Can you extend existing code instead? Review .claude/principles.md'"
+          }
+        ]
+      }
+    ]
+  }
+}
