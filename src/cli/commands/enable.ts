@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { writeFileSync, mkdirSync } from 'fs';
+import { writeFileSync } from 'fs';
 import { homedir } from 'os';
 import { ToolDetector } from '../../installer/detector';
 import { SettingsManager } from '../../installer/settings-manager';
@@ -43,14 +43,12 @@ export function enableCommand(): Command {
 
         // Create config file if options are provided
         if (options.dangerousCommands !== undefined || options.audio === false) {
-          const configPath = join(homedir(), '.claude', 'stts.json');
+          const configPath = join(homedir(), '.stts.json');
           const config = {
             audioEnabled: options.audio !== false,
             enableDangerousCommandBlocking: options.dangerousCommands || false,
           };
 
-          // Ensure .claude directory exists
-          mkdirSync(join(homedir(), '.claude'), { recursive: true });
           writeFileSync(configPath, JSON.stringify(config, null, 2));
           console.log(chalk.gray(`\nConfiguration saved to: ${configPath}`));
         }

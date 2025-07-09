@@ -165,8 +165,8 @@ stts test
 
 STTS can be configured via:
 
-- Configuration files: `.sttsrc.json`, `.stts.json`, or `~/.claude/stts.json`
-- Environment variables
+- Configuration files: `~/.stts.json` (global) and `./.stts.json` (project-specific)
+- Environment variables (override config files)
 - CLI commands
 
 #### Configuration Options
@@ -197,6 +197,12 @@ stts config --disable-audio
 stts config --add-dangerous-command "sudo rm"
 stts config --add-dangerous-command "DROP TABLE"
 ```
+
+Configuration is loaded in this order (later sources override earlier ones):
+
+1. Global config: `~/.stts.json`
+2. Project config: `./.stts.json` (in current directory)
+3. Environment variables
 
 #### Environment Variables
 
@@ -300,14 +306,14 @@ graph TB
 | ----------- | ------- | -------- | -------- | -------- | -------- |
 | Environment | 2       | 21       | 4        | 14       | 3        |
 | Git         | 1       | 55       | 28       | 16       | 11       |
-| JSON        | 11      | 566      | 75       | 466      | 25       |
+| JSON        | 11      | 563      | 75       | 466      | 22       |
 | JavaScript  | 2       | 111      | 84       | 9        | 18       |
 | License     | 1       | 21       | 17       | 0        | 4        |
-| Markdown    | 14      | 1655     | 953      | 286      | 416      |
+| Markdown    | 14      | 1660     | 957      | 286      | 417      |
 | Shell       | 2       | 69       | 47       | 11       | 11       |
-| TypeScript  | 64      | 5476     | 4250     | 380      | 846      |
+| TypeScript  | 65      | 5675     | 4414     | 379      | 882      |
 | YAML        | 5       | 216      | 180      | 4        | 32       |
-| **Total**   | **102** | **8190** | **5638** | **1186** | **1366** |
+| **Total**   | **103** | **8391** | **5806** | **1185** | **1400** |
 
 _Last updated: 2025-07-09_
 

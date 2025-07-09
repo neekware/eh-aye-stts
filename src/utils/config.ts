@@ -10,53 +10,48 @@ const DEFAULT_CONFIG: STTSConfig = {
 };
 
 export function loadSTTSConfig(): STTSConfig {
-  const configPaths = [
-    // Current directory
-    join(process.cwd(), '.sttsrc.json'),
-    join(process.cwd(), '.stts.json'),
-    // Home directory
-    join(homedir(), '.sttsrc.json'),
-    join(homedir(), '.stts.json'),
-    // Claude config directory
-    join(homedir(), '.claude', 'stts.json'),
-  ];
+  let config: STTSConfig = { ...DEFAULT_CONFIG };
 
-  // Environment variable override
-  const envConfigPath = process.env.STTS_CONFIG;
-  if (envConfigPath) {
-    configPaths.unshift(envConfigPath);
-  }
-
-  for (const configPath of configPaths) {
-    if (existsSync(configPath)) {
-      try {
-        const configData = readFileSync(configPath, 'utf-8');
-        const config = JSON.parse(configData) as STTSConfig;
-        return { ...DEFAULT_CONFIG, ...config };
-      } catch (error) {
-        console.error(`Failed to parse config from ${configPath}:`, error);
-      }
+  // 1. Load global config from home directory
+  const globalConfigPath = join(homedir(), '.stts.json');
+  if (existsSync(globalConfigPath)) {
+    try {
+      const configData = readFileSync(globalConfigPath, 'utf-8');
+      const globalConfig = JSON.parse(configData) as STTSConfig;
+      config = { ...config, ...globalConfig };
+    } catch (error) {
+      console.error(`Failed to parse config from ${globalConfigPath}:`, error);
     }
   }
 
-  // Check environment variables
-  const envConfig: STTSConfig = { ...DEFAULT_CONFIG };
+  // 2. Load project config from current directory (overrides global)
+  const projectConfigPath = join(process.cwd(), '.stts.json');
+  if (existsSync(projectConfigPath)) {
+    try {
+      const configData = readFileSync(projectConfigPath, 'utf-8');
+      const projectConfig = JSON.parse(configData) as STTSConfig;
+      config = { ...config, ...projectConfig };
+    } catch (error) {
+      console.error(`Failed to parse config from ${projectConfigPath}:`, error);
+    }
+  }
 
+  // 3. Environment variables override everything
   if (process.env.STTS_ENABLE_DANGEROUS_COMMAND_BLOCKING === 'true') {
-    envConfig.enableDangerousCommandBlocking = true;
+    config.enableDangerousCommandBlocking = true;
   }
 
   if (process.env.STTS_AUDIO_ENABLED === 'false') {
-    envConfig.audioEnabled = false;
+    config.audioEnabled = false;
   }
 
   if (process.env.STTS_CUSTOM_DANGEROUS_COMMANDS) {
-    envConfig.customDangerousCommands = process.env.STTS_CUSTOM_DANGEROUS_COMMANDS.split(',').map(
+    config.customDangerousCommands = process.env.STTS_CUSTOM_DANGEROUS_COMMANDS.split(',').map(
       (cmd) => cmd.trim()
     );
   }
 
-  return envConfig;
+  return config;
 }
 
 export function getConfigValue<T>(key: keyof STTSConfig, defaultValue?: T): T {

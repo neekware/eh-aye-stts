@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 
@@ -28,7 +28,7 @@ export function configCommand(): Command {
         disableAudio?: boolean;
         addDangerousCommand?: string;
       }) => {
-        const configPath = join(homedir(), '.claude', 'stts.json');
+        const configPath = join(homedir(), '.stts.json');
 
         // Show config
         if (options.show) {
@@ -109,7 +109,6 @@ export function configCommand(): Command {
 
         // Save config if changed
         if (changed) {
-          mkdirSync(join(homedir(), '.claude'), { recursive: true });
           writeFileSync(configPath, JSON.stringify(config, null, 2));
           console.log(chalk.gray(`\nConfiguration saved to: ${configPath}`));
         } else {
