@@ -1,4 +1,4 @@
-# @eh-aye/stts - (A.I. Smart Text-to-Speech) Hear Your Code Speak! 🔊
+# @eh-aye/stts - (A.I. Enabled Smart Text-to-Speech) Hear Your Code Speak! 🔊
 
 [![npm version](https://badge.fury.io/js/@ehaye%2Fstts.svg)](https://www.npmjs.com/package/@eh-aye/stts)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
