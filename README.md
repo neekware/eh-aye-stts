@@ -99,6 +99,10 @@ Works out of the box on macOS, Windows, and Linux.
 High-quality neural voices. Set your API key:
 
 ```bash
+# Preferred (avoids conflicts with other tools)
+export STTS_OPENAI_API_KEY="your-key-here"
+
+# Or use the fallback
 export OPENAI_API_KEY="your-key-here"
 ```
 
@@ -107,6 +111,10 @@ export OPENAI_API_KEY="your-key-here"
 Premium voice synthesis with advanced emotion control:
 
 ```bash
+# Preferred (avoids conflicts with other tools)
+export STTS_ELEVENLABS_API_KEY="your-key-here"
+
+# Or use the fallback
 export ELEVENLABS_API_KEY="your-key-here"
 ```
 
@@ -226,15 +234,14 @@ Configure via environment variables:
 
 ```bash
 # Provider priority
-export TTS_PRIORITY="openai,elevenlabs,say"
+export STTS_PRIORITY="openai,elevenlabs,say"
 
 # Voice settings
-export TTS_VOICE_GENDER="female"
-export TTS_DEFAULT_EMOTION="calm"
+export STTS_VOICE_GENDER="female"
 
-# API Keys
-export OPENAI_API_KEY="sk-..."
-export ELEVENLABS_API_KEY="..."
+# API Keys (use STTS_ prefix to avoid conflicts)
+export STTS_OPENAI_API_KEY="sk-..."
+export STTS_ELEVENLABS_API_KEY="..."
 ```
 
 ## Architecture
@@ -291,16 +298,16 @@ graph TB
 
 | Language    | Files  | Lines    | Code     | Comments | Blanks   |
 | ----------- | ------ | -------- | -------- | -------- | -------- |
-| Environment | 2      | 19       | 4        | 12       | 3        |
+| Environment | 2      | 21       | 4        | 14       | 3        |
 | Git         | 1      | 53       | 28       | 14       | 11       |
 | JSON        | 8      | 243      | 57       | 180      | 6        |
 | JavaScript  | 2      | 111      | 84       | 9        | 18       |
 | License     | 1      | 21       | 17       | 0        | 4        |
-| Markdown    | 14     | 1642     | 951      | 281      | 410      |
+| Markdown    | 14     | 1655     | 953      | 286      | 416      |
 | Shell       | 2      | 69       | 47       | 11       | 11       |
-| TypeScript  | 55     | 5395     | 4186     | 373      | 836      |
+| TypeScript  | 64     | 5472     | 4246     | 380      | 846      |
 | YAML        | 5      | 216      | 180      | 4        | 32       |
-| **Total**   | **90** | **7769** | **5554** | **884**  | **1331** |
+| **Total**   | **99** | **7861** | **5616** | **898**  | **1347** |
 
 _Last updated: 2025-07-09_
 
@@ -352,3 +359,7 @@ Contributions welcome! Please read our [contributing guidelines](./CONTRIBUTING.
 - 🐛 [Report bugs](https://github.com/anthropics/claude-code/issues)
 - 💡 [Request features](https://github.com/anthropics/claude-code/issues)
 - 📖 [Read the docs](./docs)
+
+## Sponsors
+
+- [Neekware Inc.](https://neekware.com)

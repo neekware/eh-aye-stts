@@ -2,11 +2,11 @@
   "name": "@eh-aye/stts",
   "version": "0.1.0",
   "description": "Smart Text-to-Speech (TTS) integration for Claude Code and other development tools. Hear notifications, tool executions, and more with multiple voice providers.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "type": "module",
   "bin": {
-    "stts": "dist/cli/index.js"
+    "stts": "dist/src/cli/index.js"
   },
   "scripts": {
     "build": "tsc",

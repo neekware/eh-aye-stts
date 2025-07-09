@@ -67,10 +67,7 @@ export class PostToolUseHook extends BaseHook {
       // Use detected emotion if not provided
       const finalEmotion =
         emotion || detectEmotion(message, { success: message.includes('completed') });
-      const success = await announceIfEnabled(message, finalEmotion as Emotion);
-      if (!success) {
-        this.logger.warn('Failed to announce message');
-      }
+      await announceIfEnabled(message, finalEmotion as Emotion);
     } catch (error) {
       this.logger.error(`TTS error: ${error instanceof Error ? error.message : String(error)}`);
     }

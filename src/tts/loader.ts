@@ -3,6 +3,7 @@ import { SayProvider } from './providers/say';
 import { ElevenLabsProvider } from './providers/elevenlabs';
 import { OpenAIProvider } from './providers/openai';
 import { config } from 'dotenv';
+import { getEnvWithFallback } from '../utils/config';
 
 config(); // Load .env file
 
@@ -108,17 +109,19 @@ export function loadTTS(userConfig: TTSConfig = {}): TTSLoader {
   const envConfig: TTSConfig = {};
 
   // Only set properties if they have values
-  if (process.env.TTS_PRIORITY) {
-    envConfig.priority = process.env.TTS_PRIORITY.split(',').map((s) => s.trim());
+  if (process.env.STTS_PRIORITY) {
+    envConfig.priority = process.env.STTS_PRIORITY.split(',').map((s) => s.trim());
   }
-  if (process.env.TTS_VOICE_GENDER) {
-    envConfig.voiceGender = process.env.TTS_VOICE_GENDER as 'male' | 'female';
+  if (process.env.STTS_VOICE_GENDER) {
+    envConfig.voiceGender = process.env.STTS_VOICE_GENDER as 'male' | 'female';
   }
-  if (process.env.ELEVENLABS_API_KEY) {
-    envConfig.elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
+  const elevenLabsKey = getEnvWithFallback('STTS_ELEVENLABS_API_KEY', 'ELEVENLABS_API_KEY');
+  if (elevenLabsKey) {
+    envConfig.elevenLabsApiKey = elevenLabsKey;
   }
-  if (process.env.OPENAI_API_KEY) {
-    envConfig.openaiApiKey = process.env.OPENAI_API_KEY;
+  const openaiKey = getEnvWithFallback('STTS_OPENAI_API_KEY', 'OPENAI_API_KEY');
+  if (openaiKey) {
+    envConfig.openaiApiKey = openaiKey;
   }
   if (process.env.TTS_ELEVENLABS_VOICE_ID) {
     envConfig.elevenLabsVoiceId = process.env.TTS_ELEVENLABS_VOICE_ID;

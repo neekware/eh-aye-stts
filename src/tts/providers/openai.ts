@@ -4,6 +4,7 @@ import { TTSConfig, Emotion } from '../types';
 import { promises as fs } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { getEnvWithFallback } from '../../utils/config';
 
 export class OpenAIProvider extends BaseTTSProvider {
   readonly name = 'openai';
@@ -11,7 +12,8 @@ export class OpenAIProvider extends BaseTTSProvider {
 
   constructor(config: TTSConfig) {
     super(config);
-    this.apiKey = config.openaiApiKey || process.env.OPENAI_API_KEY || '';
+    this.apiKey =
+      config.openaiApiKey || getEnvWithFallback('STTS_OPENAI_API_KEY', 'OPENAI_API_KEY') || '';
   }
 
   async isAvailable(): Promise<boolean> {

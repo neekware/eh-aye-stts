@@ -4,6 +4,7 @@ import { TTSConfig, Emotion } from '../types';
 import { promises as fs } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { getEnvWithFallback } from '../../utils/config';
 
 export class ElevenLabsProvider extends BaseTTSProvider {
   readonly name = 'elevenlabs';
@@ -11,7 +12,10 @@ export class ElevenLabsProvider extends BaseTTSProvider {
 
   constructor(config: TTSConfig) {
     super(config);
-    this.apiKey = config.elevenLabsApiKey || process.env.ELEVENLABS_API_KEY || '';
+    this.apiKey =
+      config.elevenLabsApiKey ||
+      getEnvWithFallback('STTS_ELEVENLABS_API_KEY', 'ELEVENLABS_API_KEY') ||
+      '';
   }
 
   async isAvailable(): Promise<boolean> {
