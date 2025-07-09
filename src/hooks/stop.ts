@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { BaseHook } from './base.js';
-import { StopEvent } from '../types.js';
-import { loadTTS, Emotion } from '../tts/index.js';
+import { BaseHook } from './base';
+import { StopEvent } from '../types';
+import { loadTTS, Emotion } from '../tts/index';
 
 export class StopHook extends BaseHook {
   private tts = loadTTS();

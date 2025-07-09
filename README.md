@@ -1,134 +1,218 @@
-# @eh-aye/stts - (A.I. Enabled Smart Text-to-Speech) Hear Your Code Speak! 🔊
+# @eh-aye/stts - Smart Text-to-Speech with Emotions 🔊
 
 [![npm version](https://badge.fury.io/js/@ehaye%2Fstts.svg)](https://www.npmjs.com/package/@eh-aye/stts)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/node/v/@eh-aye/stts.svg)](https://nodejs.org)
 
-Make Claude Code talk to you! Get audio notifications when tasks complete, tools run, and more.
+A powerful text-to-speech library with 15 different emotions, multiple provider support, and a flexible plugin system.
 
-## What is STTS?
+## Features
 
-STTS (Smart Text-to-Speech) adds voice notifications to Claude Code. It's like having a coding assistant that actually speaks to you:
+- 🎭 **15 Emotions** - From cheerful to melancholic, angry to empathetic
+- 🔊 **Multiple TTS Providers** - OpenAI, ElevenLabs, and system voices
+- 🔌 **Plugin System** - Extend functionality with custom plugins
+- 🤖 **Claude Code Integration** - Optional voice notifications for Claude Code
+- 🎯 **Simple API** - Just `speak("Hello")` to get started
 
-- 🎙️ **Hear notifications** - No more missing important messages
-- ⏱️ **Task completion alerts** - Know when long-running tasks finish
-- 🛡️ **Safety warnings** - Get alerted before dangerous commands run
-- 🔧 **Zero configuration** - Works out of the box with your system's voice
+## When Your Code Finds Its Voice 🗣️💻
 
-## Quick Start (3 Steps!)
+<p align="center">
+  <img src="./docs/stts.png" alt="STTS - Your AI assistant speaking directly to developers" width="600">
+</p>
 
-### 1. Install STTS
+## Quick Start
+
+### Installation
 
 ```bash
+npm install @eh-aye/stts
+```
+
+### Basic Usage
+
+```typescript
+import { speak } from '@eh-aye/stts';
+
+// Simple speech
+await speak('Hello, world!');
+
+// With emotion
+await speak('Great job!', { emotion: 'cheerful' });
+
+// Auto-detect emotion
+await speak('Oh no, something went wrong!', { autoDetectEmotion: true });
+```
+
+## Available Emotions
+
+- `cheerful` - Happy and enthusiastic
+- `neutral` - Calm and professional
+- `concerned` - Thoughtful and worried
+- `urgent` - Attention-grabbing
+- `disappointed` - Sad but understanding
+- `excited` - Very energetic
+- `sarcastic` - Ironic and witty
+- `calm` - Peaceful and composed
+- `angry` - Frustrated and intense
+- `empathetic` - Understanding and compassionate
+- `confused` - Puzzled and uncertain
+- `hopeful` - Optimistic and positive
+- `fearful` - Anxious and worried
+- `melancholic` - Sad and reflective
+- `curious` - Interested and inquisitive
+
+## API
+
+### Core Functions
+
+```typescript
+// Speak with options
+speak(text: string, options?: {
+  emotion?: Emotion,
+  provider?: string,
+  autoDetectEmotion?: boolean
+}): Promise<boolean>
+
+// Speak with context-based emotion
+speakWithEmotion(text: string, context?: {
+  success?: boolean,
+  error?: boolean
+}): Promise<boolean>
+
+// Create custom audio service
+createAudioService(config?: TTSConfig): AudioService
+
+// Get available providers
+getAvailableProviders(): Promise<string[]>
+```
+
+## TTS Providers
+
+### Local System Voice (Default)
+
+Works out of the box on macOS, Windows, and Linux.
+
+### OpenAI TTS
+
+High-quality neural voices. Set your API key:
+
+```bash
+export OPENAI_API_KEY="your-key-here"
+```
+
+### ElevenLabs
+
+Premium voice synthesis with advanced emotion control:
+
+```bash
+export ELEVENLABS_API_KEY="your-key-here"
+```
+
+## Plugin System
+
+Create custom plugins to extend functionality:
+
+```typescript
+import { BasePlugin, getRegistry } from '@eh-aye/stts';
+
+class MyPlugin extends BasePlugin {
+  name = 'my-plugin';
+
+  async handleEvent(event) {
+    if (event.type === 'custom-event') {
+      await this.audio.speak('Custom event received!');
+    }
+  }
+}
+
+// Register plugin
+const registry = getRegistry();
+await registry.register(new MyPlugin());
+```
+
+## Claude Code Integration (Optional)
+
+If you're using Claude Code, you can enable voice notifications:
+
+```bash
+# Install STTS globally
 npm install -g @eh-aye/stts
-```
 
-### 2. Enable for Claude Code
-
-```bash
+# Enable Claude Code integration
 stts enable claude-code
-```
 
-### 3. Test it out
-
-```bash
+# Test it works
 stts test
 ```
 
-That's it! Claude Code will now speak to you. 🎉
+This adds voice notifications for:
 
-## What You'll Hear
+- Task completions
+- Long-running commands
+- Error notifications
+- Session end alerts
 
-- **"Running bash command"** - When tools execute
-- **"Command completed in 10 seconds"** - When long tasks finish
-- **"Warning: Blocked dangerous command"** - When protecting you from accidents
-- **"Session completed"** - When you're done working
-- Plus any Claude Code notifications!
+## Configuration
 
-## Simple Commands
-
-```bash
-stts status          # Check if voice is enabled
-stts test            # Test the voice
-stts disable claude-code  # Turn off voice (if needed)
-```
-
-## Customization (Optional)
-
-Want different voices? Create a `.env` file:
+Configure via environment variables:
 
 ```bash
-# Use a female voice (default)
-TTS_VOICE_GENDER=female
+# Provider priority
+export TTS_PRIORITY="openai,elevenlabs,say"
 
-# Or use a male voice
-TTS_VOICE_GENDER=male
+# Voice settings
+export TTS_VOICE_GENDER="female"
+export TTS_DEFAULT_EMOTION="calm"
 
-# Advanced: Use premium voices (requires API keys)
-# ELEVENLABS_API_KEY=your_key_here
-# OPENAI_API_KEY=your_key_here
+# API Keys
+export OPENAI_API_KEY="sk-..."
+export ELEVENLABS_API_KEY="..."
 ```
 
-## Supported Voices
+## Examples
 
-STTS automatically uses the best available voice:
+See the [examples](./examples) directory for:
 
-1. **Local Audio** (Default) - Free, works offline
-   - Mac: Samantha/Alex (via system TTS)
-   - Windows: Zira/David (via SAPI)
-   - Linux: espeak voices
-   - Powered by the `say` npm package
-
-2. **ElevenLabs** (Premium) - Natural, high-quality voices
-3. **OpenAI** (Premium) - Clear, professional voices
-
-## Troubleshooting
-
-### Don't hear anything?
-
-- Check your volume 🔊
-- Run `stts test` to verify
-- Mac users: Check System Preferences → Security → Speech
-
-### Commands still silent?
-
-- Run `stts status` to verify installation
-- Make sure Claude Code is running
-- Try `stts enable claude-code` again
-
-### Need help?
-
-- Run `stts --help` for all commands
-- Check system audio settings
-- Ensure Claude Code is in your PATH
-
-## Privacy & Security
-
-- ✅ Runs locally on your machine
-- ✅ No data sent to external servers (unless using cloud TTS)
-- ✅ Only speaks notification text
-- ✅ Protects you from dangerous commands
-- ✅ Open source - check the code yourself!
-
-## Uninstall
-
-```bash
-# Remove voice features from Claude Code
-stts disable claude-code
-
-# Uninstall STTS completely
-npm uninstall -g @eh-aye/stts
-```
-
----
-
-**Love hearing your code?** Star us on [GitHub](https://github.com/neekware/eh-aye-stts)! ⭐
+- Basic usage
+- Custom audio services
+- Plugin development
+- Emotion detection
 
 ## Documentation
 
-- 📖 **[User Guide](README.md)** - You are here!
-- 🔧 **[Technical Docs](docs/TECH.md)** - Architecture and implementation
-- 💻 **[Development Guide](docs/DEVELOPMENT.md)** - Contributing to STTS
-- 🧪 **[Testing Guide](docs/TESTING.md)** - Testing and troubleshooting
+For detailed documentation, see the [docs directory](./docs):
 
-All technical documentation is in the `docs/` folder.
+- 📚 [Technical Documentation](./docs/TECH.md) - Architecture and implementation details
+- 🔧 [Development Guide](./docs/DEVELOPMENT.md) - Setup and contribution guide
+- 🧪 [Testing Guide](./docs/TESTING.md) - Testing TTS functionality
+- 📋 [TODO/Roadmap](./docs/TODO.md) - Future enhancements and ideas
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Run tests
+npm test
+
+# Build
+npm run build
+
+# Lint
+npm run lint
+```
+
+## License
+
+MIT © Val Karpov
+
+## Contributing
+
+Contributions welcome! Please read our [contributing guidelines](./CONTRIBUTING.md) first.
+
+## Support
+
+- 🐛 [Report bugs](https://github.com/anthropics/claude-code/issues)
+- 💡 [Request features](https://github.com/anthropics/claude-code/issues)
+- 📖 [Read the docs](./docs)

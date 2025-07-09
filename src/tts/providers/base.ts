@@ -1,4 +1,4 @@
-import { TTSProvider, TTSConfig, Emotion } from '../types.js';
+import { TTSProvider, TTSConfig, Emotion } from '../types';
 
 export abstract class BaseTTSProvider implements TTSProvider {
   abstract readonly name: string;

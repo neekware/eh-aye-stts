@@ -1,4 +1,6 @@
-import { Emotion } from './types.js';
+import { Emotion } from './types';
+
+export { Emotion };
 
 export function detectEmotion(
   text: string,

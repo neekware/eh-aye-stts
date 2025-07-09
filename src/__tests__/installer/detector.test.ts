@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import { ToolDetector } from '../../installer/detector.js';
+import { ToolDetector } from '../../installer/detector';
 
 // Mock modules before importing
 vi.mock('which', () => ({

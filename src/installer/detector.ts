@@ -2,7 +2,7 @@ import which from 'which';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-import { ToolInfo } from '../types.js';
+import { ToolInfo } from '../types';
 
 export class ToolDetector {
   private tools: Map<string, ToolInfo> = new Map();

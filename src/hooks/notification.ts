@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { BaseHook } from './base.js';
-import { NotificationEvent } from '../types.js';
-import { loadTTS, detectEmotion, Emotion } from '../tts/index.js';
+import { BaseHook } from './base';
+import { NotificationEvent } from '../types';
+import { loadTTS, detectEmotion, Emotion } from '../tts/index';
 import chalk from 'chalk';
 
 export class NotificationHook extends BaseHook {

@@ -26,7 +26,7 @@ vi.mock('chalk', () => ({
 }));
 
 // Now import the module under test
-import { SettingsManager } from '../../installer/settings-manager.js';
+import { SettingsManager } from '../../installer/settings-manager';
 import { promises as fs } from 'fs';
 
 // Get the mocked functions

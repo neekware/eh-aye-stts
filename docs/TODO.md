@@ -146,3 +146,36 @@ AI Emotion Analyzer sees:
 - Investigate emotion detection from code patterns
 - Explore voice cloning with emotional variants
 - Research real-time emotion switching mid-speech
+
+## Agent Hook Enhancements
+
+### Current Implementation
+
+The Agent hook provides notifications for background agent tasks with:
+
+- Task lifecycle events (start, progress, complete, error)
+- Customizable emotions and priority levels
+- Progress tracking with percentage
+- Task descriptions and timing information
+
+### Future Enhancements
+
+1. **Task Queuing and History**
+   - Track all agent tasks in a queue
+   - Provide summary of completed tasks
+   - Allow querying task status by voice
+
+2. **Smart Announcements**
+   - Learn which tasks the user cares about
+   - Automatically adjust announcement frequency
+   - Group similar tasks together
+
+3. **Interactive Agent Control**
+   - Voice commands to pause/resume agents
+   - Ask for status updates on demand
+   - Cancel tasks via voice command
+
+4. **Agent Performance Analytics**
+   - Track task completion times
+   - Identify slow or failing tasks
+   - Provide voice summaries of agent performance

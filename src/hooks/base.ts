@@ -1,4 +1,4 @@
-import { HookEvent } from '../types.js';
+import { HookEvent } from '../types';
 import winston from 'winston';
 import { join } from 'path';
 import { homedir } from 'os';

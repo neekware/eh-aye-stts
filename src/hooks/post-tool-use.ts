@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { BaseHook } from './base.js';
-import { PostToolUseEvent } from '../types.js';
-import { loadTTS, detectEmotion, Emotion } from '../tts/index.js';
+import { BaseHook } from './base';
+import { PostToolUseEvent } from '../types';
+import { loadTTS, detectEmotion, Emotion } from '../tts/index';
 
 export class PostToolUseHook extends BaseHook {
   private tts = loadTTS();

@@ -1,6 +1,6 @@
 import { spawn } from 'child_process';
-import { BaseTTSProvider } from './base.js';
-import { TTSConfig, Emotion } from '../types.js';
+import { BaseTTSProvider } from './base';
+import { TTSConfig, Emotion } from '../types';
 import { promises as fs } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { BaseHook } from './base.js';
-import { PreToolUseEvent } from '../types.js';
-import { loadTTS } from '../tts/index.js';
+import { BaseHook } from './base';
+import { PreToolUseEvent } from '../types';
+import { loadTTS } from '../tts';
 
 export class PreToolUseHook extends BaseHook {
   private tts = loadTTS();

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { ToolDetector } from '../installer/detector.js';
-import { SettingsManager } from '../installer/settings-manager.js';
+import { ToolDetector } from '../installer/detector';
+import { SettingsManager } from '../installer/settings-manager';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { promises as fs } from 'fs';
@@ -166,7 +166,7 @@ program
         const hasHooks =
           settings.hooks &&
           Object.keys(settings.hooks).some((key) =>
-            settings.hooks[key]?.some((h) =>
+            settings.hooks?.[key]?.some((h) =>
               h.hooks?.some(
                 (hook) => hook.command?.includes('stts') || hook.command?.includes('@eh-aye/stts')
               )
@@ -189,7 +189,7 @@ program
   .option('-m, --message <text>', 'Custom message to speak', 'Testing TTS functionality')
   .action(async (options: TestOptions) => {
     try {
-      const { loadTTS } = await import('../tts/index.js');
+      const { loadTTS } = await import('../tts/index');
       const tts = loadTTS();
 
       console.log(chalk.blue('🔊 Testing TTS...\n'));

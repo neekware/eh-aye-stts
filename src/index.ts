@@ -1,9 +1,29 @@
-export * from './types';
-export * from './installer/detector';
-export * from './installer/settings-manager';
-export * from './hooks/base';
-export * from './hooks/notification';
-export * from './hooks/pre-tool-use';
-export * from './hooks/post-tool-use';
-export * from './hooks/stop';
-export * from './hooks/subagent-stop';
+// Main audio API exports
+export {
+  speak,
+  speakWithEmotion,
+  createAudioService,
+  getAvailableProviders,
+  AudioService,
+  AudioOptions,
+  EMOTIONS,
+} from './audio';
+
+// Type exports
+export { Emotion, VoiceGender, TTSConfig } from './tts/types';
+
+// Utility exports
+export { detectEmotion, getEmotionDescription } from './tts/emotion-detector';
+
+// Plugin system exports
+export {
+  STTSPlugin,
+  BasePlugin,
+  PluginContext,
+  PluginEvent,
+  PluginRegistry,
+  getRegistry,
+} from './plugins';
+
+// Claude Code plugin (separate export for optional use)
+export { ClaudeCodePlugin } from './plugins/claude-code';

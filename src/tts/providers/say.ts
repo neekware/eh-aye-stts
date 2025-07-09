@@ -1,5 +1,5 @@
-import { BaseTTSProvider } from './base.js';
-import { Emotion } from '../types.js';
+import { BaseTTSProvider } from './base';
+import { Emotion } from '../types';
 
 export class SayProvider extends BaseTTSProvider {
   readonly name = 'say';

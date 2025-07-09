@@ -1,5 +1,5 @@
-import { loadTTS } from './index.js';
-import { TTSConfig } from './types.js';
+import { loadTTS } from '../tts';
+import { TTSConfig } from './types';
 
 export async function ttsNotificationHook(config: TTSConfig = {}): Promise<void> {
   // Read notification data from stdin (Claude Code format)

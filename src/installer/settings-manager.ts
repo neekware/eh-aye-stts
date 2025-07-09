@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import { dirname, join } from 'path';
-import { ClaudeSettings, HookMatcher } from '../types.js';
+import { ClaudeSettings, HookMatcher } from '../types';
 import chalk from 'chalk';
 
 export class SettingsManager {
@@ -37,6 +37,7 @@ export class SettingsManager {
       { name: 'Notification', script: 'notification.js' },
       { name: 'Stop', script: 'stop.js' },
       { name: 'SubagentStop', script: 'subagent-stop.js' },
+      { name: 'Agent', script: 'agent.js' },
     ];
 
     let updated = false;

@@ -39,6 +39,12 @@
       "rules": {
         "prettier/prettier": "error"
       }
+    },
+    {
+      "files": ["examples/**/*.ts"],
+      "parserOptions": {
+        "project": "./examples/tsconfig.json"
+      }
     }
   ]
 }

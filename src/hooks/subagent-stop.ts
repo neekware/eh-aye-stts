@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { BaseHook } from './base.js';
-import { SubagentStopEvent } from '../types.js';
-import { loadTTS, detectEmotion, Emotion } from '../tts/index.js';
+import { BaseHook } from './base';
+import { SubagentStopEvent } from '../types';
+import { loadTTS, detectEmotion, Emotion } from '../tts/index';
 
 export class SubagentStopHook extends BaseHook {
   private tts = loadTTS();
