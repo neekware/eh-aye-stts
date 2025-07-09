@@ -169,6 +169,48 @@ export OPENAI_API_KEY="sk-..."
 export ELEVENLABS_API_KEY="..."
 ```
 
+## Architecture
+
+```mermaid
+graph TB
+    %% User Entry Points
+    User[User Application] --> API[Audio API]
+    CLI[CLI Tool] --> API
+
+    %% Core Audio API
+    API --> AS[AudioService]
+    AS --> ED[Emotion Detector]
+    AS --> TL[TTS Loader]
+
+    %% TTS System
+    TL --> TP[TTS Providers]
+    TP --> Say[Say Provider<br/>Local System Voice]
+    TP --> OAI[OpenAI Provider<br/>Neural Voices]
+    TP --> EL[ElevenLabs Provider<br/>Premium Synthesis]
+
+    %% Plugin System
+    API --> PR[Plugin Registry]
+    PR --> BP[Base Plugin]
+    BP --> CP[Custom Plugins]
+    BP --> CCP[Claude Code Plugin]
+
+    %% Event Flow
+    CC[Claude Code] -.->|Events| CCP
+    CP -.->|Custom Events| PR
+
+    %% Emotion Flow
+    ED --> |Emotion Detection| AS
+    AS --> |Emotion + Text| TP
+
+    style User fill:#e1f5fe
+    style CLI fill:#e1f5fe
+    style API fill:#81c784
+    style AS fill:#81c784
+    style PR fill:#ffb74d
+    style CCP fill:#ffb74d
+    style CC fill:#f8bbd0
+```
+
 ## Examples
 
 See the [examples](./examples) directory for:
@@ -183,6 +225,7 @@ See the [examples](./examples) directory for:
 For detailed documentation, see the [docs directory](./docs):
 
 - 📚 [Technical Documentation](./docs/TECH.md) - Architecture and implementation details
+- 🏗️ [Architecture Flow](./docs/architecture-flow.md) - Detailed component relationships
 - 🔧 [Development Guide](./docs/DEVELOPMENT.md) - Setup and contribution guide
 - 🧪 [Testing Guide](./docs/TESTING.md) - Testing TTS functionality
 - 📋 [TODO/Roadmap](./docs/TODO.md) - Future enhancements and ideas
