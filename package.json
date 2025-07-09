@@ -45,12 +45,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ehaye/stts.git"
+    "url": "git+https://github.com/neekware/eh-aye-stts.git"
   },
   "bugs": {
-    "url": "https://github.com/ehaye/stts/issues"
+    "url": "https://github.com/neekware/eh-aye-stts/issues"
   },
-  "homepage": "https://github.com/ehaye/stts#readme",
+  "homepage": "https://github.com/neekware/eh-aye-stts#readme",
   "engines": {
     "node": ">=18.0.0"
   },

@@ -11,17 +11,19 @@ Welcome to the STTS documentation! Here you'll find detailed technical informati
 
 ## Quick Links
 
-- [GitHub Repository](https://github.com/ehaye/stts)
+- [GitHub Repository](https://github.com/neekware/eh-aye-stts)
 - [NPM Package](https://www.npmjs.com/package/@eh-aye/stts)
-- [Issue Tracker](https://github.com/ehaye/stts/issues)
+- [Issue Tracker](https://github.com/neekware/eh-aye-stts/issues)
 
 ## For Contributors
 
 If you're looking to contribute to STTS, start with:
+
 1. [DEVELOPMENT.md](DEVELOPMENT.md) - Development setup and workflow
 2. [TECH.md](TECH.md) - Understanding the codebase
 
 ## For Users
 
 If you're looking to use STTS, check out:
+
 - [Main README](../README.md) - Installation and usage guide

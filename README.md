@@ -18,16 +18,19 @@ STTS (Smart Text-to-Speech) adds voice notifications to Claude Code. It's like h
 ## Quick Start (3 Steps!)
 
 ### 1. Install STTS
+
 ```bash
 npm install -g @eh-aye/stts
 ```
 
 ### 2. Enable for Claude Code
+
 ```bash
 stts enable claude-code
 ```
 
 ### 3. Test it out
+
 ```bash
 stts test
 ```
@@ -37,7 +40,7 @@ That's it! Claude Code will now speak to you. 🎉
 ## What You'll Hear
 
 - **"Running bash command"** - When tools execute
-- **"Command completed in 10 seconds"** - When long tasks finish  
+- **"Command completed in 10 seconds"** - When long tasks finish
 - **"Warning: Blocked dangerous command"** - When protecting you from accidents
 - **"Session completed"** - When you're done working
 - Plus any Claude Code notifications!
@@ -82,16 +85,19 @@ STTS automatically uses the best available voice:
 ## Troubleshooting
 
 ### Don't hear anything?
+
 - Check your volume 🔊
 - Run `stts test` to verify
 - Mac users: Check System Preferences → Security → Speech
 
 ### Commands still silent?
+
 - Run `stts status` to verify installation
 - Make sure Claude Code is running
 - Try `stts enable claude-code` again
 
 ### Need help?
+
 - Run `stts --help` for all commands
 - Check system audio settings
 - Ensure Claude Code is in your PATH
@@ -116,7 +122,7 @@ npm uninstall -g @eh-aye/stts
 
 ---
 
-**Love hearing your code?** Star us on [GitHub](https://github.com/ehaye/stts)! ⭐
+**Love hearing your code?** Star us on [GitHub](https://github.com/neekware/eh-aye-stts)! ⭐
 
 ## Documentation
 
