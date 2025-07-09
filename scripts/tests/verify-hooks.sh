@@ -48,7 +48,7 @@ echo -e "${BLUE}Checking for STTS hooks...${NC}"
 echo
 
 # Look for STTS hook patterns in the settings file
-if grep -q "STTS-HOOK-v\|stts/dist/hooks/\|@eh-aye/stts" "$CLAUDE_SETTINGS"; then
+if grep -q "stts hook" "$CLAUDE_SETTINGS"; then
     echo -e "${GREEN}✓ STTS hooks detected${NC}"
     echo
     
@@ -57,20 +57,13 @@ if grep -q "STTS-HOOK-v\|stts/dist/hooks/\|@eh-aye/stts" "$CLAUDE_SETTINGS"; the
     echo "-------------------"
     
     # Extract and display STTS hooks with context
-    grep -B2 -A2 "STTS-HOOK-v\|stts/dist/hooks/\|@eh-aye/stts" "$CLAUDE_SETTINGS" | grep -E "\"(PreToolUse|PostToolUse|Notification|Stop|SubagentStop|Agent)\":|\"command\":" | sed 's/^/  /'
+    grep -B2 -A2 "stts hook" "$CLAUDE_SETTINGS" | grep -E "\"(PreToolUse|PostToolUse|Notification|Stop|SubagentStop|Agent)\":|\"command\":" | sed 's/^/  /'
     
     echo
     
     # Count STTS hooks
-    HOOK_COUNT=$(grep -c "STTS-HOOK-v\|stts/dist/hooks/\|@eh-aye/stts" "$CLAUDE_SETTINGS")
+    HOOK_COUNT=$(grep -c "stts hook" "$CLAUDE_SETTINGS")
     echo -e "${GREEN}Total STTS hooks: $HOOK_COUNT${NC}"
-    
-    # Check for version identifiers
-    if grep -q "STTS-HOOK-v" "$CLAUDE_SETTINGS"; then
-        echo
-        echo "Version identifiers found:"
-        grep -o "STTS-HOOK-v[0-9.]*" "$CLAUDE_SETTINGS" | sort | uniq | sed 's/^/  - /'
-    fi
 else
     echo -e "${YELLOW}⚠️  No STTS hooks found${NC}"
     echo

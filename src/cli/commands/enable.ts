@@ -1,14 +1,10 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { writeFileSync } from 'fs';
+import { join } from 'path';
+import { writeFileSync, readFileSync } from 'fs';
 import { homedir } from 'os';
 import { ToolDetector } from '../../installer/detector';
 import { SettingsManager } from '../../installer/settings-manager';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 export function enableCommand(): Command {
   return new Command('enable')
@@ -35,23 +31,32 @@ export function enableCommand(): Command {
       }
 
       // Install hooks
-      const hooksPath = join(__dirname, '..', '..', 'hooks');
       const manager = new SettingsManager(settingsPath);
 
       try {
-        await manager.installHooks(hooksPath);
+        await manager.installHooks();
 
-        // Create config file if options are provided
-        if (options.dangerousCommands !== undefined || options.audio === false) {
-          const configPath = join(homedir(), '.stts.json');
-          const config = {
-            audioEnabled: options.audio !== false,
-            enableDangerousCommandBlocking: options.dangerousCommands || false,
-          };
+        // Always create/update config file
+        const configPath = join(homedir(), '.stts.json');
+        let existingConfig = {};
 
-          writeFileSync(configPath, JSON.stringify(config, null, 2));
-          console.log(chalk.gray(`\nConfiguration saved to: ${configPath}`));
+        // Read existing config if it exists
+        try {
+          const configContent = readFileSync(configPath, 'utf8');
+          existingConfig = JSON.parse(configContent);
+        } catch {
+          // Config doesn't exist yet, that's fine
         }
+
+        // Merge with new settings
+        const config = {
+          ...existingConfig,
+          audioEnabled: options.audio !== false,
+          enableDangerousCommandBlocking: options.dangerousCommands || false,
+        };
+
+        writeFileSync(configPath, JSON.stringify(config, null, 2));
+        console.log(chalk.gray(`\nConfiguration saved to: ${configPath}`));
 
         console.log(chalk.green('\n✨ TTS hooks installed successfully!'));
         console.log(chalk.gray(`\nHooks will be triggered on:`));
@@ -60,14 +65,28 @@ export function enableCommand(): Command {
         console.log(chalk.gray('  • Session completion'));
         console.log(chalk.gray('  • Agent task completion'));
 
-        if (options.dangerousCommands) {
-          console.log(chalk.yellow('\n⚠️  Dangerous command blocking is ENABLED'));
-          console.log(chalk.gray('  Commands like rm -rf, git push --force will be blocked'));
+        // Always show current status
+        console.log(chalk.blue('\n📊 Current Configuration:'));
+
+        if (config.audioEnabled) {
+          console.log(chalk.green('  🔊 Audio announcements: ENABLED'));
+          console.log(chalk.gray('     Run "stts test" to verify TTS is working'));
+        } else {
+          console.log(chalk.yellow('  🔇 Audio announcements: DISABLED'));
+          console.log(chalk.gray('     Enable with: stts config audio --enable'));
         }
 
-        if (options.audio === false) {
-          console.log(chalk.gray('\n🔇 Audio announcements are DISABLED'));
+        if (config.enableDangerousCommandBlocking) {
+          console.log(chalk.yellow('  ⚠️  Dangerous command blocking: ENABLED'));
+          console.log(chalk.gray('     Commands like rm -rf, git push --force will be blocked'));
+        } else {
+          console.log(chalk.gray('  ✓ Dangerous command blocking: DISABLED'));
         }
+
+        console.log(chalk.blue('\n💡 Next steps:'));
+        console.log(chalk.gray('  • Test TTS:     stts test'));
+        console.log(chalk.gray('  • View config:  stts config show'));
+        console.log(chalk.gray('  • Check status: stts status'));
       } catch (error) {
         console.error(
           chalk.red(

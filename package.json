@@ -34,7 +34,9 @@
     "clean": "rm -rf dist",
     "prepack": "npm run clean && npm run build",
     "loc": "tsx tools/utils/loc.ts",
-    "update:readme": "npm run loc"
+    "update:readme": "npm run loc",
+    "dev:test": "./scripts/dev-test.sh",
+    "dev:install": "./scripts/test-local-install.sh"
   },
   "keywords": [
     "tts",

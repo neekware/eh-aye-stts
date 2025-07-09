@@ -112,7 +112,7 @@ export class SettingsManager {
     }
   }
 
-  async installHooks(_hookScriptsPath: string): Promise<void> {
+  async installHooks(): Promise<void> {
     // Create backup before modifying settings
     const backupPath = await this.backupSettings();
     if (backupPath) {
