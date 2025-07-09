@@ -1,4 +1,7 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Update lines of code statistics
+bash scripts/update-loc.sh
+
 npx lint-staged

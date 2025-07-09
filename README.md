@@ -221,6 +221,23 @@ graph TB
     style CC fill:#f48fb1,stroke:#ad1457,stroke-width:2px,color:#000
 ```
 
+## 📊 Lines of Code
+
+| Language    | Files  | Lines    | Code     | Comments | Blanks   |
+| ----------- | ------ | -------- | -------- | -------- | -------- |
+| Environment | 2      | 19       | 4        | 12       | 3        |
+| Git         | 1      | 53       | 28       | 14       | 11       |
+| JSON        | 8      | 249      | 59       | 185      | 5        |
+| JavaScript  | 2      | 111      | 84       | 9        | 18       |
+| License     | 1      | 21       | 17       | 0        | 4        |
+| Markdown    | 14     | 1578     | 918      | 267      | 393      |
+| Shell       | 2      | 69       | 47       | 11       | 11       |
+| TypeScript  | 44     | 4224     | 3283     | 331      | 610      |
+| YAML        | 5      | 216      | 180      | 4        | 32       |
+| **Total**   | **79** | **6540** | **4620** | **833**  | **1087** |
+
+_Last updated: 2025-07-09_
+
 ## Examples
 
 See the [examples](./examples) directory for:

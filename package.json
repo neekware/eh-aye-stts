@@ -24,7 +24,9 @@
     "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
     "prepare": "husky",
     "clean": "rm -rf dist",
-    "prepack": "npm run clean && npm run build"
+    "prepack": "npm run clean && npm run build",
+    "loc": "tsx tools/utils/loc.ts",
+    "update:readme": "npm run loc"
   },
   "keywords": [
     "tts",
