@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 import { BaseHook } from './base';
 import { AgentEvent } from '../types';
-import { loadTTS, Emotion } from '../tts/index';
+import { Emotion } from '../tts/index';
+import { announceIfEnabled } from './utils';
 
 export class AgentHook extends BaseHook {
-  private tts = loadTTS();
-
   constructor() {
     super('agent');
   }
@@ -90,7 +89,7 @@ export class AgentHook extends BaseHook {
 
     // Announce the message
     try {
-      await this.tts.speak(message, emotion);
+      await announceIfEnabled(message, emotion);
     } catch (error) {
       this.logger.error(`TTS error: ${error instanceof Error ? error.message : String(error)}`);
     }

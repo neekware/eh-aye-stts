@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 import { BaseHook } from './base';
 import { NotificationEvent } from '../types';
-import { loadTTS, detectEmotion, Emotion } from '../tts/index';
+import { detectEmotion, Emotion } from '../tts/index';
+import { announceIfEnabled } from './utils';
 import chalk from 'chalk';
 
 export class NotificationHook extends BaseHook {
-  private tts = loadTTS();
-
   constructor() {
     super('notification');
   }
@@ -29,22 +28,11 @@ export class NotificationHook extends BaseHook {
 
     // Speak the notification
     try {
-      const provider = await this.tts.getProvider();
-      if (provider) {
-        this.logger.debug(`Using ${provider.name} TTS provider`);
-      }
-
       // Detect emotion from the message content
       const emotion = this.detectNotificationEmotion(event);
       this.logger.debug(`Using emotion: ${emotion}`);
 
-      const success = await this.tts.speak(event.message, emotion);
-
-      if (!success) {
-        this.logger.warn('TTS failed to speak notification');
-      } else {
-        this.logger.debug('Notification spoken successfully');
-      }
+      await announceIfEnabled(event.message, emotion);
     } catch (error) {
       this.logger.error(`TTS error: ${error instanceof Error ? error.message : String(error)}`);
       // Don't fail the hook if TTS fails

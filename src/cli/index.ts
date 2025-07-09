@@ -74,7 +74,9 @@ program
 program
   .command('enable <tool>')
   .description('Enable TTS hooks for a development tool')
-  .action(async (tool: string) => {
+  .option('--dangerous-commands', 'Enable dangerous command blocking')
+  .option('--no-audio', 'Disable audio announcements')
+  .action(async (tool: string, options: { dangerousCommands?: boolean; audio?: boolean }) => {
     const detector = new ToolDetector();
     const results = await detector.detect(tool);
 
@@ -98,12 +100,42 @@ program
 
     try {
       await manager.installHooks(hooksPath);
+
+      // Create config file if options are provided
+      if (options.dangerousCommands !== undefined || options.audio === false) {
+        const { writeFileSync } = await import('fs');
+        const pathModule = await import('path');
+        const { homedir } = await import('os');
+
+        const configPath = pathModule.join(homedir(), '.claude', 'stts.json');
+        const config = {
+          audioEnabled: options.audio !== false,
+          enableDangerousCommandBlocking: options.dangerousCommands || false,
+        };
+
+        // Ensure .claude directory exists
+        const { mkdirSync } = await import('fs');
+        mkdirSync(pathModule.join(homedir(), '.claude'), { recursive: true });
+
+        writeFileSync(configPath, JSON.stringify(config, null, 2));
+        console.log(chalk.gray(`\nConfiguration saved to: ${configPath}`));
+      }
+
       console.log(chalk.green('\n✨ TTS hooks installed successfully!'));
       console.log(chalk.gray(`\nHooks will be triggered on:`));
       console.log(chalk.gray('  • Tool usage announcements'));
       console.log(chalk.gray('  • Notifications'));
       console.log(chalk.gray('  • Session completion'));
       console.log(chalk.gray('  • Agent task completion'));
+
+      if (options.dangerousCommands) {
+        console.log(chalk.yellow('\n⚠️  Dangerous command blocking is ENABLED'));
+        console.log(chalk.gray('  Commands like rm -rf, git push --force will be blocked'));
+      }
+
+      if (options.audio === false) {
+        console.log(chalk.gray('\n🔇 Audio announcements are DISABLED'));
+      }
     } catch (error) {
       console.error(
         chalk.red(
@@ -182,6 +214,125 @@ program
       }
     }
   });
+
+// Config command
+program
+  .command('config')
+  .description('Manage STTS configuration')
+  .option('--show', 'Show current configuration')
+  .option('--enable-dangerous-commands', 'Enable dangerous command blocking')
+  .option('--disable-dangerous-commands', 'Disable dangerous command blocking')
+  .option('--enable-audio', 'Enable audio announcements')
+  .option('--disable-audio', 'Disable audio announcements')
+  .option('--add-dangerous-command <cmd>', 'Add a custom dangerous command pattern')
+  .action(
+    async (options: {
+      show?: boolean;
+      enableDangerousCommands?: boolean;
+      disableDangerousCommands?: boolean;
+      enableAudio?: boolean;
+      disableAudio?: boolean;
+      addDangerousCommand?: string;
+    }) => {
+      const { readFileSync, writeFileSync, existsSync, mkdirSync } = await import('fs');
+      const pathModule = await import('path');
+      const { homedir } = await import('os');
+
+      const configPath = pathModule.join(homedir(), '.claude', 'stts.json');
+
+      // Show config
+      if (options.show) {
+        if (existsSync(configPath)) {
+          const config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
+          console.log(chalk.blue('Current STTS Configuration:'));
+          console.log(JSON.stringify(config, null, 2));
+        } else {
+          console.log(chalk.gray('No configuration file found. Using defaults.'));
+          console.log(chalk.gray('Default configuration:'));
+          console.log(
+            JSON.stringify(
+              {
+                audioEnabled: true,
+                enableDangerousCommandBlocking: false,
+                customDangerousCommands: [],
+              },
+              null,
+              2
+            )
+          );
+        }
+        return;
+      }
+
+      // Load existing config or create new one
+      interface Config {
+        audioEnabled: boolean;
+        enableDangerousCommandBlocking: boolean;
+        customDangerousCommands: string[];
+      }
+
+      let config: Config = {
+        audioEnabled: true,
+        enableDangerousCommandBlocking: false,
+        customDangerousCommands: [],
+      };
+
+      if (existsSync(configPath)) {
+        config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
+      }
+
+      // Update config based on options
+      let changed = false;
+
+      if (options.enableDangerousCommands) {
+        config.enableDangerousCommandBlocking = true;
+        changed = true;
+        console.log(chalk.green('✓ Dangerous command blocking enabled'));
+      }
+
+      if (options.disableDangerousCommands) {
+        config.enableDangerousCommandBlocking = false;
+        changed = true;
+        console.log(chalk.green('✓ Dangerous command blocking disabled'));
+      }
+
+      if (options.enableAudio) {
+        config.audioEnabled = true;
+        changed = true;
+        console.log(chalk.green('✓ Audio announcements enabled'));
+      }
+
+      if (options.disableAudio) {
+        config.audioEnabled = false;
+        changed = true;
+        console.log(chalk.green('✓ Audio announcements disabled'));
+      }
+
+      if (options.addDangerousCommand) {
+        if (!config.customDangerousCommands) {
+          config.customDangerousCommands = [];
+        }
+        if (!config.customDangerousCommands.includes(options.addDangerousCommand)) {
+          config.customDangerousCommands.push(options.addDangerousCommand);
+          changed = true;
+          console.log(
+            chalk.green(`✓ Added dangerous command pattern: ${options.addDangerousCommand}`)
+          );
+        } else {
+          console.log(chalk.yellow('Command pattern already exists'));
+        }
+      }
+
+      // Save config if changed
+      if (changed) {
+        mkdirSync(pathModule.join(homedir(), '.claude'), { recursive: true });
+        writeFileSync(configPath, JSON.stringify(config, null, 2));
+        console.log(chalk.gray(`\nConfiguration saved to: ${configPath}`));
+      } else {
+        console.log(chalk.gray('No changes made to configuration'));
+      }
+    }
+  );
 
 // Test command
 program

@@ -81,3 +81,10 @@ export interface AgentEvent {
     [key: string]: unknown;
   };
 }
+
+export interface STTSConfig {
+  enableDangerousCommandBlocking?: boolean;
+  customDangerousCommands?: string[];
+  audioEnabled?: boolean;
+  [key: string]: unknown;
+}

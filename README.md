@@ -143,8 +143,74 @@ npm install -g @eh-aye/stts
 # Enable Claude Code integration
 stts enable claude-code
 
+# Enable with dangerous command blocking (optional)
+stts enable claude-code --dangerous-commands
+
+# Enable without audio (silent mode)
+stts enable claude-code --no-audio
+
 # Test it works
 stts test
+```
+
+### Configuration
+
+STTS can be configured via:
+
+- Configuration files: `.sttsrc.json`, `.stts.json`, or `~/.claude/stts.json`
+- Environment variables
+- CLI commands
+
+#### Configuration Options
+
+```json
+{
+  "audioEnabled": true,
+  "enableDangerousCommandBlocking": false,
+  "customDangerousCommands": []
+}
+```
+
+#### Managing Configuration
+
+```bash
+# Show current configuration
+stts config --show
+
+# Enable/disable dangerous command blocking
+stts config --enable-dangerous-commands
+stts config --disable-dangerous-commands
+
+# Enable/disable audio
+stts config --enable-audio
+stts config --disable-audio
+
+# Add custom dangerous command patterns
+stts config --add-dangerous-command "sudo rm"
+stts config --add-dangerous-command "DROP TABLE"
+```
+
+#### Environment Variables
+
+```bash
+export STTS_ENABLE_DANGEROUS_COMMAND_BLOCKING=true
+export STTS_AUDIO_ENABLED=false
+export STTS_CUSTOM_DANGEROUS_COMMANDS="sudo rm,DROP TABLE,DELETE FROM"
+```
+
+### Dangerous Command Blocking
+
+When enabled, STTS will block potentially destructive commands:
+
+- File system: `rm -rf`, `dd if=`, `mkfs`, `format`
+- System: `chmod -R 777 /`, `chown -R`, `:(){:|:&};:`
+- Git: `git push --force`, `git reset --hard`, `git clean -fdx`
+- Custom patterns you define
+
+To enable:
+
+```bash
+stts config --enable-dangerous-commands
 ```
 
 This adds voice notifications for:
@@ -230,11 +296,11 @@ graph TB
 | JSON        | 8      | 243      | 57       | 180      | 6        |
 | JavaScript  | 2      | 111      | 84       | 9        | 18       |
 | License     | 1      | 21       | 17       | 0        | 4        |
-| Markdown    | 14     | 1578     | 918      | 267      | 393      |
+| Markdown    | 14     | 1642     | 951      | 281      | 410      |
 | Shell       | 2      | 69       | 47       | 11       | 11       |
-| TypeScript  | 53     | 5154     | 3992     | 356      | 806      |
+| TypeScript  | 55     | 5395     | 4186     | 373      | 836      |
 | YAML        | 5      | 216      | 180      | 4        | 32       |
-| **Total**   | **88** | **7464** | **5327** | **853**  | **1284** |
+| **Total**   | **90** | **7769** | **5554** | **884**  | **1331** |
 
 _Last updated: 2025-07-09_
 

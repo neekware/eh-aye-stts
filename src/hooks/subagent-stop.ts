@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 import { BaseHook } from './base';
 import { SubagentStopEvent } from '../types';
-import { loadTTS, detectEmotion, Emotion } from '../tts/index';
+import { detectEmotion, Emotion } from '../tts/index';
+import { announceIfEnabled } from './utils';
 
 export class SubagentStopHook extends BaseHook {
-  private tts = loadTTS();
-
   constructor() {
     super('subagent-stop');
   }
@@ -44,7 +43,7 @@ export class SubagentStopHook extends BaseHook {
     }
 
     try {
-      await this.tts.speak(message, emotion);
+      await announceIfEnabled(message, emotion);
     } catch (error) {
       this.logger.error(`TTS error: ${error instanceof Error ? error.message : String(error)}`);
     }

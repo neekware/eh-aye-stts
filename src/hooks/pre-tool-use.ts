@@ -1,23 +1,43 @@
 #!/usr/bin/env node
 import { BaseHook } from './base';
 import { PreToolUseEvent } from '../types';
-import { loadTTS } from '../tts';
+import { getConfigValue } from '../utils/config';
+import { announceIfEnabled } from './utils';
 
 export class PreToolUseHook extends BaseHook {
-  private tts = loadTTS();
-  private dangerousCommands = [
-    'rm -rf',
-    'dd if=',
-    ':(){:|:&};:', // Fork bomb
-    'mkfs',
-    'format',
-    '> /dev/sda',
-    'chmod -R 777 /',
-    'chown -R',
-  ];
+  private enableDangerousCommandBlocking: boolean;
+  private dangerousCommands: string[];
 
   constructor() {
     super('pre-tool-use');
+
+    // Load configuration
+    this.enableDangerousCommandBlocking = getConfigValue('enableDangerousCommandBlocking', false);
+
+    // Default dangerous commands
+    const defaultDangerousCommands = [
+      'rm -rf',
+      'dd if=',
+      ':(){:|:&};:',
+      'mkfs',
+      'format',
+      '> /dev/sda',
+      'chmod -R 777 /',
+      'chown -R',
+      // Dangerous git commands
+      'git push --force',
+      'git push -f',
+      'git reset --hard',
+      'git clean -fdx',
+      'git reflog expire',
+      'git gc --prune=now',
+      'git filter-branch',
+      'git filter-repo',
+    ];
+
+    // Merge with custom dangerous commands from config
+    const customCommands = getConfigValue<string[]>('customDangerousCommands', []);
+    this.dangerousCommands = [...defaultDangerousCommands, ...customCommands];
   }
 
   async execute(): Promise<void> {
@@ -36,8 +56,8 @@ export class PreToolUseHook extends BaseHook {
       data: { ...event },
     });
 
-    // Check for dangerous commands
-    if (event.tool === 'bash' || event.tool === 'shell') {
+    // Check for dangerous commands only if enabled
+    if (this.enableDangerousCommandBlocking && (event.tool === 'bash' || event.tool === 'shell')) {
       // Handle both array and object formats
       const command = Array.isArray(event.args)
         ? event.args.join(' ')
@@ -47,7 +67,7 @@ export class PreToolUseHook extends BaseHook {
         this.logger.error(`Blocked dangerous command: ${command}`);
 
         // Announce the block
-        await this.announce(`Warning: Blocked dangerous command`);
+        await announceIfEnabled(`Warning: Blocked dangerous command`, 'urgent');
 
         // Exit with code 2 to indicate blocked operation
         process.exit(2);
@@ -56,7 +76,7 @@ export class PreToolUseHook extends BaseHook {
 
     // Announce tool usage
     const toolName = this.getToolDisplayName(event.tool);
-    await this.announce(`Running ${toolName}`);
+    await announceIfEnabled(`Running ${toolName}`);
   }
 
   private isDangerousCommand(command: string): boolean {
@@ -78,17 +98,6 @@ export class PreToolUseHook extends BaseHook {
     };
 
     return displayNames[tool.toLowerCase()] || tool;
-  }
-
-  private async announce(message: string): Promise<void> {
-    try {
-      const success = await this.tts.speak(message);
-      if (!success) {
-        this.logger.warn('Failed to announce message');
-      }
-    } catch (error) {
-      this.logger.error(`TTS error: ${error instanceof Error ? error.message : String(error)}`);
-    }
   }
 }
 
