@@ -7,9 +7,9 @@ import { ToolDetector } from '../../installer/detector';
 import { SettingsManager } from '../../installer/settings-manager';
 
 export function enableCommand(): Command {
-  return new Command('enable')
+  const cmd = new Command('enable')
     .description('Enable TTS hooks for a development tool')
-    .argument('<tool>', 'Tool to enable TTS for (claude-code, cursor, etc.)')
+    .argument('<tool>', 'Tool to enable TTS for (currently supports: claude-code, claude)')
     .option('--dangerous-commands', 'Enable dangerous command blocking')
     .option('--no-audio', 'Disable audio announcements')
     .option(
@@ -17,6 +17,18 @@ export function enableCommand(): Command {
       'Install wrapper scripts globally in ~/.stts/hooks/ (warns if stts missing)'
     )
     .option('--local', 'Install wrapper scripts locally in .claude/hooks/ (silent if stts missing)')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  stts enable claude-code                Enable basic TTS hooks
+  stts enable claude-code --global       Install global wrapper script
+  stts enable claude-code --local        Install local wrapper script
+  stts enable claude-code --no-audio     Enable without audio announcements
+
+Supported tools: claude-code, claude`
+    )
+    .showHelpAfterError()
     .action(
       async (
         tool: string,
@@ -124,4 +136,6 @@ export function enableCommand(): Command {
         }
       }
     );
+
+  return cmd;
 }

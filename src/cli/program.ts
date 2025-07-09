@@ -16,7 +16,18 @@ export function createProgram(): Command {
   program
     .name('stts')
     .description('Smart Text-to-Speech installer for development tools with wrapper script support')
-    .version(VERSION);
+    .version(VERSION)
+    .addHelpText(
+      'after',
+      `
+Examples:
+  stts enable claude-code     Enable TTS hooks for Claude Code
+  stts disable claude-code    Disable TTS hooks for Claude Code
+  stts status                 Show current status
+  stts test                   Test TTS functionality
+
+Use 'stts <command> --help' for detailed command information.`
+    );
 
   // Add commands
   program.addCommand(detectCommand());

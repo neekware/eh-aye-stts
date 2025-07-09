@@ -161,6 +161,9 @@ stts enable claude-code --no-audio
 stts enable claude-code --global    # Global wrapper in ~/.stts/hooks/ (warns if stts missing)
 stts enable claude-code --local     # Local wrapper in .claude/hooks/ (silent if stts missing)
 
+# Note: Currently only claude-code and claude are supported
+# Future versions will add support for cursor, vscode, windsurf, zed
+
 # Test it works
 stts test
 ```
@@ -338,11 +341,11 @@ graph TB
 | JSON        | 12      | 601       | 87       | 491      | 23       |
 | JavaScript  | 2       | 111       | 84       | 9        | 18       |
 | License     | 1       | 21        | 17       | 0        | 4        |
-| Markdown    | 17      | 2121      | 1173     | 373      | 575      |
+| Markdown    | 17      | 2141      | 1173     | 375      | 593      |
 | Shell       | 11      | 605       | 373      | 112      | 120      |
-| TypeScript  | 71      | 6571      | 5066     | 473      | 1032     |
+| TypeScript  | 71      | 6603      | 5094     | 473      | 1036     |
 | YAML        | 5       | 216       | 180      | 4        | 32       |
-| **Total**   | **122** | **10322** | **7012** | **1492** | **1818** |
+| **Total**   | **122** | **10374** | **7040** | **1494** | **1840** |
 
 _Last updated: 2025-07-09_
 

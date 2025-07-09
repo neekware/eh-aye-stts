@@ -6,9 +6,20 @@ import { SettingsManager } from '../../installer/settings-manager';
 export function disableCommand(): Command {
   return new Command('disable')
     .description('Disable TTS hooks for a development tool')
-    .argument('<tool>', 'Tool to disable TTS for (claude-code, cursor, etc.)')
+    .argument('<tool>', 'Tool to disable TTS for (currently supports: claude-code, claude)')
     .option('--global', 'Remove wrapper scripts from ~/.stts/hooks/')
     .option('--local', 'Remove wrapper scripts from .claude/hooks/')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  stts disable claude-code           Remove TTS hooks
+  stts disable claude-code --global  Remove global wrapper script
+  stts disable claude-code --local   Remove local wrapper script
+
+Supported tools: claude-code, claude`
+    )
+    .showHelpAfterError()
     .action(async (tool: string, options: { global?: boolean; local?: boolean }) => {
       const detector = new ToolDetector();
       const settingsPath = await detector.getSettingsPath(tool);
