@@ -13,6 +13,10 @@ vi.mock('fs', () => ({
 vi.mock('os', () => ({
   homedir: vi.fn(() => '/home/test'),
 }));
+vi.mock('../../utils/claude-settings', () => ({
+  getClaudeSettingsPath: vi.fn(() => '/home/test/.claude/settings.json'),
+  getClaudeSettingsDir: vi.fn(() => '/home/test/.claude'),
+}));
 
 // Now import the mocked modules
 import which from 'which';

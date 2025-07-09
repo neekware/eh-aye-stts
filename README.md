@@ -207,9 +207,13 @@ Configuration is loaded in this order (later sources override earlier ones):
 #### Environment Variables
 
 ```bash
+# Configuration
 export STTS_ENABLE_DANGEROUS_COMMAND_BLOCKING=true
 export STTS_AUDIO_ENABLED=false
 export STTS_CUSTOM_DANGEROUS_COMMANDS="sudo rm,DROP TABLE,DELETE FROM"
+
+# Claude settings path (default: ~/.claude/settings.json)
+export STTS_CLAUDE_SETTINGS_PATH="/custom/path/to/settings.json"
 ```
 
 ### Dangerous Command Blocking
@@ -248,6 +252,9 @@ export STTS_VOICE_TYPE="female"
 # API Keys (use STTS_ prefix to avoid conflicts)
 export STTS_OPENAI_API_KEY="sk-..."
 export STTS_ELEVENLABS_API_KEY="..."
+
+# Claude integration settings
+export STTS_CLAUDE_SETTINGS_PATH="/path/to/claude/settings.json"
 ```
 
 ## Architecture
@@ -309,11 +316,11 @@ graph TB
 | JSON        | 11      | 563      | 75       | 466      | 22       |
 | JavaScript  | 2       | 111      | 84       | 9        | 18       |
 | License     | 1       | 21       | 17       | 0        | 4        |
-| Markdown    | 14      | 1660     | 957      | 286      | 417      |
+| Markdown    | 14      | 1685     | 967      | 294      | 424      |
 | Shell       | 2       | 69       | 47       | 11       | 11       |
-| TypeScript  | 65      | 5675     | 4414     | 379      | 882      |
+| TypeScript  | 67      | 5772     | 4486     | 387      | 899      |
 | YAML        | 5       | 216      | 180      | 4        | 32       |
-| **Total**   | **103** | **8391** | **5806** | **1185** | **1400** |
+| **Total**   | **105** | **8513** | **5888** | **1201** | **1424** |
 
 _Last updated: 2025-07-09_
 

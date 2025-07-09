@@ -1,8 +1,8 @@
 import which from 'which';
 import { promises as fs } from 'fs';
 import { join } from 'path';
-import { homedir } from 'os';
 import { ToolInfo } from '../types';
+import { getClaudeSettingsPath, getClaudeSettingsDir } from '../utils/claude-settings';
 
 export class ToolDetector {
   private tools: Map<string, ToolInfo> = new Map();
@@ -12,11 +12,13 @@ export class ToolDetector {
   }
 
   private registerTools(): void {
+    const claudeSettingsPath = getClaudeSettingsPath();
+
     // Claude Code
     this.tools.set('claude-code', {
       name: 'Claude Code',
       executable: 'claude-code',
-      settingsPath: join(homedir(), '.claude', 'settings.json'),
+      settingsPath: claudeSettingsPath,
       detected: false,
     });
 
@@ -24,7 +26,7 @@ export class ToolDetector {
     this.tools.set('claude', {
       name: 'Claude',
       executable: 'claude',
-      settingsPath: join(homedir(), '.claude', 'settings.json'),
+      settingsPath: claudeSettingsPath,
       detected: false,
     });
 
@@ -102,11 +104,11 @@ export class ToolDetector {
       }
     }
 
-    // Check home directory
-    const homeClaudeDir = join(homedir(), '.claude');
+    // Check configured Claude directory
+    const claudeDir = getClaudeSettingsDir();
     try {
-      await fs.access(homeClaudeDir);
-      return homeClaudeDir;
+      await fs.access(claudeDir);
+      return claudeDir;
     } catch {
       return null;
     }

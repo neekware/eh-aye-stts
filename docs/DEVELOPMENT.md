@@ -3,6 +3,7 @@
 ## Quick Start for Development
 
 ### 1. **Setup Development Environment**
+
 ```bash
 # Install dependencies
 npm install
@@ -16,6 +17,7 @@ npm run dev -- test
 ### 2. **Development Scripts**
 
 #### Hot Reload Development (Recommended)
+
 ```bash
 # Run CLI without building - changes take effect immediately
 npm run dev -- [command] [args]
@@ -27,6 +29,7 @@ npm run dev -- test -m "Testing development mode"
 ```
 
 #### Watch Mode Development
+
 ```bash
 # In terminal 1: Watch and rebuild TypeScript
 npm run dev:build
@@ -38,6 +41,7 @@ node dist/cli/index.js [command]
 ### 3. **Testing**
 
 #### Run Tests
+
 ```bash
 # Run all tests
 npm test
@@ -50,7 +54,9 @@ npm run test:coverage
 ```
 
 #### Writing Tests
+
 Tests are in `src/__tests__/` mirroring the source structure:
+
 ```
 src/
 ├── installer/
@@ -63,17 +69,20 @@ src/
 ### 4. **Safe Installation/Uninstallation**
 
 The STTS hooks are designed to be safe:
+
 - **Install**: Only adds STTS-specific hooks, preserves existing hooks
 - **Uninstall**: Only removes STTS hooks, leaves other hooks untouched
 
 Pattern matching for STTS hooks:
+
 ```javascript
-/stts\/dist\/hooks\/|@ehaye\/stts|node .*\/stts\/dist\/hooks\//
+/stts\/dist\/hooks\/|@ehaye\/stts|node .*\/stts\/dist\/hooks\//;
 ```
 
 ### 5. **Development Workflow**
 
 #### For Rapid Development:
+
 ```bash
 # 1. Make changes to source files
 # 2. Test immediately without building:
@@ -85,6 +94,7 @@ npm test
 ```
 
 #### For Testing Hook Installation:
+
 ```bash
 # Enable hooks
 npm run dev -- enable claude-code
@@ -100,6 +110,7 @@ npm run dev -- disable claude-code
 ```
 
 ### 6. **Project Structure**
+
 ```
 stts/
 ├── src/
@@ -122,31 +133,53 @@ stts/
 ### 7. **Adding New Features**
 
 #### Add a New Hook:
+
 1. Create hook in `src/hooks/new-hook.ts`
 2. Add to hook types in `src/types.ts`
 3. Update `settings-manager.ts` to install it
 4. Write tests in `src/__tests__/hooks/new-hook.test.ts`
 
 #### Add a New CLI Command:
+
 1. Add command in `src/cli/index.ts`
 2. Implement logic in appropriate module
 3. Test with `npm run dev -- new-command`
 
-### 8. **Debugging**
+### 8. **Environment Variables**
+
+#### Configuration Variables:
+
+```bash
+# Enable/disable features
+export STTS_ENABLE_DANGEROUS_COMMAND_BLOCKING=true
+export STTS_AUDIO_ENABLED=false
+export STTS_CUSTOM_DANGEROUS_COMMANDS="sudo rm,DROP TABLE"
+
+# API Keys
+export STTS_OPENAI_API_KEY="sk-..."
+export STTS_ELEVENLABS_API_KEY="..."
+
+# Claude settings path (for testing different configurations)
+export STTS_CLAUDE_SETTINGS_PATH="/path/to/test/settings.json"
+```
+
+### 9. **Debugging**
 
 #### Enable Debug Logging:
+
 ```bash
 DEBUG=* npm run dev -- enable claude-code
 ```
 
 #### Check Hook Execution:
+
 ```bash
 # Logs are stored in ~/.stts/logs/
 ls -la ~/.stts/logs/
 tail -f ~/.stts/logs/notification.json
 ```
 
-### 9. **Before Publishing**
+### 10. **Before Publishing**
 
 ```bash
 # Clean and build
@@ -176,12 +209,15 @@ stts test
 ## Common Issues
 
 ### "Command not found" in dev mode
+
 Make sure you're using `npm run dev --` with the double dash before commands.
 
 ### Tests failing with import errors
+
 Run tests with: `npm test` (includes ES modules flag)
 
 ### Hooks not triggering
+
 1. Check if hooks are installed: `stts status`
 2. Verify hook files exist: `ls -la dist/hooks/`
 3. Check Claude Code is reading the correct settings file
