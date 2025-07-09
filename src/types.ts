@@ -11,7 +11,7 @@ export interface HookConfig {
 }
 
 export interface HookMatcher {
-  matcher: string;
+  matcher: string; // Pattern to match tools, e.g., "*" for all tools, "bash" for bash only
   hooks: HookConfig[];
 }
 

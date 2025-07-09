@@ -142,7 +142,7 @@ export class SettingsManager {
       // Use stts command instead of absolute paths
       const hookType = script.replace('.js', '');
       const hookEntry: HookMatcher = {
-        matcher: '',
+        matcher: '*',
         hooks: [
           {
             type: 'command',
