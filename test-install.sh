@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🧪 Testing Claude TTS Installation..."
+echo "🧪 Testing STTS Installation..."
 echo ""
 
 # 1. Check if built files exist
@@ -15,29 +15,29 @@ fi
 # 2. Test CLI availability
 echo ""
 echo "🔧 Testing CLI commands..."
-npx claude-tts --version
+npx stts --version
 
 # 3. List available providers
 echo ""
 echo "📋 Available TTS providers:"
-npx claude-tts list
+npx stts list
 
 # 4. Test basic TTS
 echo ""
 echo "🔊 Testing basic TTS..."
-npx claude-tts speak "Hello from Claude TTS test using the default provider"
+npx stts speak "Hello from STTS test using the default provider"
 
 # 5. Test hook functionality
 echo ""
 echo "🪝 Testing notification hook..."
-echo '{"message": "This is a test notification"}' | npx claude-tts hook
+echo '{"message": "This is a test notification"}' | npx stts hook
 
 # 6. Check Claude Code integration
 echo ""
 echo "⚙️  Checking Claude Code integration..."
 if [ -f "$HOME/.claude/settings.json" ]; then
     echo "✓ Claude settings file exists"
-    if grep -q "claude-tts hook" "$HOME/.claude/settings.json"; then
+    if grep -q "stts hook" "$HOME/.claude/settings.json"; then
         echo "✓ TTS hook is installed"
     else
         echo "✗ TTS hook not found in settings"
@@ -49,8 +49,8 @@ fi
 # 7. Test different voices
 echo ""
 echo "🎭 Testing voice options..."
-npx claude-tts speak "Testing male voice with say provider" --gender male --provider say
-npx claude-tts speak "Testing female voice with say provider" --gender female --provider say
+npx stts speak "Testing male voice with say provider" --gender male --provider say
+npx stts speak "Testing female voice with say provider" --gender female --provider say
 
 echo ""
 echo "✅ Installation tests complete!"
