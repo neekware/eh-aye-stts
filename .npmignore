@@ -1,0 +1,57 @@
+# Source files (only ship compiled)
+src/
+*.ts
+!*.d.ts
+
+# Development files
+dev.js
+test-install.sh
+*.test.js
+*.test.d.ts
+
+# Config files
+.env
+.env.*
+!.env.example
+tsconfig.json
+jest.config.js
+.eslintrc*
+
+# Documentation source
+docs/
+
+# Git
+.git/
+.gitignore
+
+# CI/CD
+.github/
+.travis.yml
+.circleci/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependencies
+node_modules/
+
+# Build artifacts
+*.tgz
+
+# Temporary files
+tmp/
+temp/
