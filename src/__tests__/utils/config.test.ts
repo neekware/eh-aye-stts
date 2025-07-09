@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { readFileSync, existsSync, mkdirSync, renameSync } from 'fs';
+import { readFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { loadSTTSConfig, getConfigValue, getEnvWithFallback } from '../../utils/config';
@@ -9,7 +9,6 @@ vi.mock('fs', () => ({
   readFileSync: vi.fn(),
   existsSync: vi.fn(),
   mkdirSync: vi.fn(),
-  renameSync: vi.fn(),
 }));
 
 // Mock os module
@@ -33,7 +32,6 @@ describe('Config', () => {
     it('should return default config when no files exist', () => {
       vi.mocked(existsSync).mockReturnValue(false);
       vi.mocked(mkdirSync).mockImplementation(() => undefined);
-      vi.mocked(renameSync).mockImplementation(() => undefined);
 
       const config = loadSTTSConfig();
 
@@ -44,47 +42,10 @@ describe('Config', () => {
       });
     });
 
-    it('should migrate old config file to new location', () => {
-      const existingFiles = new Set(['/home/user/.stts.json']);
-      vi.mocked(existsSync).mockImplementation((path) => {
-        return existingFiles.has(path);
-      });
-      vi.mocked(readFileSync).mockReturnValue(
-        JSON.stringify({
-          audioEnabled: false,
-          enableDangerousCommandBlocking: true,
-        })
-      );
-      const renameSyncMock = vi.mocked(renameSync).mockImplementation((oldPath, newPath) => {
-        existingFiles.delete(oldPath);
-        existingFiles.add(newPath);
-      });
-      const mkdirSyncMock = vi.mocked(mkdirSync).mockImplementation((path) => {
-        existingFiles.add(path);
-      });
-
-      const config = loadSTTSConfig();
-
-      // Should create directory
-      expect(mkdirSyncMock).toHaveBeenCalledWith('/home/user/.stts', { recursive: true });
-      // Should rename old file to new location
-      expect(renameSyncMock).toHaveBeenCalledWith(
-        '/home/user/.stts.json',
-        '/home/user/.stts/settings.json'
-      );
-      // Should still load the config
-      expect(config).toEqual({
-        audioEnabled: false,
-        enableDangerousCommandBlocking: true,
-        customDangerousCommands: [],
-      });
-    });
-
     it('should load global config from home directory', () => {
       vi.mocked(existsSync).mockImplementation((path) => {
         if (path === '/home/user/.stts') return true; // Directory exists
-        if (path === '/home/user/.stts.json') return false; // Old config doesn't exist
-        if (path === '/home/user/.stts/settings.json') return true; // New config exists
+        if (path === '/home/user/.stts/settings.json') return true; // Config exists
         return false;
       });
       vi.mocked(readFileSync).mockReturnValue(

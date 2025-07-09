@@ -1,8 +1,8 @@
 import { HookEvent } from '../types';
 import winston from 'winston';
 import { join } from 'path';
-import { homedir } from 'os';
 import { promises as fs } from 'fs';
+import { LOGS_DIR } from '../defaults';
 
 export abstract class BaseHook {
   protected logger: winston.Logger;
@@ -31,8 +31,7 @@ export abstract class BaseHook {
   }
 
   private createJsonLogger(): winston.Logger {
-    const logDir = join(homedir(), '.stts', 'logs');
-    const logFile = join(logDir, `${this.hookName}.json`);
+    const logFile = join(LOGS_DIR, `${this.hookName}.json`);
 
     return winston.createLogger({
       format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
@@ -77,8 +76,7 @@ export abstract class BaseHook {
   }
 
   protected async ensureLogDirectory(): Promise<void> {
-    const logDir = join(homedir(), '.stts', 'logs');
-    await fs.mkdir(logDir, { recursive: true });
+    await fs.mkdir(LOGS_DIR, { recursive: true });
   }
 
   abstract execute(): Promise<void>;

@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { dirname } from 'path';
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
-import { GLOBAL_CONFIG_PATH } from '../../utils/config';
+import { SETTINGS_PATH } from '../../defaults';
 import { ToolDetector } from '../../installer/detector';
 import { SettingsManager } from '../../installer/settings-manager';
 
@@ -37,7 +37,7 @@ export function enableCommand(): Command {
         await manager.installHooks();
 
         // Always create/update config file
-        const configPath = GLOBAL_CONFIG_PATH;
+        const configPath = SETTINGS_PATH;
 
         // Ensure directory exists
         const configDir = dirname(configPath);

@@ -1,57 +1,39 @@
-import { readFileSync, existsSync, mkdirSync, renameSync } from 'fs';
+import { readFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { homedir } from 'os';
 import { STTSConfig } from '../types';
+import {
+  STTS_DIR,
+  SETTINGS_PATH,
+  PROJECT_CONFIG_FILE,
+  DEFAULT_CONFIG,
+  ENV_VARS,
+} from '../defaults';
 
-const DEFAULT_CONFIG: STTSConfig = {
-  audioEnabled: true,
-  enableDangerousCommandBlocking: false,
-  customDangerousCommands: [],
-};
-
-const STTS_DIR = join(homedir(), '.stts');
-const NEW_CONFIG_PATH = join(STTS_DIR, 'settings.json');
-const OLD_CONFIG_PATH = join(homedir(), '.stts.json');
-
-function migrateConfigIfNeeded(): void {
-  // Ensure ~/.stts directory exists
+function ensureConfigDirExists(): void {
   if (!existsSync(STTS_DIR)) {
     mkdirSync(STTS_DIR, { recursive: true });
-  }
-
-  // Migrate old config if it exists and new one doesn't
-  if (existsSync(OLD_CONFIG_PATH) && !existsSync(NEW_CONFIG_PATH)) {
-    try {
-      renameSync(OLD_CONFIG_PATH, NEW_CONFIG_PATH);
-      console.log(`Migrated settings from ${OLD_CONFIG_PATH} to ${NEW_CONFIG_PATH}`);
-    } catch (error) {
-      console.error(
-        `Failed to migrate config from ${OLD_CONFIG_PATH} to ${NEW_CONFIG_PATH}:`,
-        error
-      );
-    }
   }
 }
 
 export function loadSTTSConfig(): STTSConfig {
   let config: STTSConfig = { ...DEFAULT_CONFIG };
 
-  // Migrate old config if needed
-  migrateConfigIfNeeded();
+  // Ensure config directory exists
+  ensureConfigDirExists();
 
   // 1. Load global config from ~/.stts/settings.json
-  if (existsSync(NEW_CONFIG_PATH)) {
+  if (existsSync(SETTINGS_PATH)) {
     try {
-      const configData = readFileSync(NEW_CONFIG_PATH, 'utf-8');
+      const configData = readFileSync(SETTINGS_PATH, 'utf-8');
       const globalConfig = JSON.parse(configData) as STTSConfig;
       config = { ...config, ...globalConfig };
     } catch (error) {
-      console.error(`Failed to parse config from ${NEW_CONFIG_PATH}:`, error);
+      console.error(`Failed to parse config from ${SETTINGS_PATH}:`, error);
     }
   }
 
   // 2. Load project config from current directory (overrides global)
-  const projectConfigPath = join(process.cwd(), '.stts.json');
+  const projectConfigPath = join(process.cwd(), PROJECT_CONFIG_FILE);
   if (existsSync(projectConfigPath)) {
     try {
       const configData = readFileSync(projectConfigPath, 'utf-8');
@@ -63,18 +45,17 @@ export function loadSTTSConfig(): STTSConfig {
   }
 
   // 3. Environment variables override everything
-  if (process.env.STTS_ENABLE_DANGEROUS_COMMAND_BLOCKING === 'true') {
+  if (process.env[ENV_VARS.DANGEROUS_COMMAND_BLOCKING] === 'true') {
     config.enableDangerousCommandBlocking = true;
   }
 
-  if (process.env.STTS_AUDIO_ENABLED === 'false') {
+  if (process.env[ENV_VARS.AUDIO_ENABLED] === 'false') {
     config.audioEnabled = false;
   }
 
-  if (process.env.STTS_CUSTOM_DANGEROUS_COMMANDS) {
-    config.customDangerousCommands = process.env.STTS_CUSTOM_DANGEROUS_COMMANDS.split(',').map(
-      (cmd) => cmd.trim()
-    );
+  const customCommands = process.env[ENV_VARS.CUSTOM_DANGEROUS_COMMANDS];
+  if (customCommands) {
+    config.customDangerousCommands = customCommands.split(',').map((cmd) => cmd.trim());
   }
 
   return config;
@@ -82,7 +63,8 @@ export function loadSTTSConfig(): STTSConfig {
 
 export function getConfigValue<T>(key: keyof STTSConfig, defaultValue?: T): T {
   const config = loadSTTSConfig();
-  return (config[key] as T) ?? defaultValue ?? (DEFAULT_CONFIG[key] as T);
+  const defaultConfig = DEFAULT_CONFIG as STTSConfig;
+  return (config[key] as T) ?? defaultValue ?? (defaultConfig[key] as T);
 }
 
 /**
@@ -95,7 +77,3 @@ export function getConfigValue<T>(key: keyof STTSConfig, defaultValue?: T): T {
 export function getEnvWithFallback(primaryKey: string, fallbackKey: string): string | undefined {
   return process.env[primaryKey] || process.env[fallbackKey];
 }
-
-// Export config paths for use in other modules
-export const GLOBAL_CONFIG_PATH = NEW_CONFIG_PATH;
-export const OLD_GLOBAL_CONFIG_PATH = OLD_CONFIG_PATH;

@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import { join } from 'path';
 import { ToolInfo } from '../types';
 import { getClaudeSettingsPath, getClaudeSettingsDir } from '../utils/claude-settings';
+import { CLAUDE_DIR, CLAUDE_SETTINGS_FILE } from '../defaults';
 
 export class ToolDetector {
   private tools: Map<string, ToolInfo> = new Map();
@@ -85,7 +86,7 @@ export class ToolDetector {
       // Try to find .claude directory in parent directories
       const claudeDir = await this.findClaudeDirectory();
       if (claudeDir) {
-        return join(claudeDir, 'settings.json');
+        return join(claudeDir, CLAUDE_SETTINGS_FILE);
       }
       return null;
     }
@@ -95,7 +96,7 @@ export class ToolDetector {
     let currentDir = process.cwd();
 
     while (currentDir !== '/') {
-      const claudeDir = join(currentDir, '.claude');
+      const claudeDir = join(currentDir, CLAUDE_DIR);
       try {
         await fs.access(claudeDir);
         return claudeDir;

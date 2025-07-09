@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
-import { GLOBAL_CONFIG_PATH } from '../../utils/config';
+import { SETTINGS_PATH, DEFAULT_CONFIG } from '../../defaults';
 
 interface Config {
   audioEnabled: boolean;
@@ -32,7 +32,7 @@ Examples:
     .command('show')
     .description('Show current configuration')
     .action(() => {
-      const configPath = GLOBAL_CONFIG_PATH;
+      const configPath = SETTINGS_PATH;
 
       console.log(chalk.blue('📊 STTS Configuration\n'));
 
@@ -75,7 +75,7 @@ Examples:
     .option('--enable', 'Enable audio announcements')
     .option('--disable', 'Disable audio announcements')
     .action((options: { enable?: boolean; disable?: boolean }) => {
-      const configPath = GLOBAL_CONFIG_PATH;
+      const configPath = SETTINGS_PATH;
 
       // Show current status if no options provided
       if (!options.enable && !options.disable) {
@@ -94,11 +94,7 @@ Examples:
       }
 
       // Load existing config or create new one
-      let config: Config = {
-        audioEnabled: true,
-        enableDangerousCommandBlocking: false,
-        customDangerousCommands: [],
-      };
+      let config: Config = { ...DEFAULT_CONFIG };
 
       if (existsSync(configPath)) {
         config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
@@ -132,7 +128,7 @@ Examples:
     .option('--disable', 'Disable dangerous command blocking')
     .option('--add <pattern>', 'Add a custom dangerous command pattern')
     .action((options: { enable?: boolean; disable?: boolean; add?: string }) => {
-      const configPath = GLOBAL_CONFIG_PATH;
+      const configPath = SETTINGS_PATH;
 
       // Show current status if no options provided
       if (!options.enable && !options.disable && !options.add) {
@@ -159,11 +155,7 @@ Examples:
       }
 
       // Load existing config or create new one
-      let config: Config = {
-        audioEnabled: true,
-        enableDangerousCommandBlocking: false,
-        customDangerousCommands: [],
-      };
+      let config: Config = { ...DEFAULT_CONFIG };
 
       if (existsSync(configPath)) {
         config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;

@@ -56,7 +56,7 @@ describe('claude-settings', () => {
     it('should handle paths without directory separator', () => {
       process.env.STTS_CLAUDE_SETTINGS_PATH = 'settings.json';
       const dir = getClaudeSettingsDir();
-      expect(dir).toBe(homedir());
+      expect(dir).toBe('.');
     });
 
     it('should handle empty path', () => {

@@ -4,6 +4,7 @@ import { ElevenLabsProvider } from './providers/elevenlabs';
 import { OpenAIProvider } from './providers/openai';
 import { config } from 'dotenv';
 import { getEnvWithFallback } from '../utils/config';
+import { TTS_ENV_VARS } from '../defaults';
 
 config(); // Load .env file
 
@@ -109,27 +110,27 @@ export function loadTTS(userConfig: TTSConfig = {}): TTSLoader {
   const envConfig: TTSConfig = {};
 
   // Only set properties if they have values
-  if (process.env.STTS_PRIORITY) {
-    envConfig.priority = process.env.STTS_PRIORITY.split(',').map((s) => s.trim());
+  const priority = process.env[TTS_ENV_VARS.PRIORITY];
+  if (priority) {
+    envConfig.priority = priority.split(',').map((s) => s.trim());
   }
-  if (process.env.STTS_VOICE_TYPE || process.env.STTS_VOICE_GENDER) {
-    envConfig.voiceType = (process.env.STTS_VOICE_TYPE || process.env.STTS_VOICE_GENDER) as
-      | 'male'
-      | 'female';
+  if (process.env[TTS_ENV_VARS.VOICE_TYPE] || process.env[TTS_ENV_VARS.VOICE_GENDER]) {
+    envConfig.voiceType = (process.env[TTS_ENV_VARS.VOICE_TYPE] ||
+      process.env[TTS_ENV_VARS.VOICE_GENDER]) as 'male' | 'female';
   }
-  const elevenLabsKey = getEnvWithFallback('STTS_ELEVENLABS_API_KEY', 'ELEVENLABS_API_KEY');
+  const elevenLabsKey = getEnvWithFallback(TTS_ENV_VARS.ELEVENLABS_API_KEY, 'ELEVENLABS_API_KEY');
   if (elevenLabsKey) {
     envConfig.elevenLabsApiKey = elevenLabsKey;
   }
-  const openaiKey = getEnvWithFallback('STTS_OPENAI_API_KEY', 'OPENAI_API_KEY');
+  const openaiKey = getEnvWithFallback(TTS_ENV_VARS.OPENAI_API_KEY, 'OPENAI_API_KEY');
   if (openaiKey) {
     envConfig.openaiApiKey = openaiKey;
   }
-  if (process.env.STTS_ELEVENLABS_VOICE_ID) {
-    envConfig.elevenLabsVoiceId = process.env.STTS_ELEVENLABS_VOICE_ID;
+  if (process.env[TTS_ENV_VARS.ELEVENLABS_VOICE_ID]) {
+    envConfig.elevenLabsVoiceId = process.env[TTS_ENV_VARS.ELEVENLABS_VOICE_ID];
   }
-  if (process.env.STTS_OPENAI_MODEL) {
-    envConfig.openaiModel = process.env.STTS_OPENAI_MODEL;
+  if (process.env[TTS_ENV_VARS.OPENAI_MODEL]) {
+    envConfig.openaiModel = process.env[TTS_ENV_VARS.OPENAI_MODEL];
   }
 
   const finalConfig = { ...envConfig, ...userConfig };
