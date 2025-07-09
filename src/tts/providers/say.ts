@@ -1,4 +1,3 @@
-import { spawn } from 'child_process';
 import { BaseTTSProvider } from './base.js';
 
 export class SayProvider extends BaseTTSProvider {

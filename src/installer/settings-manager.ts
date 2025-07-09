@@ -61,12 +61,12 @@ export class SettingsManager {
 
       // Check if our STTS hook is already installed
       const sttsHookPattern = /stts\/dist\/hooks\/|@ehaye\/stts|node .*\/stts\/dist\/hooks\//;
-      const existing = settings.hooks[hookKey]!.find((h) =>
+      const existing = settings.hooks[hookKey].find((h) =>
         h.hooks.some((hook) => sttsHookPattern.test(hook.command))
       );
 
       if (!existing) {
-        settings.hooks[hookKey]!.push(hookEntry);
+        settings.hooks[hookKey].push(hookEntry);
         updated = true;
         console.log(chalk.green(`✓ Installed STTS ${name} hook`));
       } else {

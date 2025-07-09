@@ -44,7 +44,7 @@ export class PostToolUseHook extends BaseHook {
     }
 
     // Track performance metrics
-    await this.trackPerformance(event);
+    this.trackPerformance(event);
   }
 
   private getToolDisplayName(tool: string): string {
@@ -72,7 +72,7 @@ export class PostToolUseHook extends BaseHook {
     }
   }
 
-  private async trackPerformance(event: PostToolUseEvent): Promise<void> {
+  private trackPerformance(event: PostToolUseEvent): void {
     // Simple performance tracking
     const metrics = {
       tool: event.tool,
