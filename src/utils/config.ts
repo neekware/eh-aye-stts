@@ -1,4 +1,4 @@
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, mkdirSync, renameSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { STTSConfig } from '../types';
@@ -9,18 +9,44 @@ const DEFAULT_CONFIG: STTSConfig = {
   customDangerousCommands: [],
 };
 
+const STTS_DIR = join(homedir(), '.stts');
+const NEW_CONFIG_PATH = join(STTS_DIR, 'settings.json');
+const OLD_CONFIG_PATH = join(homedir(), '.stts.json');
+
+function migrateConfigIfNeeded(): void {
+  // Ensure ~/.stts directory exists
+  if (!existsSync(STTS_DIR)) {
+    mkdirSync(STTS_DIR, { recursive: true });
+  }
+
+  // Migrate old config if it exists and new one doesn't
+  if (existsSync(OLD_CONFIG_PATH) && !existsSync(NEW_CONFIG_PATH)) {
+    try {
+      renameSync(OLD_CONFIG_PATH, NEW_CONFIG_PATH);
+      console.log(`Migrated settings from ${OLD_CONFIG_PATH} to ${NEW_CONFIG_PATH}`);
+    } catch (error) {
+      console.error(
+        `Failed to migrate config from ${OLD_CONFIG_PATH} to ${NEW_CONFIG_PATH}:`,
+        error
+      );
+    }
+  }
+}
+
 export function loadSTTSConfig(): STTSConfig {
   let config: STTSConfig = { ...DEFAULT_CONFIG };
 
-  // 1. Load global config from home directory
-  const globalConfigPath = join(homedir(), '.stts.json');
-  if (existsSync(globalConfigPath)) {
+  // Migrate old config if needed
+  migrateConfigIfNeeded();
+
+  // 1. Load global config from ~/.stts/settings.json
+  if (existsSync(NEW_CONFIG_PATH)) {
     try {
-      const configData = readFileSync(globalConfigPath, 'utf-8');
+      const configData = readFileSync(NEW_CONFIG_PATH, 'utf-8');
       const globalConfig = JSON.parse(configData) as STTSConfig;
       config = { ...config, ...globalConfig };
     } catch (error) {
-      console.error(`Failed to parse config from ${globalConfigPath}:`, error);
+      console.error(`Failed to parse config from ${NEW_CONFIG_PATH}:`, error);
     }
   }
 
@@ -69,3 +95,7 @@ export function getConfigValue<T>(key: keyof STTSConfig, defaultValue?: T): T {
 export function getEnvWithFallback(primaryKey: string, fallbackKey: string): string | undefined {
   return process.env[primaryKey] || process.env[fallbackKey];
 }
+
+// Export config paths for use in other modules
+export const GLOBAL_CONFIG_PATH = NEW_CONFIG_PATH;
+export const OLD_GLOBAL_CONFIG_PATH = OLD_CONFIG_PATH;

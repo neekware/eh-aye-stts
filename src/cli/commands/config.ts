@@ -1,8 +1,8 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { dirname } from 'path';
+import { GLOBAL_CONFIG_PATH } from '../../utils/config';
 
 interface Config {
   audioEnabled: boolean;
@@ -32,7 +32,7 @@ Examples:
     .command('show')
     .description('Show current configuration')
     .action(() => {
-      const configPath = join(homedir(), '.stts.json');
+      const configPath = GLOBAL_CONFIG_PATH;
 
       console.log(chalk.blue('📊 STTS Configuration\n'));
 
@@ -75,7 +75,7 @@ Examples:
     .option('--enable', 'Enable audio announcements')
     .option('--disable', 'Disable audio announcements')
     .action((options: { enable?: boolean; disable?: boolean }) => {
-      const configPath = join(homedir(), '.stts.json');
+      const configPath = GLOBAL_CONFIG_PATH;
 
       // Show current status if no options provided
       if (!options.enable && !options.disable) {
@@ -114,6 +114,11 @@ Examples:
       }
 
       // Save config
+      // Ensure directory exists
+      const configDir = dirname(configPath);
+      if (!existsSync(configDir)) {
+        mkdirSync(configDir, { recursive: true });
+      }
       writeFileSync(configPath, JSON.stringify(config, null, 2));
       console.log(chalk.gray(`\nConfiguration saved to: ${configPath}`));
     });
@@ -127,7 +132,7 @@ Examples:
     .option('--disable', 'Disable dangerous command blocking')
     .option('--add <pattern>', 'Add a custom dangerous command pattern')
     .action((options: { enable?: boolean; disable?: boolean; add?: string }) => {
-      const configPath = join(homedir(), '.stts.json');
+      const configPath = GLOBAL_CONFIG_PATH;
 
       // Show current status if no options provided
       if (!options.enable && !options.disable && !options.add) {
@@ -186,6 +191,11 @@ Examples:
       }
 
       // Save config
+      // Ensure directory exists
+      const configDir = dirname(configPath);
+      if (!existsSync(configDir)) {
+        mkdirSync(configDir, { recursive: true });
+      }
       writeFileSync(configPath, JSON.stringify(config, null, 2));
       console.log(chalk.gray(`\nConfiguration saved to: ${configPath}`));
     });

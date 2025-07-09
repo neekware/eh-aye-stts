@@ -1,8 +1,8 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { join } from 'path';
-import { writeFileSync, readFileSync } from 'fs';
-import { homedir } from 'os';
+import { dirname } from 'path';
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
+import { GLOBAL_CONFIG_PATH } from '../../utils/config';
 import { ToolDetector } from '../../installer/detector';
 import { SettingsManager } from '../../installer/settings-manager';
 
@@ -37,7 +37,13 @@ export function enableCommand(): Command {
         await manager.installHooks();
 
         // Always create/update config file
-        const configPath = join(homedir(), '.stts.json');
+        const configPath = GLOBAL_CONFIG_PATH;
+
+        // Ensure directory exists
+        const configDir = dirname(configPath);
+        if (!existsSync(configDir)) {
+          mkdirSync(configDir, { recursive: true });
+        }
         let existingConfig = {};
 
         // Read existing config if it exists
