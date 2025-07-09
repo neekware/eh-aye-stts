@@ -15,7 +15,7 @@ export function createProgram(): Command {
 
   program
     .name('stts')
-    .description('Smart Text-to-Speech installer for development tools')
+    .description('Smart Text-to-Speech installer for development tools with wrapper script support')
     .version(VERSION);
 
   // Add commands

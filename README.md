@@ -148,7 +148,7 @@ If you're using Claude Code, you can enable voice notifications:
 # Install STTS globally
 npm install -g @eh-aye/stts
 
-# Enable Claude Code integration
+# Enable Claude Code integration (standard)
 stts enable claude-code
 
 # Enable with dangerous command blocking (optional)
@@ -157,8 +157,25 @@ stts enable claude-code --dangerous-commands
 # Enable without audio (silent mode)
 stts enable claude-code --no-audio
 
+# Install wrapper scripts (advanced)
+stts enable claude-code --global    # Global wrapper in ~/.stts/hooks/ (warns if stts missing)
+stts enable claude-code --local     # Local wrapper in .claude/hooks/ (silent if stts missing)
+
 # Test it works
 stts test
+```
+
+### Wrapper Scripts
+
+STTS can install wrapper scripts to handle situations where Claude Code might overwrite your settings:
+
+- **Global wrapper** (`--global`): Installs to `~/.stts/hooks/stts` and warns if stts command is not available
+- **Local wrapper** (`--local`): Installs to `.claude/hooks/stts` and silently continues if stts is not available
+
+```bash
+# Remove wrapper scripts
+stts disable claude-code --global   # Remove global wrapper
+stts disable claude-code --local    # Remove local wrapper
 ```
 
 ### Configuration
@@ -321,11 +338,11 @@ graph TB
 | JSON        | 12      | 601       | 87       | 491      | 23       |
 | JavaScript  | 2       | 111       | 84       | 9        | 18       |
 | License     | 1       | 21        | 17       | 0        | 4        |
-| Markdown    | 16      | 1996      | 1105     | 343      | 548      |
+| Markdown    | 17      | 2121      | 1173     | 373      | 575      |
 | Shell       | 11      | 605       | 373      | 112      | 120      |
-| TypeScript  | 71      | 6380      | 4929     | 456      | 995      |
+| TypeScript  | 71      | 6571      | 5066     | 473      | 1032     |
 | YAML        | 5       | 216       | 180      | 4        | 32       |
-| **Total**   | **121** | **10006** | **6807** | **1445** | **1754** |
+| **Total**   | **122** | **10322** | **7012** | **1492** | **1818** |
 
 _Last updated: 2025-07-09_
 

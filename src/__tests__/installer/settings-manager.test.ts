@@ -31,6 +31,12 @@ vi.mock('chalk', () => ({
   },
 }));
 
+// Mock os
+vi.mock('os', () => ({
+  platform: vi.fn(() => 'linux'),
+  homedir: vi.fn(() => '/test-home'),
+}));
+
 // Now import the module under test
 import { SettingsManager } from '../../installer/settings-manager';
 import { promises as fs } from 'fs';
@@ -207,6 +213,28 @@ describe('SettingsManager', () => {
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('No hooks found to remove'));
       expect(mockWriteFile).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('wrapper scripts', () => {
+    it('should generate global wrapper script with correct fallback', () => {
+      const script = manager.generateWrapperScript(true);
+
+      expect(script).toContain('# STTS wrapper script for test-provider');
+      expect(script).toContain('if command -v stts >/dev/null 2>&1; then');
+      expect(script).toContain(
+        'echo "Warning: stts command not found. Please install stts first." >&2'
+      );
+      expect(script).toContain('exit 1');
+    });
+
+    it('should generate local wrapper script with silent fallback', () => {
+      const script = manager.generateWrapperScript(false);
+
+      expect(script).toContain('# STTS wrapper script for test-provider');
+      expect(script).toContain('if command -v stts >/dev/null 2>&1; then');
+      expect(script).toContain('# stts not available, silently continue');
+      expect(script).toContain('exit 0');
     });
   });
 });

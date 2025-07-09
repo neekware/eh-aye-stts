@@ -5,6 +5,7 @@ import { homedir } from 'os';
 export const HOME_DIR = homedir();
 export const STTS_DIR = join(HOME_DIR, '.stts');
 export const LOGS_DIR = join(STTS_DIR, 'logs');
+export const HOOKS_DIR = join(STTS_DIR, 'hooks');
 
 // Config files
 export const SETTINGS_PATH = join(STTS_DIR, 'settings.json');
@@ -51,4 +52,40 @@ export const TTS_ENV_VARS = {
   ELEVENLABS_VOICE_ID: 'STTS_ELEVENLABS_VOICE_ID',
   OPENAI_MODEL: 'STTS_OPENAI_MODEL',
   CLAUDE_SETTINGS_PATH: 'STTS_CLAUDE_SETTINGS_PATH',
+};
+
+// Wrapper script templates
+export const WRAPPER_SCRIPTS = {
+  BASH: `#!/bin/bash
+# STTS wrapper script for {{PROVIDER}}
+# Auto-generated - do not edit manually
+
+if command -v stts >/dev/null 2>&1; then
+    exec stts "$@"
+else
+    {{FALLBACK_BEHAVIOR}}
+fi`,
+
+  GLOBAL_FALLBACK: `echo "Warning: stts command not found. Please install stts first." >&2
+    exit 1`,
+
+  LOCAL_FALLBACK: `# stts not available, silently continue
+    exit 0`,
+
+  BATCH: `@echo off
+REM STTS wrapper script for {{PROVIDER}}
+REM Auto-generated - do not edit manually
+
+where stts >nul 2>&1
+if %errorlevel% == 0 (
+    stts %*
+) else (
+    {{FALLBACK_BEHAVIOR}}
+)`,
+
+  BATCH_GLOBAL_FALLBACK: `echo Warning: stts command not found. Please install stts first. >&2
+    exit /b 1`,
+
+  BATCH_LOCAL_FALLBACK: `REM stts not available, silently continue
+    exit /b 0`,
 };

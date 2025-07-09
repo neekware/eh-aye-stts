@@ -1,8 +1,9 @@
 import { promises as fs } from 'fs';
 import { dirname, join, basename } from 'path';
 import { ClaudeSettings, HookMatcher } from '../types';
-import { STTS_DIR } from '../defaults';
+import { STTS_DIR, HOOKS_DIR, WRAPPER_SCRIPTS } from '../defaults';
 import chalk from 'chalk';
+import { platform } from 'os';
 
 export class SettingsManager {
   private readonly MAX_BACKUPS = 5;
@@ -271,5 +272,98 @@ export class SettingsManager {
 
     // Clean up any provider-created backups from the original location
     await this.cleanupProviderBackups();
+  }
+
+  generateWrapperScript(isGlobal: boolean): string {
+    const isWindows = platform() === 'win32';
+    const template = isWindows ? WRAPPER_SCRIPTS.BATCH : WRAPPER_SCRIPTS.BASH;
+
+    let fallbackBehavior: string;
+    if (isWindows) {
+      fallbackBehavior = isGlobal
+        ? WRAPPER_SCRIPTS.BATCH_GLOBAL_FALLBACK
+        : WRAPPER_SCRIPTS.BATCH_LOCAL_FALLBACK;
+    } else {
+      fallbackBehavior = isGlobal
+        ? WRAPPER_SCRIPTS.GLOBAL_FALLBACK
+        : WRAPPER_SCRIPTS.LOCAL_FALLBACK;
+    }
+
+    return template
+      .replace(/{{PROVIDER}}/g, this.provider)
+      .replace(/{{FALLBACK_BEHAVIOR}}/g, fallbackBehavior);
+  }
+
+  async installGlobalWrappers(): Promise<void> {
+    const scriptContent = this.generateWrapperScript(true);
+    const isWindows = platform() === 'win32';
+    const scriptName = isWindows ? 'stts.bat' : 'stts';
+    const scriptPath = join(HOOKS_DIR, scriptName);
+
+    // Create hooks directory
+    await fs.mkdir(HOOKS_DIR, { recursive: true });
+
+    // Write wrapper script
+    await fs.writeFile(scriptPath, scriptContent);
+
+    // Make executable on Unix systems
+    if (!isWindows) {
+      await fs.chmod(scriptPath, 0o755);
+    }
+
+    console.log(chalk.green(`✓ Installed global wrapper: ${scriptPath}`));
+  }
+
+  async installLocalWrappers(): Promise<void> {
+    const scriptContent = this.generateWrapperScript(false);
+    const isWindows = platform() === 'win32';
+    const scriptName = isWindows ? 'stts.bat' : 'stts';
+
+    // Local hooks go in .claude/hooks directory relative to settings
+    const settingsDir = dirname(this.settingsPath);
+    const localHooksDir = join(settingsDir, 'hooks');
+    const scriptPath = join(localHooksDir, scriptName);
+
+    // Create local hooks directory
+    await fs.mkdir(localHooksDir, { recursive: true });
+
+    // Write wrapper script
+    await fs.writeFile(scriptPath, scriptContent);
+
+    // Make executable on Unix systems
+    if (!isWindows) {
+      await fs.chmod(scriptPath, 0o755);
+    }
+
+    console.log(chalk.green(`✓ Installed local wrapper: ${scriptPath}`));
+  }
+
+  async removeGlobalWrappers(): Promise<void> {
+    const isWindows = platform() === 'win32';
+    const scriptName = isWindows ? 'stts.bat' : 'stts';
+    const scriptPath = join(HOOKS_DIR, scriptName);
+
+    try {
+      await fs.unlink(scriptPath);
+      console.log(chalk.green(`✓ Removed global wrapper: ${scriptPath}`));
+    } catch (error) {
+      // Script doesn't exist, ignore
+    }
+  }
+
+  async removeLocalWrappers(): Promise<void> {
+    const isWindows = platform() === 'win32';
+    const scriptName = isWindows ? 'stts.bat' : 'stts';
+
+    const settingsDir = dirname(this.settingsPath);
+    const localHooksDir = join(settingsDir, 'hooks');
+    const scriptPath = join(localHooksDir, scriptName);
+
+    try {
+      await fs.unlink(scriptPath);
+      console.log(chalk.green(`✓ Removed local wrapper: ${scriptPath}`));
+    } catch (error) {
+      // Script doesn't exist, ignore
+    }
   }
 }
