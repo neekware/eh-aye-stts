@@ -123,11 +123,11 @@ export function loadTTS(userConfig: TTSConfig = {}): TTSLoader {
   if (openaiKey) {
     envConfig.openaiApiKey = openaiKey;
   }
-  if (process.env.TTS_ELEVENLABS_VOICE_ID) {
-    envConfig.elevenLabsVoiceId = process.env.TTS_ELEVENLABS_VOICE_ID;
+  if (process.env.STTS_ELEVENLABS_VOICE_ID) {
+    envConfig.elevenLabsVoiceId = process.env.STTS_ELEVENLABS_VOICE_ID;
   }
-  if (process.env.TTS_OPENAI_MODEL) {
-    envConfig.openaiModel = process.env.TTS_OPENAI_MODEL;
+  if (process.env.STTS_OPENAI_MODEL) {
+    envConfig.openaiModel = process.env.STTS_OPENAI_MODEL;
   }
 
   const finalConfig = { ...envConfig, ...userConfig };
