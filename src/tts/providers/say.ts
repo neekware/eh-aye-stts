@@ -18,7 +18,7 @@ export class SayProvider extends BaseTTSProvider {
       const voice = this.getVoice();
 
       return new Promise((resolve) => {
-        say.default.speak(text, voice, 1.0, (err: Error | null) => {
+        say.default.speak(text, voice, 1.0, (err?: string) => {
           resolve(!err);
         });
       });

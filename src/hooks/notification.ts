@@ -24,7 +24,7 @@ export class NotificationHook extends BaseHook {
     this.logEvent({
       type: 'notification',
       timestamp: new Date().toISOString(),
-      data: event,
+      data: { ...event },
     });
 
     // Speak the notification

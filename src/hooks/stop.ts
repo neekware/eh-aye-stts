@@ -18,7 +18,7 @@ export class StopHook extends BaseHook {
     this.logEvent({
       type: 'stop',
       timestamp: new Date().toISOString(),
-      data: event || {},
+      data: { ...(event || {}) },
     });
 
     // Announce session end

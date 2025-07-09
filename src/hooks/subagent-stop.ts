@@ -18,7 +18,7 @@ export class SubagentStopHook extends BaseHook {
     this.logEvent({
       type: 'subagent-stop',
       timestamp: new Date().toISOString(),
-      data: event || {},
+      data: { ...(event || {}) },
     });
 
     // Announce subagent completion

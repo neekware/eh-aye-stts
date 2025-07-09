@@ -55,8 +55,7 @@ export class ElevenLabsProvider extends BaseTTSProvider {
       );
 
       // Play the audio stream
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      await this.playAudioStream(response.data);
+      await this.playAudioStream(response.data as AsyncIterable<Uint8Array>);
       return true;
     } catch (error) {
       console.error('ElevenLabs provider error:', error);

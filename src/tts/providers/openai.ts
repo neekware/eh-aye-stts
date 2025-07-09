@@ -51,8 +51,7 @@ export class OpenAIProvider extends BaseTTSProvider {
         }
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      await this.playAudioStream(response.data);
+      await this.playAudioStream(response.data as AsyncIterable<Uint8Array>);
       return true;
     } catch (error) {
       console.error('OpenAI provider error:', error);

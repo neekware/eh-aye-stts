@@ -33,7 +33,7 @@ export class PreToolUseHook extends BaseHook {
     this.logEvent({
       type: 'pre-tool-use',
       timestamp: new Date().toISOString(),
-      data: event,
+      data: { ...event },
     });
 
     // Check for dangerous commands
