@@ -20,8 +20,10 @@ function getDefaultService(): AudioService {
     if (process.env.STTS_PRIORITY) {
       envConfig.priority = process.env.STTS_PRIORITY.split(',').map((s) => s.trim());
     }
-    if (process.env.STTS_VOICE_GENDER) {
-      envConfig.voiceGender = process.env.STTS_VOICE_GENDER as 'male' | 'female';
+    if (process.env.STTS_VOICE_TYPE || process.env.STTS_VOICE_GENDER) {
+      envConfig.voiceType = (process.env.STTS_VOICE_TYPE || process.env.STTS_VOICE_GENDER) as
+        | 'male'
+        | 'female';
     }
     const elevenLabsKey = getEnvWithFallback('STTS_ELEVENLABS_API_KEY', 'ELEVENLABS_API_KEY');
     if (elevenLabsKey) {

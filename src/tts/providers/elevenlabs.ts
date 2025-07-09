@@ -84,8 +84,8 @@ export class ElevenLabsProvider extends BaseTTSProvider {
     }
 
     // Default voices
-    const gender = this.config.voiceGender || 'female';
-    return gender === 'male' ? 'ErXwobaYiN019PkySvjV' : 'EXAVITQu4vr4xnSDxMaL'; // Antoni : Rachel
+    const voiceType = this.config.voiceType || 'female';
+    return voiceType === 'male' ? 'ErXwobaYiN019PkySvjV' : 'EXAVITQu4vr4xnSDxMaL'; // Antoni : Rachel
   }
 
   private async playAudioStream(audioStream: AsyncIterable<Uint8Array>): Promise<void> {

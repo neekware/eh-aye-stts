@@ -21,7 +21,7 @@ describe('BaseTTSProvider', () => {
   });
 
   it('should store config', () => {
-    const config: TTSConfig = { voiceGender: 'female' };
+    const config: TTSConfig = { voiceType: 'female' };
     const provider = new TestProvider(config);
     expect(provider['config']).toEqual(config);
   });

@@ -108,11 +108,11 @@ describe('AudioService', () => {
 
   describe('getConfig', () => {
     it('should return TTS configuration', () => {
-      mockTTSLoader.config = { voiceGender: 'female' };
+      mockTTSLoader.config = { voiceType: 'female' };
 
       const config = audioService.getConfig();
 
-      expect(config).toEqual({ voiceGender: 'female' });
+      expect(config).toEqual({ voiceType: 'female' });
     });
   });
 });

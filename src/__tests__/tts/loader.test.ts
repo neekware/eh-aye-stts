@@ -18,16 +18,16 @@ describe('TTSLoader', () => {
     it('should initialize with default config', () => {
       expect(loader['config']).toEqual({
         priority: ['say', 'elevenlabs', 'openai'],
-        voiceGender: 'female',
+        voiceType: 'female',
       });
     });
 
     it('should accept custom config', () => {
-      const config: TTSConfig = { voiceGender: 'male' };
+      const config: TTSConfig = { voiceType: 'male' };
       const customLoader = new TTSLoader(config);
       expect(customLoader['config']).toEqual({
         priority: ['say', 'elevenlabs', 'openai'],
-        voiceGender: 'male',
+        voiceType: 'male',
       });
     });
 

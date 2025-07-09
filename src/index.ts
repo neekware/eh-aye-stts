@@ -10,7 +10,7 @@ export {
 } from './audio';
 
 // Type exports
-export { Emotion, VoiceGender, TTSConfig } from './tts/types';
+export { Emotion, VoiceType, TTSConfig } from './tts/types';
 
 // Utility exports
 export { detectEmotion, getEmotionDescription } from './tts/emotion-detector';

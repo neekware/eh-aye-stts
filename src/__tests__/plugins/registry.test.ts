@@ -40,7 +40,7 @@ describe('PluginRegistry', () => {
 
     it('should accept config on first creation', () => {
       const newRegistry = PluginRegistry.getInstance({
-        audioConfig: { voiceGender: 'male' },
+        audioConfig: { voiceType: 'male' },
       });
 
       expect(newRegistry).toBeDefined();

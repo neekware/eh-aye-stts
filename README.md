@@ -237,7 +237,7 @@ Configure via environment variables:
 export STTS_PRIORITY="openai,elevenlabs,say"
 
 # Voice settings
-export STTS_VOICE_GENDER="female"
+export STTS_VOICE_TYPE="female"
 
 # API Keys (use STTS_ prefix to avoid conflicts)
 export STTS_OPENAI_API_KEY="sk-..."
@@ -300,14 +300,14 @@ graph TB
 | ----------- | ------- | -------- | -------- | -------- | -------- |
 | Environment | 2       | 21       | 4        | 14       | 3        |
 | Git         | 1       | 55       | 28       | 16       | 11       |
-| JSON        | 11      | 580      | 78       | 483      | 19       |
+| JSON        | 11      | 566      | 75       | 466      | 25       |
 | JavaScript  | 2       | 111      | 84       | 9        | 18       |
 | License     | 1       | 21       | 17       | 0        | 4        |
 | Markdown    | 14      | 1655     | 953      | 286      | 416      |
 | Shell       | 2       | 69       | 47       | 11       | 11       |
-| TypeScript  | 64      | 5472     | 4246     | 380      | 846      |
+| TypeScript  | 64      | 5476     | 4250     | 380      | 846      |
 | YAML        | 5       | 216      | 180      | 4        | 32       |
-| **Total**   | **102** | **8200** | **5637** | **1203** | **1360** |
+| **Total**   | **102** | **8190** | **5638** | **1186** | **1366** |
 
 _Last updated: 2025-07-09_
 

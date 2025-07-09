@@ -63,8 +63,8 @@ export class OpenAIProvider extends BaseTTSProvider {
   }
 
   private getVoice(): string {
-    const gender = this.config.voiceGender || 'female';
-    return gender === 'male' ? 'onyx' : 'nova';
+    const voiceType = this.config.voiceType || 'female';
+    return voiceType === 'male' ? 'onyx' : 'nova';
   }
 
   private async playAudioStream(audioStream: AsyncIterable<Uint8Array>): Promise<void> {

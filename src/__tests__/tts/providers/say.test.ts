@@ -17,14 +17,14 @@ describe('SayProvider', () => {
   describe('getVoice', () => {
     it('should return appropriate voice for female config on macOS', () => {
       if (process.platform === 'darwin') {
-        const femaleProvider = new SayProvider({ voiceGender: 'female' });
+        const femaleProvider = new SayProvider({ voiceType: 'female' });
         expect(femaleProvider['getVoice']()).toBe('Samantha');
       }
     });
 
     it('should return appropriate voice for male config on macOS', () => {
       if (process.platform === 'darwin') {
-        const maleProvider = new SayProvider({ voiceGender: 'male' });
+        const maleProvider = new SayProvider({ voiceType: 'male' });
         expect(maleProvider['getVoice']()).toBe('Alex');
       }
     });

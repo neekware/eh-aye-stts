@@ -33,17 +33,17 @@ export class SayProvider extends BaseTTSProvider {
 
   private getVoice(): string | undefined {
     const platform = process.platform;
-    const gender = this.config.voiceGender || 'female';
+    const voiceType = this.config.voiceType || 'female';
 
     if (platform === 'darwin') {
       // macOS
-      return gender === 'male' ? 'Alex' : 'Samantha';
+      return voiceType === 'male' ? 'Alex' : 'Samantha';
     } else if (platform === 'win32') {
       // Windows
-      return gender === 'male' ? 'David' : 'Zira';
+      return voiceType === 'male' ? 'David' : 'Zira';
     } else {
       // Linux
-      return gender === 'male' ? 'male' : 'female';
+      return voiceType === 'male' ? 'male' : 'female';
     }
   }
 

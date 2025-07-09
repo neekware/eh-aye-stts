@@ -8,7 +8,7 @@ async function customServiceExample() {
   // Create a custom audio service with specific configuration
   const config: TTSConfig = {
     priority: ['openai', 'elevenlabs', 'say'], // Custom provider priority
-    voiceGender: 'female',
+    voiceType: 'female',
     defaultEmotion: 'calm',
     openaiModel: 'tts-1-hd', // Use high-quality OpenAI model
   };

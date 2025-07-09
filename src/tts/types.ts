@@ -1,4 +1,4 @@
-export type VoiceGender = 'male' | 'female';
+export type VoiceType = 'male' | 'female';
 
 export type Emotion =
   | 'cheerful'
@@ -19,7 +19,7 @@ export type Emotion =
 
 export interface TTSConfig {
   priority?: string[];
-  voiceGender?: VoiceGender;
+  voiceType?: VoiceType;
   elevenLabsApiKey?: string;
   openaiApiKey?: string;
   elevenLabsVoiceId?: string;
