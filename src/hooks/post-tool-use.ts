@@ -26,15 +26,16 @@ export class PostToolUseHook extends BaseHook {
       data: {
         ...event,
         duration: event.duration || 0,
-        exitCode: event.exitCode || 0
-      }
+        exitCode: event.exitCode || 0,
+      },
     });
 
     // Announce completion for long-running tasks
-    if (event.duration && event.duration > 5000) { // 5 seconds
+    if (event.duration && event.duration > 5000) {
+      // 5 seconds
       const seconds = Math.round(event.duration / 1000);
       const toolName = this.getToolDisplayName(event.tool);
-      
+
       if (event.exitCode === 0) {
         await this.announce(`${toolName} completed in ${seconds} seconds`);
       } else {
@@ -48,15 +49,15 @@ export class PostToolUseHook extends BaseHook {
 
   private getToolDisplayName(tool: string): string {
     const displayNames: Record<string, string> = {
-      'bash': 'Command',
-      'shell': 'Shell command',
-      'read': 'File read',
-      'write': 'File write',
-      'search': 'Search',
-      'grep': 'Grep search',
-      'find': 'Find'
+      bash: 'Command',
+      shell: 'Shell command',
+      read: 'File read',
+      write: 'File write',
+      search: 'Search',
+      grep: 'Grep search',
+      find: 'Find',
     };
-    
+
     return displayNames[tool.toLowerCase()] || tool;
   }
 
@@ -77,12 +78,12 @@ export class PostToolUseHook extends BaseHook {
       tool: event.tool,
       duration: event.duration || 0,
       success: event.exitCode === 0,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     this.jsonLogger.info({
       type: 'performance',
-      data: metrics
+      data: metrics,
     });
   }
 }

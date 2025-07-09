@@ -5,14 +5,14 @@ vi.mock('fs', () => ({
   promises: {
     readFile: vi.fn(),
     writeFile: vi.fn(),
-    mkdir: vi.fn()
-  }
+    mkdir: vi.fn(),
+  },
 }));
 
 // Mock path
 vi.mock('path', () => ({
   dirname: vi.fn(() => '/test'),
-  join: vi.fn((...args) => args.join('/'))
+  join: vi.fn((...args) => args.join('/')),
 }));
 
 // Mock chalk to avoid color codes in tests
@@ -21,8 +21,8 @@ vi.mock('chalk', () => ({
     green: (str: string) => str,
     yellow: (str: string) => str,
     blue: (str: string) => str,
-    red: (str: string) => str
-  }
+    red: (str: string) => str,
+  },
 }));
 
 // Now import the module under test
@@ -81,14 +81,18 @@ describe('SettingsManager', () => {
     it('should not duplicate existing STTS hooks', async () => {
       const existingSettings = {
         hooks: {
-          Notification: [{
-            matcher: '',
-            hooks: [{
-              type: 'command',
-              command: 'node /test/stts/dist/hooks/notification.js'
-            }]
-          }]
-        }
+          Notification: [
+            {
+              matcher: '',
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'node /test/stts/dist/hooks/notification.js',
+                },
+              ],
+            },
+          ],
+        },
       };
       mockReadFile.mockResolvedValue(JSON.stringify(existingSettings) as any);
 
@@ -101,14 +105,18 @@ describe('SettingsManager', () => {
     it('should preserve non-STTS hooks', async () => {
       const existingSettings = {
         hooks: {
-          Notification: [{
-            matcher: '',
-            hooks: [{
-              type: 'command',
-              command: 'other-command'
-            }]
-          }]
-        }
+          Notification: [
+            {
+              matcher: '',
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'other-command',
+                },
+              ],
+            },
+          ],
+        },
       };
       mockReadFile.mockResolvedValue(JSON.stringify(existingSettings) as any);
       mockWriteFile.mockResolvedValue(undefined as any);
@@ -128,20 +136,24 @@ describe('SettingsManager', () => {
           Notification: [
             {
               matcher: '',
-              hooks: [{
-                type: 'command',
-                command: 'node /test/stts/dist/hooks/notification.js'
-              }]
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'node /test/stts/dist/hooks/notification.js',
+                },
+              ],
             },
             {
               matcher: '',
-              hooks: [{
-                type: 'command',
-                command: 'other-command'
-              }]
-            }
-          ]
-        }
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'other-command',
+                },
+              ],
+            },
+          ],
+        },
       };
       mockReadFile.mockResolvedValue(JSON.stringify(settings) as any);
       mockWriteFile.mockResolvedValue(undefined as any);
@@ -157,14 +169,18 @@ describe('SettingsManager', () => {
     it('should remove empty hook types after removing STTS hooks', async () => {
       const settings = {
         hooks: {
-          Notification: [{
-            matcher: '',
-            hooks: [{
-              type: 'command',
-              command: 'node /test/stts/dist/hooks/notification.js'
-            }]
-          }]
-        }
+          Notification: [
+            {
+              matcher: '',
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'node /test/stts/dist/hooks/notification.js',
+                },
+              ],
+            },
+          ],
+        },
       };
       mockReadFile.mockResolvedValue(JSON.stringify(settings) as any);
       mockWriteFile.mockResolvedValue(undefined as any);

@@ -24,7 +24,7 @@ export class SettingsManager {
 
   async installHooks(hookScriptsPath: string): Promise<void> {
     const settings = await this.loadSettings();
-    
+
     // Initialize hooks structure
     if (!settings.hooks) {
       settings.hooks = {};
@@ -36,7 +36,7 @@ export class SettingsManager {
       { name: 'PostToolUse', script: 'post-tool-use.js' },
       { name: 'Notification', script: 'notification.js' },
       { name: 'Stop', script: 'stop.js' },
-      { name: 'SubagentStop', script: 'subagent-stop.js' }
+      { name: 'SubagentStop', script: 'subagent-stop.js' },
     ];
 
     let updated = false;
@@ -45,10 +45,12 @@ export class SettingsManager {
       const scriptPath = join(hookScriptsPath, script);
       const hookEntry: HookMatcher = {
         matcher: '',
-        hooks: [{
-          type: 'command',
-          command: `node ${scriptPath}`
-        }]
+        hooks: [
+          {
+            type: 'command',
+            command: `node ${scriptPath}`,
+          },
+        ],
       };
 
       // Check if hook already exists
@@ -59,8 +61,8 @@ export class SettingsManager {
 
       // Check if our STTS hook is already installed
       const sttsHookPattern = /stts\/dist\/hooks\/|@ehaye\/stts|node .*\/stts\/dist\/hooks\//;
-      const existing = settings.hooks[hookKey]!.find(h => 
-        h.hooks.some(hook => sttsHookPattern.test(hook.command))
+      const existing = settings.hooks[hookKey]!.find((h) =>
+        h.hooks.some((hook) => sttsHookPattern.test(hook.command))
       );
 
       if (!existing) {
@@ -82,7 +84,7 @@ export class SettingsManager {
 
   async removeHooks(): Promise<void> {
     const settings = await this.loadSettings();
-    
+
     if (!settings.hooks) {
       console.log(chalk.yellow('No hooks found to remove'));
       return;
@@ -97,8 +99,8 @@ export class SettingsManager {
       if (!hooks) continue;
 
       const originalLength = hooks.length;
-      const filtered = hooks.filter(h => 
-        !h.hooks.some(hook => sttsHookPattern.test(hook.command))
+      const filtered = hooks.filter(
+        (h) => !h.hooks.some((hook) => sttsHookPattern.test(hook.command))
       );
 
       if (filtered.length < originalLength) {

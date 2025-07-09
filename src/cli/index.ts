@@ -32,12 +32,10 @@ program
     }
 
     console.log(chalk.blue('🔍 Detecting development tools...\n'));
-    
+
     for (const result of results) {
-      const status = result.detected 
-        ? chalk.green('✓ Found') 
-        : chalk.red('✗ Not found');
-      
+      const status = result.detected ? chalk.green('✓ Found') : chalk.red('✗ Not found');
+
       console.log(`${status} ${result.name} (${result.executable})`);
     }
 
@@ -75,7 +73,7 @@ program
     // Install hooks
     const hooksPath = join(__dirname, '..', 'hooks');
     const manager = new SettingsManager(settingsPath);
-    
+
     try {
       await manager.installHooks(hooksPath);
       console.log(chalk.green('\n✨ TTS hooks installed successfully!'));
@@ -97,7 +95,7 @@ program
   .action(async (tool) => {
     const detector = new ToolDetector();
     const settingsPath = await detector.getSettingsPath(tool);
-    
+
     if (!settingsPath) {
       console.error(chalk.red('Could not find settings file'));
       process.exit(1);
@@ -106,7 +104,7 @@ program
     console.log(chalk.blue(`🔇 Disabling TTS for ${tool}...\n`));
 
     const manager = new SettingsManager(settingsPath);
-    
+
     try {
       await manager.removeHooks();
       console.log(chalk.green('\n✓ TTS hooks removed successfully'));
@@ -135,19 +133,20 @@ program
       try {
         const content = await fs.readFile(settingsPath, 'utf8');
         const settings = JSON.parse(content);
-        
-        const hasHooks = settings.hooks && Object.keys(settings.hooks).some(key => 
-          settings.hooks[key]?.some((h: any) => 
-            h.hooks?.some((hook: any) => 
-              hook.command?.includes('stts') || hook.command?.includes('@eh-aye/stts')
-            )
-          )
-        );
 
-        const status = hasHooks 
-          ? chalk.green('✓ Enabled') 
-          : chalk.gray('○ Disabled');
-        
+        const hasHooks =
+          settings.hooks &&
+          Object.keys(settings.hooks).some((key) =>
+            settings.hooks[key]?.some((h: any) =>
+              h.hooks?.some(
+                (hook: any) =>
+                  hook.command?.includes('stts') || hook.command?.includes('@eh-aye/stts')
+              )
+            )
+          );
+
+        const status = hasHooks ? chalk.green('✓ Enabled') : chalk.gray('○ Disabled');
+
         console.log(`${status} ${result.name}`);
       } catch {
         console.log(`${chalk.gray('○ Disabled')} ${result.name}`);
@@ -164,19 +163,19 @@ program
     try {
       const { loadTTS } = await import('../tts/index.js');
       const tts = loadTTS();
-      
+
       console.log(chalk.blue('🔊 Testing TTS...\n'));
-      
+
       const providers = await tts.listAvailable();
       console.log(chalk.gray(`Available providers: ${providers.join(', ')}`));
-      
+
       const provider = await tts.getProvider();
       if (provider) {
         console.log(chalk.blue(`Using ${provider.name} provider\n`));
       }
-      
+
       const success = await tts.speak(options.message);
-      
+
       if (success) {
         console.log(chalk.green('✓ TTS test successful!'));
       } else {

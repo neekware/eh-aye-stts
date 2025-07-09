@@ -7,7 +7,7 @@ import { promises as fs } from 'fs';
 export abstract class BaseHook {
   protected logger: winston.Logger;
   protected jsonLogger: winston.Logger;
-  
+
   constructor(protected hookName: string) {
     this.logger = this.createLogger();
     this.jsonLogger = this.createJsonLogger();
@@ -24,9 +24,9 @@ export abstract class BaseHook {
       ),
       transports: [
         new winston.transports.Console({
-          silent: !process.env.DEBUG
-        })
-      ]
+          silent: !process.env.DEBUG,
+        }),
+      ],
     });
   }
 
@@ -35,17 +35,14 @@ export abstract class BaseHook {
     const logFile = join(logDir, `${this.hookName}.json`);
 
     return winston.createLogger({
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json()
-      ),
+      format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
       transports: [
         new winston.transports.File({
           filename: logFile,
           maxsize: 10 * 1024 * 1024, // 10MB
-          maxFiles: 5
-        })
-      ]
+          maxFiles: 5,
+        }),
+      ],
     });
   }
 
@@ -53,11 +50,11 @@ export abstract class BaseHook {
     return new Promise((resolve) => {
       let data = '';
       process.stdin.setEncoding('utf8');
-      
+
       process.stdin.on('data', (chunk) => {
         data += chunk;
       });
-      
+
       process.stdin.on('end', () => {
         resolve(data.trim());
       });
@@ -96,8 +93,8 @@ export abstract class BaseHook {
         timestamp: new Date().toISOString(),
         data: {
           hook: this.hookName,
-          error: error instanceof Error ? error.message : String(error)
-        }
+          error: error instanceof Error ? error.message : String(error),
+        },
       });
       process.exit(1);
     }

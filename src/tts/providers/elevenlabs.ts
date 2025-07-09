@@ -8,32 +8,32 @@ import { join } from 'path';
 export class ElevenLabsProvider extends BaseTTSProvider {
   readonly name = 'elevenlabs';
   private apiKey: string;
-  
+
   constructor(config: TTSConfig) {
     super(config);
     this.apiKey = config.elevenLabsApiKey || process.env.ELEVENLABS_API_KEY || '';
   }
-  
+
   async isAvailable(): Promise<boolean> {
     if (!this.apiKey) return false;
-    
+
     try {
       const axios = await import('axios');
       const response = await axios.default.get('https://api.elevenlabs.io/v1/voices', {
         headers: { 'xi-api-key': this.apiKey },
-        timeout: 5000
+        timeout: 5000,
       });
       return response.status === 200;
     } catch {
       return false;
     }
   }
-  
+
   async speak(text: string): Promise<boolean> {
     try {
       const axios = await import('axios');
       const voiceId = this.getVoiceId();
-      
+
       const response = await axios.default.post(
         `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
         {
@@ -41,19 +41,19 @@ export class ElevenLabsProvider extends BaseTTSProvider {
           model_id: 'eleven_monolingual_v1',
           voice_settings: {
             stability: 0.5,
-            similarity_boost: 0.5
-          }
+            similarity_boost: 0.5,
+          },
         },
         {
           headers: {
-            'Accept': 'audio/mpeg',
+            Accept: 'audio/mpeg',
             'Content-Type': 'application/json',
-            'xi-api-key': this.apiKey
+            'xi-api-key': this.apiKey,
           },
-          responseType: 'stream'
+          responseType: 'stream',
         }
       );
-      
+
       // Play the audio stream
       await this.playAudioStream(response.data);
       return true;
@@ -62,21 +62,21 @@ export class ElevenLabsProvider extends BaseTTSProvider {
       return false;
     }
   }
-  
+
   private getVoiceId(): string {
     if (this.config.elevenLabsVoiceId) {
       return this.config.elevenLabsVoiceId;
     }
-    
+
     // Default voices
     const gender = this.config.voiceGender || 'female';
     return gender === 'male' ? 'ErXwobaYiN019PkySvjV' : 'EXAVITQu4vr4xnSDxMaL'; // Antoni : Rachel
   }
-  
+
   private async playAudioStream(audioStream: any): Promise<void> {
     // Save to temp file first for better compatibility
     const tempFile = join(tmpdir(), `stts-${Date.now()}.mp3`);
-    
+
     try {
       // Write stream to temp file
       const chunks: Buffer[] = [];
@@ -84,10 +84,10 @@ export class ElevenLabsProvider extends BaseTTSProvider {
         chunks.push(Buffer.from(chunk));
       }
       await fs.writeFile(tempFile, Buffer.concat(chunks));
-      
+
       // Play the temp file
       await this.playAudioFile(tempFile);
-      
+
       // Clean up
       await fs.unlink(tempFile).catch(() => {});
     } catch (error) {
@@ -96,31 +96,34 @@ export class ElevenLabsProvider extends BaseTTSProvider {
       throw error;
     }
   }
-  
+
   private async playAudioFile(filePath: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const platform = process.platform;
       let playerCmd: string;
       let playerArgs: string[];
-      
-      if (platform === 'darwin') { // macOS
+
+      if (platform === 'darwin') {
+        // macOS
         playerCmd = 'afplay';
         playerArgs = [filePath];
-      } else if (platform === 'win32') { // Windows
+      } else if (platform === 'win32') {
+        // Windows
         playerCmd = 'powershell';
         playerArgs = ['-c', `(New-Object Media.SoundPlayer '${filePath}').PlaySync()`];
-      } else { // Linux
+      } else {
+        // Linux
         playerCmd = 'aplay';
         playerArgs = [filePath];
       }
-      
+
       const player = spawn(playerCmd, playerArgs);
-      
+
       player.on('close', (code: number | null) => {
         if (code === 0) resolve();
         else reject(new Error(`Audio player exited with code ${code}`));
       });
-      
+
       player.on('error', reject);
     });
   }

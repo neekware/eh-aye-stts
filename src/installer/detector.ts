@@ -17,7 +17,7 @@ export class ToolDetector {
       name: 'Claude Code',
       executable: 'claude-code',
       settingsPath: join(homedir(), '.claude', 'settings.json'),
-      detected: false
+      detected: false,
     });
 
     // Alternative Claude executable
@@ -25,7 +25,7 @@ export class ToolDetector {
       name: 'Claude',
       executable: 'claude',
       settingsPath: join(homedir(), '.claude', 'settings.json'),
-      detected: false
+      detected: false,
     });
 
     // Future: Add more tools here
@@ -34,7 +34,7 @@ export class ToolDetector {
   }
 
   async detect(toolName?: string): Promise<ToolInfo[]> {
-    const toolsToCheck = toolName 
+    const toolsToCheck = toolName
       ? [this.tools.get(toolName)].filter(Boolean)
       : Array.from(this.tools.values());
 
@@ -42,11 +42,11 @@ export class ToolDetector {
 
     for (const tool of toolsToCheck) {
       if (!tool) continue;
-      
+
       const detected = await this.isToolAvailable(tool);
       results.push({
         ...tool,
-        detected
+        detected,
       });
     }
 
@@ -91,7 +91,7 @@ export class ToolDetector {
 
   private async findClaudeDirectory(): Promise<string | null> {
     let currentDir = process.cwd();
-    
+
     while (currentDir !== '/') {
       const claudeDir = join(currentDir, '.claude');
       try {
@@ -101,7 +101,7 @@ export class ToolDetector {
         currentDir = join(currentDir, '..');
       }
     }
-    
+
     // Check home directory
     const homeClaudeDir = join(homedir(), '.claude');
     try {

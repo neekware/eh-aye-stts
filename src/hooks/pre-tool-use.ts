@@ -8,7 +8,7 @@ export class PreToolUseHook extends BaseHook {
   private dangerousCommands = [
     'rm -rf',
     'dd if=',
-    ':(){:|:&};:',  // Fork bomb
+    ':(){:|:&};:', // Fork bomb
     'mkfs',
     'format',
     '> /dev/sda',
@@ -33,19 +33,19 @@ export class PreToolUseHook extends BaseHook {
     this.logEvent({
       type: 'pre-tool-use',
       timestamp: new Date().toISOString(),
-      data: event
+      data: event,
     });
 
     // Check for dangerous commands
     if (event.tool === 'bash' || event.tool === 'shell') {
       const command = event.args?.command || '';
-      
+
       if (this.isDangerousCommand(command)) {
         this.logger.error(`Blocked dangerous command: ${command}`);
-        
+
         // Announce the block
         await this.announce(`Warning: Blocked dangerous command`);
-        
+
         // Exit with code 2 to indicate blocked operation
         process.exit(2);
       }
@@ -58,22 +58,22 @@ export class PreToolUseHook extends BaseHook {
 
   private isDangerousCommand(command: string): boolean {
     const lowerCommand = command.toLowerCase();
-    return this.dangerousCommands.some(dangerous => 
+    return this.dangerousCommands.some((dangerous) =>
       lowerCommand.includes(dangerous.toLowerCase())
     );
   }
 
   private getToolDisplayName(tool: string): string {
     const displayNames: Record<string, string> = {
-      'bash': 'bash command',
-      'shell': 'shell command',
-      'read': 'file reader',
-      'write': 'file writer',
-      'search': 'search tool',
-      'grep': 'grep search',
-      'find': 'find command'
+      bash: 'bash command',
+      shell: 'shell command',
+      read: 'file reader',
+      write: 'file writer',
+      search: 'search tool',
+      grep: 'grep search',
+      find: 'find command',
     };
-    
+
     return displayNames[tool.toLowerCase()] || tool;
   }
 

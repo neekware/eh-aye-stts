@@ -18,19 +18,14 @@ export class StopHook extends BaseHook {
     this.logEvent({
       type: 'stop',
       timestamp: new Date().toISOString(),
-      data: event || {}
+      data: event || {},
     });
 
     // Announce session end
-    const messages = [
-      'Session completed',
-      'Task finished',
-      'Work complete',
-      'All done'
-    ];
-    
+    const messages = ['Session completed', 'Task finished', 'Work complete', 'All done'];
+
     const message = messages[Math.floor(Math.random() * messages.length)];
-    
+
     try {
       await this.tts.speak(message);
     } catch (error) {

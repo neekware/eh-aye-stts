@@ -3,15 +3,15 @@ import { ToolDetector } from '../../installer/detector.js';
 
 // Mock modules before importing
 vi.mock('which', () => ({
-  default: vi.fn()
+  default: vi.fn(),
 }));
 vi.mock('fs', () => ({
   promises: {
-    access: vi.fn()
-  }
+    access: vi.fn(),
+  },
 }));
 vi.mock('os', () => ({
-  homedir: vi.fn(() => '/home/test')
+  homedir: vi.fn(() => '/home/test'),
 }));
 
 // Now import the mocked modules
@@ -35,23 +35,23 @@ describe('ToolDetector', () => {
   describe('detect', () => {
     it('should detect claude-code when executable exists', async () => {
       mockWhich.mockResolvedValueOnce('/usr/local/bin/claude-code');
-      
+
       const results = await detector.detect('claude-code');
-      
+
       expect(results).toHaveLength(1);
       expect(results[0]).toMatchObject({
         name: 'Claude Code',
         executable: 'claude-code',
-        detected: true
+        detected: true,
       });
     });
 
     it('should not detect claude-code when executable is missing', async () => {
       mockWhich.mockRejectedValueOnce(new Error('not found'));
       mockWhich.mockRejectedValueOnce(new Error('not found')); // Also mock the fallback to 'claude'
-      
+
       const results = await detector.detect('claude-code');
-      
+
       expect(results).toHaveLength(1);
       expect(results[0].detected).toBe(false);
     });
@@ -60,9 +60,9 @@ describe('ToolDetector', () => {
       mockWhich
         .mockRejectedValueOnce(new Error('not found')) // claude-code
         .mockResolvedValueOnce('/usr/local/bin/claude'); // claude fallback
-      
+
       const results = await detector.detect('claude-code');
-      
+
       expect(results[0].detected).toBe(true);
     });
 
@@ -70,34 +70,34 @@ describe('ToolDetector', () => {
       mockWhich
         .mockResolvedValueOnce('/usr/local/bin/claude-code')
         .mockResolvedValueOnce('/usr/local/bin/claude');
-      
+
       const results = await detector.detect();
-      
+
       expect(results.length).toBeGreaterThan(1);
-      expect(results.every(r => r.detected)).toBe(true);
+      expect(results.every((r) => r.detected)).toBe(true);
     });
   });
 
   describe('getSettingsPath', () => {
     it('should return settings path when file exists', async () => {
       mockFsAccess.mockResolvedValueOnce(undefined);
-      
+
       const path = await detector.getSettingsPath('claude-code');
-      
+
       expect(path).toBe('/home/test/.claude/settings.json');
     });
 
     it('should return null when settings file does not exist', async () => {
       mockFsAccess.mockRejectedValue(new Error('ENOENT'));
-      
+
       const path = await detector.getSettingsPath('claude-code');
-      
+
       expect(path).toBeNull();
     });
 
     it('should return null for unknown tool', async () => {
       const path = await detector.getSettingsPath('unknown-tool');
-      
+
       expect(path).toBeNull();
     });
   });
