@@ -17,6 +17,13 @@
     "allowImportingTsExtensions": false,
     "types": ["vitest/globals"]
   },
+  "tsc-alias": {
+    "verbose": false,
+    "resolveFullPaths": true,
+    "replacers": {
+      "^(\\.{1,2}/.*)(?<!\\.(js|ts))$": "$1.js"
+    }
+  },
   "include": ["src/**/*", "tools/**/*"],
   "ts-node": {
     "esm": true

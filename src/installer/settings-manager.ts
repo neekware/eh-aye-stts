@@ -140,12 +140,13 @@ export class SettingsManager {
 
     for (const { name, script } of hookTypes) {
       const scriptPath = join(hookScriptsPath, script);
+      // Add unique identifier comment to ensure we only manage our own hooks
       const hookEntry: HookMatcher = {
         matcher: '',
         hooks: [
           {
             type: 'command',
-            command: `node ${scriptPath}`,
+            command: `node ${scriptPath} # STTS-HOOK-v${process.env.npm_package_version || '0.1.0'}`,
           },
         ],
       };
@@ -157,7 +158,9 @@ export class SettingsManager {
       }
 
       // Check if our STTS hook is already installed
-      const sttsHookPattern = /stts\/dist\/hooks\/|@ehaye\/stts|node .*\/stts\/dist\/hooks\//;
+      // Pattern matches: stts paths, @eh-aye/stts package, or our unique comment identifier
+      const sttsHookPattern =
+        /stts\/dist\/hooks\/|@eh-aye\/stts|node .*\/stts\/dist\/hooks\/|# STTS-HOOK-v/;
       const existing = settings.hooks[hookKey].find((h) =>
         h.hooks.some((hook) => sttsHookPattern.test(hook.command))
       );
@@ -194,7 +197,9 @@ export class SettingsManager {
     }
 
     let removed = false;
-    const sttsHookPattern = /stts\/dist\/hooks\/|@ehaye\/stts|node .*\/stts\/dist\/hooks\//;
+    // Updated pattern to match our unique identifier comment as well
+    const sttsHookPattern =
+      /stts\/dist\/hooks\/|@eh-aye\/stts|node .*\/stts\/dist\/hooks\/|# STTS-HOOK-v/;
 
     // Remove only STTS-specific hooks from each hook type
     for (const hookType of Object.keys(settings.hooks)) {
