@@ -66,7 +66,70 @@ src/
         └── detector.test.ts
 ```
 
-### 4. **Safe Installation/Uninstallation**
+### 4. **Quick Testing Guide**
+
+#### Testing with Claude Integration
+
+```bash
+# 1. Quick setup and test
+npm install
+npm run dev -- detect          # Check Claude is detected
+npm run dev -- enable claude   # Install hooks
+npm run dev -- test            # Test audio works
+
+# 2. Verify installation
+cat ~/.claude/settings.json | jq '.hooks | keys'  # Should show hook types
+
+# 3. Test specific hooks
+echo '{"tool": "bash", "command": "ls"}' | node dist/src/hooks/pre-tool-use.js
+echo '{"message": "Test notification"}' | node dist/src/hooks/notification.js
+```
+
+#### Testing Audio During Development
+
+```bash
+# Test with different providers
+npm run dev -- test -p say                    # Local system voice
+npm run dev -- test -p openai                 # OpenAI TTS
+npm run dev -- test -p elevenlabs             # ElevenLabs
+
+# Test with emotions
+npm run dev -- test -e cheerful
+npm run dev -- test -e urgent -m "Critical error!"
+
+# Test configuration
+STTS_AUDIO_ENABLED=false npm run dev -- test  # Should be silent
+STTS_VOICE_TYPE=male npm run dev -- test      # Male voice
+```
+
+#### Claude Settings Testing
+
+```bash
+# Test with custom settings path
+STTS_CLAUDE_SETTINGS_PATH=/tmp/test-settings.json npm run dev -- detect
+
+# Test dangerous command blocking
+STTS_ENABLE_DANGEROUS_COMMAND_BLOCKING=true npm run dev -- enable claude
+echo '{"tool": "bash", "command": "rm -rf /"}' | node dist/src/hooks/pre-tool-use.js
+```
+
+#### Quick Troubleshooting
+
+```bash
+# Audio not working?
+npm run dev -- test -p say      # Test system voice first
+which say || which espeak        # Check TTS binary exists
+
+# Hooks not triggering?
+npm run dev -- status            # Check installation status
+ls -la dist/src/hooks/           # Verify hook files exist
+
+# Wrong settings file?
+echo $STTS_CLAUDE_SETTINGS_PATH  # Check env var
+ls -la ~/.claude/settings.json   # Check default location
+```
+
+### 5. **Safe Installation/Uninstallation**
 
 The STTS hooks are designed to be safe:
 
@@ -79,7 +142,7 @@ Pattern matching for STTS hooks:
 /stts\/dist\/hooks\/|@ehaye\/stts|node .*\/stts\/dist\/hooks\//;
 ```
 
-### 5. **Development Workflow**
+### 6. **Development Workflow**
 
 #### For Rapid Development:
 
@@ -109,7 +172,7 @@ echo '{"message": "Test notification"}' | node dist/hooks/notification.js
 npm run dev -- disable claude-code
 ```
 
-### 6. **Project Structure**
+### 7. **Project Structure**
 
 ```
 stts/
@@ -130,7 +193,7 @@ stts/
 └── README.md            # User guide
 ```
 
-### 7. **Adding New Features**
+### 8. **Adding New Features**
 
 #### Add a New Hook:
 
@@ -145,7 +208,7 @@ stts/
 2. Implement logic in appropriate module
 3. Test with `npm run dev -- new-command`
 
-### 8. **Environment Variables**
+### 9. **Environment Variables**
 
 #### Configuration Variables:
 
@@ -163,7 +226,7 @@ export STTS_ELEVENLABS_API_KEY="..."
 export STTS_CLAUDE_SETTINGS_PATH="/path/to/test/settings.json"
 ```
 
-### 9. **Debugging**
+### 10. **Debugging**
 
 #### Enable Debug Logging:
 
@@ -179,7 +242,7 @@ ls -la ~/.stts/logs/
 tail -f ~/.stts/logs/notification.json
 ```
 
-### 10. **Before Publishing**
+### 11. **Before Publishing**
 
 ```bash
 # Clean and build
