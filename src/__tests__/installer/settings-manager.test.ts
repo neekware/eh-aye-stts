@@ -87,7 +87,7 @@ describe('SettingsManager', () => {
               hooks: [
                 {
                   type: 'command',
-                  command: 'node /test/stts/dist/hooks/notification.js',
+                  command: 'stts hook notification',
                 },
               ],
             },
@@ -139,7 +139,7 @@ describe('SettingsManager', () => {
               hooks: [
                 {
                   type: 'command',
-                  command: 'node /test/stts/dist/hooks/notification.js',
+                  command: 'stts hook notification',
                 },
               ],
             },
@@ -175,7 +175,7 @@ describe('SettingsManager', () => {
               hooks: [
                 {
                   type: 'command',
-                  command: 'node /test/stts/dist/hooks/notification.js',
+                  command: 'stts hook notification',
                 },
               ],
             },

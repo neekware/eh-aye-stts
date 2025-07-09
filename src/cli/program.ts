@@ -8,6 +8,7 @@ import { statusCommand } from './commands/status';
 import { configCommand } from './commands/config';
 import { testCommand } from './commands/test';
 import { restoreCommand } from './commands/restore';
+import { hookCommand } from './commands/hook';
 
 export function createProgram(): Command {
   const program = new Command();
@@ -25,6 +26,7 @@ export function createProgram(): Command {
   program.addCommand(configCommand());
   program.addCommand(testCommand());
   program.addCommand(restoreCommand());
+  program.addCommand(hookCommand());
 
   // Handle uncaught errors
   process.on('unhandledRejection', (error) => {
