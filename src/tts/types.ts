@@ -1,5 +1,7 @@
 export type VoiceGender = 'male' | 'female';
 
+export type Emotion = 'cheerful' | 'neutral' | 'concerned' | 'urgent' | 'disappointed';
+
 export interface TTSConfig {
   priority?: string[];
   voiceGender?: VoiceGender;
@@ -7,10 +9,11 @@ export interface TTSConfig {
   openaiApiKey?: string;
   elevenLabsVoiceId?: string;
   openaiModel?: string;
+  defaultEmotion?: Emotion;
 }
 
 export interface TTSProvider {
   readonly name: string;
   isAvailable(): Promise<boolean>;
-  speak(text: string): Promise<boolean>;
+  speak(text: string, emotion?: Emotion): Promise<boolean>;
 }

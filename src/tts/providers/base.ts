@@ -1,4 +1,4 @@
-import { TTSProvider, TTSConfig } from '../types.js';
+import { TTSProvider, TTSConfig, Emotion } from '../types.js';
 
 export abstract class BaseTTSProvider implements TTSProvider {
   abstract readonly name: string;
@@ -6,5 +6,5 @@ export abstract class BaseTTSProvider implements TTSProvider {
   constructor(protected config: TTSConfig) {}
 
   abstract isAvailable(): Promise<boolean>;
-  abstract speak(text: string): Promise<boolean>;
+  abstract speak(text: string, emotion?: Emotion): Promise<boolean>;
 }

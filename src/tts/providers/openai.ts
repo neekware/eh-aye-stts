@@ -1,6 +1,6 @@
 import { spawn } from 'child_process';
 import { BaseTTSProvider } from './base.js';
-import { TTSConfig } from '../types.js';
+import { TTSConfig, Emotion } from '../types.js';
 import { promises as fs } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -29,17 +29,18 @@ export class OpenAIProvider extends BaseTTSProvider {
     }
   }
 
-  async speak(text: string): Promise<boolean> {
+  async speak(text: string, emotion?: Emotion): Promise<boolean> {
     try {
       const axios = await import('axios');
       const voice = this.getVoice();
       const model = this.config.openaiModel || 'tts-1';
+      const emotionalText = this.addEmotionalContext(text, emotion, model);
 
       const response = await axios.default.post(
         'https://api.openai.com/v1/audio/speech',
         {
           model,
-          input: text,
+          input: emotionalText,
           voice,
         },
         {
@@ -117,5 +118,45 @@ export class OpenAIProvider extends BaseTTSProvider {
 
       player.on('error', reject);
     });
+  }
+
+  private addEmotionalContext(text: string, emotion?: Emotion, model: string): string {
+    if (!emotion || emotion === 'neutral') {
+      return text;
+    }
+
+    // For newer models that support instructions
+    if (model === 'gpt-4o-mini-tts' || model === 'tts-1-hd') {
+      let instruction = '';
+      switch (emotion) {
+        case 'cheerful':
+          instruction = 'Speak enthusiastically and cheerfully: ';
+          break;
+        case 'urgent':
+          instruction = 'Speak with urgency and emphasis: ';
+          break;
+        case 'concerned':
+          instruction = 'Speak with concern and empathy: ';
+          break;
+        case 'disappointed':
+          instruction = 'Speak sympathetically and softly: ';
+          break;
+      }
+      return instruction + text;
+    }
+
+    // For standard models, add contextual hints
+    switch (emotion) {
+      case 'cheerful':
+        return text + '!';
+      case 'urgent':
+        return text.toUpperCase();
+      case 'concerned':
+        return text + '...';
+      case 'disappointed':
+        return text + '.';
+      default:
+        return text;
+    }
   }
 }

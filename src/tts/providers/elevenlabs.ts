@@ -1,6 +1,6 @@
 import { spawn } from 'child_process';
 import { BaseTTSProvider } from './base.js';
-import { TTSConfig } from '../types.js';
+import { TTSConfig, Emotion } from '../types.js';
 import { promises as fs } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -29,21 +29,32 @@ export class ElevenLabsProvider extends BaseTTSProvider {
     }
   }
 
-  async speak(text: string): Promise<boolean> {
+  async speak(text: string, emotion?: Emotion): Promise<boolean> {
     try {
       const axios = await import('axios');
       const voiceId = this.getVoiceId();
+      const voiceSettings = this.getVoiceSettings(emotion);
+      const { enhancedText, nextText } = this.addEmotionalContext(text, emotion);
+
+      const requestBody: {
+        text: string;
+        model_id: string;
+        voice_settings: { stability: number; similarity_boost: number };
+        next_text?: string;
+      } = {
+        text: enhancedText,
+        model_id: 'eleven_monolingual_v1',
+        voice_settings: voiceSettings,
+      };
+
+      // Add next_text for emotional context if provided
+      if (nextText) {
+        requestBody.next_text = nextText;
+      }
 
       const response = await axios.default.post(
         `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
-        {
-          text,
-          model_id: 'eleven_monolingual_v1',
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.5,
-          },
-        },
+        requestBody,
         {
           headers: {
             Accept: 'audio/mpeg',
@@ -126,5 +137,57 @@ export class ElevenLabsProvider extends BaseTTSProvider {
 
       player.on('error', reject);
     });
+  }
+
+  private getVoiceSettings(emotion?: Emotion): { stability: number; similarity_boost: number } {
+    switch (emotion) {
+      case 'cheerful':
+        return { stability: 0.3, similarity_boost: 0.7 };
+      case 'urgent':
+        return { stability: 0.2, similarity_boost: 0.5 };
+      case 'concerned':
+        return { stability: 0.4, similarity_boost: 0.6 };
+      case 'disappointed':
+        return { stability: 0.7, similarity_boost: 0.3 };
+      case 'neutral':
+      default:
+        return { stability: 0.5, similarity_boost: 0.5 };
+    }
+  }
+
+  private addEmotionalContext(
+    text: string,
+    emotion?: Emotion
+  ): { enhancedText: string; nextText?: string } {
+    if (!emotion || emotion === 'neutral') {
+      return { enhancedText: text };
+    }
+
+    let contextualPrefix = '';
+    let nextText = '';
+
+    switch (emotion) {
+      case 'cheerful':
+        contextualPrefix = '';
+        nextText = ' she said excitedly.';
+        break;
+      case 'urgent':
+        contextualPrefix = '';
+        nextText = ' she said urgently, with emphasis.';
+        break;
+      case 'concerned':
+        contextualPrefix = '';
+        nextText = ' she said with concern in her voice.';
+        break;
+      case 'disappointed':
+        contextualPrefix = '';
+        nextText = ' she said disappointedly.';
+        break;
+    }
+
+    return {
+      enhancedText: contextualPrefix + text,
+      nextText: nextText,
+    };
   }
 }

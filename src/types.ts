@@ -48,6 +48,10 @@ export interface NotificationEvent {
   message: string;
   type?: string;
   level?: string;
+  metadata?: {
+    emotion?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface StopEvent {

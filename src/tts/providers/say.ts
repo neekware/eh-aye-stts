@@ -1,4 +1,5 @@
 import { BaseTTSProvider } from './base.js';
+import { Emotion } from '../types.js';
 
 export class SayProvider extends BaseTTSProvider {
   readonly name = 'say';
@@ -12,13 +13,15 @@ export class SayProvider extends BaseTTSProvider {
     }
   }
 
-  async speak(text: string): Promise<boolean> {
+  async speak(text: string, emotion?: Emotion): Promise<boolean> {
     try {
       const say = await import('say');
       const voice = this.getVoice();
+      const rate = this.getRate(emotion);
+      const emotionalText = this.addEmotionalContext(text, emotion);
 
       return new Promise((resolve) => {
-        say.default.speak(text, voice, 1.0, (err?: string) => {
+        say.default.speak(emotionalText, voice, rate, (err?: string) => {
           resolve(!err);
         });
       });
@@ -41,6 +44,42 @@ export class SayProvider extends BaseTTSProvider {
     } else {
       // Linux
       return gender === 'male' ? 'male' : 'female';
+    }
+  }
+
+  private getRate(emotion?: Emotion): number {
+    switch (emotion) {
+      case 'urgent':
+        return 1.3; // Faster speech for urgency
+      case 'disappointed':
+        return 0.9; // Slower speech for disappointment
+      case 'cheerful':
+        return 1.1; // Slightly faster for enthusiasm
+      case 'concerned':
+        return 0.95; // Slightly slower for concern
+      case 'neutral':
+      default:
+        return 1.0; // Normal speed
+    }
+  }
+
+  private addEmotionalContext(text: string, emotion?: Emotion): string {
+    if (!emotion || emotion === 'neutral') {
+      return text;
+    }
+
+    // Add simple prefixes or suffixes to help convey emotion
+    switch (emotion) {
+      case 'cheerful':
+        return `Yay! ${text}`;
+      case 'urgent':
+        return `Attention! ${text}`;
+      case 'concerned':
+        return `Hmm... ${text}`;
+      case 'disappointed':
+        return `Oh... ${text}`;
+      default:
+        return text;
     }
   }
 }

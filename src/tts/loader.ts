@@ -1,4 +1,4 @@
-import { TTSProvider, TTSConfig } from './types.js';
+import { TTSProvider, TTSConfig, Emotion } from './types.js';
 import { SayProvider } from './providers/say.js';
 import { ElevenLabsProvider } from './providers/elevenlabs.js';
 import { OpenAIProvider } from './providers/openai.js';
@@ -23,11 +23,27 @@ export class TTSLoader {
     this.providers.set('openai', new OpenAIProvider(this.config));
   }
 
-  async speak(text: string, providerName?: string): Promise<boolean> {
+  async speak(text: string, emotionOrProvider?: string, emotion?: Emotion): Promise<boolean> {
+    // Handle overloaded parameters
+    let providerName: string | undefined;
+    let finalEmotion: Emotion | undefined;
+
+    if (emotionOrProvider && this.isEmotion(emotionOrProvider)) {
+      finalEmotion = emotionOrProvider as Emotion;
+    } else if (emotionOrProvider) {
+      providerName = emotionOrProvider;
+      finalEmotion = emotion;
+    }
+
+    // Use default emotion if none provided
+    if (!finalEmotion) {
+      finalEmotion = this.config.defaultEmotion;
+    }
+
     if (providerName) {
       const provider = this.providers.get(providerName);
       if (provider && (await provider.isAvailable())) {
-        return await provider.speak(text);
+        return await provider.speak(text, finalEmotion);
       }
       return false;
     }
@@ -36,7 +52,7 @@ export class TTSLoader {
     for (const name of this.config.priority!) {
       const provider = this.providers.get(name);
       if (provider && (await provider.isAvailable())) {
-        return await provider.speak(text);
+        return await provider.speak(text, finalEmotion);
       }
     }
 
@@ -61,5 +77,10 @@ export class TTSLoader {
       }
     }
     return available;
+  }
+
+  private isEmotion(value: string): boolean {
+    const emotions = ['cheerful', 'neutral', 'concerned', 'urgent', 'disappointed'];
+    return emotions.includes(value);
   }
 }

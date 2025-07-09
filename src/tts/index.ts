@@ -33,3 +33,4 @@ export function loadTTS(userConfig: TTSConfig = {}): TTSLoader {
 
 export * from './types.js';
 export * from './loader.js';
+export * from './emotion-detector.js';

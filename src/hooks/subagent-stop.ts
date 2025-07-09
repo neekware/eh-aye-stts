@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { BaseHook } from './base.js';
 import { SubagentStopEvent } from '../types.js';
-import { loadTTS } from '../tts/index.js';
+import { loadTTS, detectEmotion, Emotion } from '../tts/index.js';
 
 export class SubagentStopHook extends BaseHook {
   private tts = loadTTS();
@@ -21,9 +21,30 @@ export class SubagentStopHook extends BaseHook {
       data: { ...(event || {}) },
     });
 
-    // Announce subagent completion
+    // Announce subagent completion with appropriate emotion
+    let emotion: Emotion = 'neutral';
+    let message = 'Agent task completed';
+
+    // Check the reason for more context
+    if (event?.reason) {
+      emotion = detectEmotion(event.reason);
+      // Add context to the message if there's a specific reason
+      if (event.reason.toLowerCase().includes('success')) {
+        emotion = 'cheerful';
+      } else if (
+        event.reason.toLowerCase().includes('error') ||
+        event.reason.toLowerCase().includes('fail')
+      ) {
+        emotion = 'disappointed';
+        message = 'Agent task encountered an issue';
+      }
+    } else {
+      // Default to cheerful for completed tasks
+      emotion = 'cheerful';
+    }
+
     try {
-      await this.tts.speak('Agent task completed');
+      await this.tts.speak(message, emotion);
     } catch (error) {
       this.logger.error(`TTS error: ${error instanceof Error ? error.message : String(error)}`);
     }

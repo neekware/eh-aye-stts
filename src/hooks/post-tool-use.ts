@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { BaseHook } from './base.js';
 import { PostToolUseEvent } from '../types.js';
-import { loadTTS } from '../tts/index.js';
+import { loadTTS, detectEmotion, Emotion } from '../tts/index.js';
 
 export class PostToolUseHook extends BaseHook {
   private tts = loadTTS();
@@ -37,9 +37,11 @@ export class PostToolUseHook extends BaseHook {
       const toolName = this.getToolDisplayName(event.tool);
 
       if (event.exitCode === 0) {
-        await this.announce(`${toolName} completed in ${seconds} seconds`);
+        const emotion = 'cheerful';
+        await this.announce(`${toolName} completed in ${seconds} seconds`, emotion);
       } else {
-        await this.announce(`${toolName} failed with error`);
+        const emotion = 'disappointed';
+        await this.announce(`${toolName} failed with error`, emotion);
       }
     }
 
@@ -61,9 +63,12 @@ export class PostToolUseHook extends BaseHook {
     return displayNames[tool.toLowerCase()] || tool;
   }
 
-  private async announce(message: string): Promise<void> {
+  private async announce(message: string, emotion?: string): Promise<void> {
     try {
-      const success = await this.tts.speak(message);
+      // Use detected emotion if not provided
+      const finalEmotion =
+        emotion || detectEmotion(message, { success: message.includes('completed') });
+      const success = await this.tts.speak(message, finalEmotion as Emotion);
       if (!success) {
         this.logger.warn('Failed to announce message');
       }

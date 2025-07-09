@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { BaseHook } from './base.js';
 import { NotificationEvent } from '../types.js';
-import { loadTTS } from '../tts/index.js';
+import { loadTTS, detectEmotion, Emotion } from '../tts/index.js';
 import chalk from 'chalk';
 
 export class NotificationHook extends BaseHook {
@@ -34,7 +34,11 @@ export class NotificationHook extends BaseHook {
         this.logger.debug(`Using ${provider.name} TTS provider`);
       }
 
-      const success = await this.tts.speak(event.message);
+      // Detect emotion from the message content
+      const emotion = this.detectNotificationEmotion(event);
+      this.logger.debug(`Using emotion: ${emotion}`);
+
+      const success = await this.tts.speak(event.message, emotion);
 
       if (!success) {
         this.logger.warn('TTS failed to speak notification');
@@ -50,6 +54,33 @@ export class NotificationHook extends BaseHook {
     if (process.env.DEBUG) {
       console.log(chalk.blue('📢 Notification:'), event.message);
     }
+  }
+
+  private detectNotificationEmotion(event: NotificationEvent): Emotion {
+    // Check if the event has metadata indicating emotion
+    if (event.metadata?.emotion) {
+      return event.metadata.emotion as Emotion;
+    }
+
+    // Check for specific event types if available
+    if (event.type) {
+      switch (event.type) {
+        case 'success':
+        case 'complete':
+          return 'cheerful';
+        case 'error':
+        case 'failure':
+          return 'disappointed';
+        case 'warning':
+        case 'blocked':
+          return 'urgent';
+        case 'info':
+          return 'neutral';
+      }
+    }
+
+    // Fall back to content-based detection
+    return detectEmotion(event.message);
   }
 }
 
