@@ -13,7 +13,7 @@ describe('Backup and Restore Tests', () => {
   beforeEach(async () => {
     tempDir = await mkdtemp(join(tmpdir(), 'stts-test-'));
     settingsPath = join(tempDir, 'settings.json');
-    manager = new SettingsManager(settingsPath);
+    manager = new SettingsManager(settingsPath, 'test-provider');
   });
 
   afterEach(async () => {

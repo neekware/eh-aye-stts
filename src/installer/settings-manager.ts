@@ -1,12 +1,16 @@
 import { promises as fs } from 'fs';
 import { dirname, join, basename } from 'path';
 import { ClaudeSettings, HookMatcher } from '../types';
+import { STTS_DIR } from '../defaults';
 import chalk from 'chalk';
 
 export class SettingsManager {
   private readonly MAX_BACKUPS = 5;
 
-  constructor(private settingsPath: string) {}
+  constructor(
+    private settingsPath: string,
+    private provider: string
+  ) {}
 
   async loadSettings(): Promise<ClaudeSettings> {
     try {
@@ -29,9 +33,14 @@ export class SettingsManager {
       // Check if settings file exists
       await fs.access(this.settingsPath);
 
+      // Create backup directory in ~/.stts/backups/{provider}/
+      const backupDir = join(STTS_DIR, 'backups', this.provider);
+      await fs.mkdir(backupDir, { recursive: true });
+
       // Create backup filename with timestamp
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      const backupPath = `${this.settingsPath}.backup-${timestamp}`;
+      const settingsName = basename(this.settingsPath).replace('.json', '');
+      const backupPath = join(backupDir, `${settingsName}.${timestamp}.json`);
 
       // Copy current settings to backup
       await fs.copyFile(this.settingsPath, backupPath);
@@ -47,16 +56,16 @@ export class SettingsManager {
   }
 
   private async cleanupOldBackups(): Promise<void> {
-    const dir = dirname(this.settingsPath);
-    const settingsName = basename(this.settingsPath);
+    const backupDir = join(STTS_DIR, 'backups', this.provider);
+    const settingsName = basename(this.settingsPath).replace('.json', '');
     // Escape special regex characters in filename and build pattern
     const escapedName = settingsName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const backupPattern = new RegExp(
-      '^' + escapedName + '\\.backup-\\d{4}-\\d{2}-\\d{2}T\\d{2}-\\d{2}-\\d{2}$'
+      '^' + escapedName + '\\.\\d{4}-\\d{2}-\\d{2}T\\d{2}-\\d{2}-\\d{2}\\.json$'
     );
 
     try {
-      const files = await fs.readdir(dir);
+      const files = await fs.readdir(backupDir);
       const backups = files
         .filter((f) => backupPattern.test(f))
         .sort()
@@ -64,7 +73,7 @@ export class SettingsManager {
 
       // Remove old backups, keeping only MAX_BACKUPS
       for (let i = this.MAX_BACKUPS; i < backups.length; i++) {
-        await fs.unlink(join(dir, backups[i]));
+        await fs.unlink(join(backupDir, backups[i]));
       }
     } catch (error) {
       // Directory doesn't exist or can't be read, ignore
@@ -72,21 +81,21 @@ export class SettingsManager {
   }
 
   async listBackups(): Promise<string[]> {
-    const dir = dirname(this.settingsPath);
-    const settingsName = basename(this.settingsPath);
+    const backupDir = join(STTS_DIR, 'backups', this.provider);
+    const settingsName = basename(this.settingsPath).replace('.json', '');
     // Escape special regex characters in filename and build pattern
     const escapedName = settingsName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const backupPattern = new RegExp(
-      '^' + escapedName + '\\.backup-\\d{4}-\\d{2}-\\d{2}T\\d{2}-\\d{2}-\\d{2}$'
+      '^' + escapedName + '\\.\\d{4}-\\d{2}-\\d{2}T\\d{2}-\\d{2}-\\d{2}\\.json$'
     );
 
     try {
-      const files = await fs.readdir(dir);
+      const files = await fs.readdir(backupDir);
       return files
         .filter((f) => backupPattern.test(f))
         .sort()
         .reverse()
-        .map((f) => join(dir, f));
+        .map((f) => join(backupDir, f));
     } catch (error) {
       return [];
     }
@@ -179,6 +188,32 @@ export class SettingsManager {
     } else {
       console.log(chalk.yellow('\n⚠ All hooks already installed'));
     }
+
+    // Clean up any provider-created backups from the original location
+    await this.cleanupProviderBackups();
+  }
+
+  private async cleanupProviderBackups(): Promise<void> {
+    const originalDir = dirname(this.settingsPath);
+    const settingsName = basename(this.settingsPath);
+    const backupPattern = new RegExp(
+      '^' +
+        settingsName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') +
+        '\\.backup-\\d{4}-\\d{2}-\\d{2}T\\d{2}-\\d{2}-\\d{2}$'
+    );
+
+    try {
+      const files = await fs.readdir(originalDir);
+      const providerBackups = files.filter((f) => backupPattern.test(f));
+
+      for (const backup of providerBackups) {
+        const backupPath = join(originalDir, backup);
+        await fs.unlink(backupPath);
+        console.log(chalk.gray(`🗑️  Removed ${this.provider} backup: ${backup}`));
+      }
+    } catch (error) {
+      // Ignore errors - the directory might not exist or be readable
+    }
   }
 
   async removeHooks(): Promise<void> {
@@ -233,5 +268,8 @@ export class SettingsManager {
     } else {
       console.log(chalk.yellow('No STTS hooks found to remove'));
     }
+
+    // Clean up any provider-created backups from the original location
+    await this.cleanupProviderBackups();
   }
 }

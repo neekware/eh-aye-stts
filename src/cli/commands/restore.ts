@@ -7,18 +7,19 @@ import { SettingsManager } from '../../installer/settings-manager';
 
 export function restoreCommand(): Command {
   return new Command('restore')
-    .description('Restore Claude settings from a backup')
+    .description('Restore settings from a backup')
+    .argument('<tool>', 'Tool to restore settings for (e.g., claude-code)')
     .argument('[backup-number]', 'Backup number to restore (from status --backups)')
-    .action(async (backupNumber?: string) => {
+    .action(async (tool: string, backupNumber?: string) => {
       const detector = new ToolDetector();
-      const settingsPath = await detector.getSettingsPath('claude-code');
+      const settingsPath = await detector.getSettingsPath(tool);
 
       if (!settingsPath) {
-        console.error(chalk.red('No Claude settings found'));
+        console.error(chalk.red(`No ${tool} settings found`));
         process.exit(1);
       }
 
-      const manager = new SettingsManager(settingsPath);
+      const manager = new SettingsManager(settingsPath, tool);
       const backups = await manager.listBackups();
 
       if (backups.length === 0) {

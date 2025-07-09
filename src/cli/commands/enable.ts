@@ -31,7 +31,7 @@ export function enableCommand(): Command {
       }
 
       // Install hooks
-      const manager = new SettingsManager(settingsPath);
+      const manager = new SettingsManager(settingsPath, tool);
 
       try {
         await manager.installHooks();
@@ -44,12 +44,12 @@ export function enableCommand(): Command {
         if (!existsSync(configDir)) {
           mkdirSync(configDir, { recursive: true });
         }
-        let existingConfig = {};
+        let existingConfig: Record<string, unknown> = {};
 
         // Read existing config if it exists
         try {
           const configContent = readFileSync(configPath, 'utf8');
-          existingConfig = JSON.parse(configContent);
+          existingConfig = JSON.parse(configContent) as Record<string, unknown>;
         } catch {
           // Config doesn't exist yet, that's fine
         }

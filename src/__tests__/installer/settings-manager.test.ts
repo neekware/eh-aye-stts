@@ -6,6 +6,10 @@ vi.mock('fs', () => ({
     readFile: vi.fn(),
     writeFile: vi.fn(),
     mkdir: vi.fn(),
+    access: vi.fn(),
+    copyFile: vi.fn(),
+    readdir: vi.fn(() => Promise.resolve([])),
+    unlink: vi.fn(),
   },
 }));
 
@@ -13,6 +17,7 @@ vi.mock('fs', () => ({
 vi.mock('path', () => ({
   dirname: vi.fn(() => '/test'),
   join: vi.fn((...args) => args.join('/')),
+  basename: vi.fn(() => 'settings.json'),
 }));
 
 // Mock chalk to avoid color codes in tests
@@ -22,6 +27,7 @@ vi.mock('chalk', () => ({
     yellow: (str: string) => str,
     blue: (str: string) => str,
     red: (str: string) => str,
+    gray: (str: string) => str,
   },
 }));
 
@@ -40,7 +46,7 @@ describe('SettingsManager', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    manager = new SettingsManager(mockSettingsPath);
+    manager = new SettingsManager(mockSettingsPath, 'test-provider');
   });
 
   describe('loadSettings', () => {

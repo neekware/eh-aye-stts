@@ -62,30 +62,35 @@ export function statusCommand(): Command {
 
 async function showBackups(): Promise<void> {
   const detector = new ToolDetector();
-  const settingsPath = await detector.getSettingsPath('claude-code');
+  const results = await detector.detect();
 
-  if (!settingsPath) {
-    console.log(chalk.yellow('⚠ No Claude settings found'));
-    return;
-  }
+  for (const result of results) {
+    if (!result.detected) continue;
 
-  const manager = new SettingsManager(settingsPath);
-  const backups = await manager.listBackups();
+    const settingsPath = await detector.getSettingsPath(result.executable);
+    if (!settingsPath) continue;
 
-  if (backups.length === 0) {
-    console.log(chalk.gray('No backups found'));
-    return;
-  }
+    const manager = new SettingsManager(settingsPath, result.executable);
+    const backups = await manager.listBackups();
 
-  console.log(chalk.blue('📁 Available backups:\n'));
-  backups.forEach((backup, index) => {
-    const name = basename(backup);
-    const timestamp = name.match(/backup-(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})/)?.[1];
-    if (timestamp) {
-      const date = new Date(timestamp.replace(/-/g, ':').replace('T', ' '));
-      console.log(`  ${index + 1}. ${date.toLocaleString()} - ${name}`);
-    } else {
-      console.log(`  ${index + 1}. ${name}`);
+    if (backups.length === 0) {
+      console.log(chalk.gray(`No backups found for ${result.name}`));
+      continue;
     }
-  });
+
+    console.log(chalk.blue(`📁 Available backups for ${result.name}:\n`));
+    backups.forEach((backup, index) => {
+      const name = basename(backup);
+      const timestamp = name.match(/(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})/)?.[1];
+      if (timestamp) {
+        // Convert timestamp format from 2025-07-09T21-45-57 to 2025-07-09T21:45:57
+        const isoTimestamp = timestamp.replace(/T(\d{2})-(\d{2})-(\d{2})/, 'T$1:$2:$3');
+        const date = new Date(isoTimestamp);
+        console.log(`  ${index + 1}. ${date.toLocaleString()} - ${name}`);
+      } else {
+        console.log(`  ${index + 1}. ${name}`);
+      }
+    });
+    console.log(); // Add blank line between providers
+  }
 }

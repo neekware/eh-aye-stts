@@ -18,7 +18,7 @@ export function disableCommand(): Command {
 
       console.log(chalk.blue(`🔇 Disabling TTS for ${tool}...\n`));
 
-      const manager = new SettingsManager(settingsPath);
+      const manager = new SettingsManager(settingsPath, tool);
 
       try {
         await manager.removeHooks();
