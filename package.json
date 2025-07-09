@@ -36,7 +36,8 @@
     "loc": "tsx tools/utils/loc.ts",
     "update:readme": "npm run loc",
     "dev:test": "./scripts/dev-test.sh",
-    "dev:install": "./scripts/test-local-install.sh"
+    "dev:install": "./scripts/test-local-install.sh",
+    "dev:uninstall": "./scripts/uninstall.sh"
   },
   "keywords": [
     "tts",
