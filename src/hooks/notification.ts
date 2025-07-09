@@ -63,6 +63,8 @@ export class NotificationHook extends BaseHook {
     }
 
     // Check for specific event types if available
+    // Note: event.type contains notification types (not emotions)
+    // We map these notification types to appropriate emotions
     if (event.type) {
       switch (event.type) {
         case 'success':
@@ -76,6 +78,7 @@ export class NotificationHook extends BaseHook {
           return 'urgent';
         case 'info':
           return 'neutral';
+        // Add more event type mappings as needed
       }
     }
 
