@@ -258,7 +258,7 @@ npm run lint
 
 ## License
 
-MIT © Val Karpov
+MIT © 2025 Val Neekman, Neekware Inc.
 
 ## Contributing
 
