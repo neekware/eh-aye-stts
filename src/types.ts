@@ -23,23 +23,23 @@ export interface ClaudeSettings {
     Stop?: HookMatcher[];
     SubagentStop?: HookMatcher[];
   };
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface HookEvent {
   type: string;
   timestamp: string;
-  data: any;
+  data: Record<string, unknown>;
 }
 
 export interface PreToolUseEvent {
   tool: string;
-  args: any;
+  args: string[] | { command?: string; [key: string]: unknown };
   cwd: string;
 }
 
 export interface PostToolUseEvent extends PreToolUseEvent {
-  result: any;
+  result: string | Buffer;
   exitCode: number;
   duration: number;
 }

@@ -38,7 +38,10 @@ export class PreToolUseHook extends BaseHook {
 
     // Check for dangerous commands
     if (event.tool === 'bash' || event.tool === 'shell') {
-      const command = event.args?.command || '';
+      // Handle both array and object formats
+      const command = Array.isArray(event.args)
+        ? event.args.join(' ')
+        : (event.args as { command?: string }).command || '';
 
       if (this.isDangerousCommand(command)) {
         this.logger.error(`Blocked dangerous command: ${command}`);
@@ -84,7 +87,7 @@ export class PreToolUseHook extends BaseHook {
         this.logger.warn('Failed to announce message');
       }
     } catch (error) {
-      this.logger.error(`TTS error: ${error}`);
+      this.logger.error(`TTS error: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 }
@@ -92,5 +95,5 @@ export class PreToolUseHook extends BaseHook {
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   const hook = new PreToolUseHook();
-  hook.run();
+  void hook.run();
 }

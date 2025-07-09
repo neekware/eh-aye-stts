@@ -7,6 +7,27 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { promises as fs } from 'fs';
 
+// Type definitions for command options
+interface DetectOptions {
+  json?: boolean;
+}
+
+interface TestOptions {
+  message: string;
+}
+
+interface HookEntry {
+  command: string;
+}
+
+interface HookGroup {
+  hooks: HookEntry[];
+}
+
+interface Settings {
+  hooks?: Record<string, HookGroup[]>;
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -22,7 +43,7 @@ program
   .command('detect [tool]')
   .description('Detect installed development tools')
   .option('--json', 'Output in JSON format')
-  .action(async (tool, options) => {
+  .action(async (tool: string | undefined, options: DetectOptions) => {
     const detector = new ToolDetector();
     const results = await detector.detect(tool);
 
@@ -52,7 +73,7 @@ program
 program
   .command('enable <tool>')
   .description('Enable TTS hooks for a development tool')
-  .action(async (tool) => {
+  .action(async (tool: string) => {
     const detector = new ToolDetector();
     const results = await detector.detect(tool);
 
@@ -83,7 +104,11 @@ program
       console.log(chalk.gray('  • Session completion'));
       console.log(chalk.gray('  • Agent task completion'));
     } catch (error) {
-      console.error(chalk.red(`Failed to install hooks: ${error}`));
+      console.error(
+        chalk.red(
+          `Failed to install hooks: ${error instanceof Error ? error.message : String(error)}`
+        )
+      );
       process.exit(1);
     }
   });
@@ -92,7 +117,7 @@ program
 program
   .command('disable <tool>')
   .description('Disable TTS hooks for a development tool')
-  .action(async (tool) => {
+  .action(async (tool: string) => {
     const detector = new ToolDetector();
     const settingsPath = await detector.getSettingsPath(tool);
 
@@ -109,7 +134,11 @@ program
       await manager.removeHooks();
       console.log(chalk.green('\n✓ TTS hooks removed successfully'));
     } catch (error) {
-      console.error(chalk.red(`Failed to remove hooks: ${error}`));
+      console.error(
+        chalk.red(
+          `Failed to remove hooks: ${error instanceof Error ? error.message : String(error)}`
+        )
+      );
       process.exit(1);
     }
   });
@@ -132,15 +161,14 @@ program
 
       try {
         const content = await fs.readFile(settingsPath, 'utf8');
-        const settings = JSON.parse(content);
+        const settings = JSON.parse(content) as Settings;
 
         const hasHooks =
           settings.hooks &&
           Object.keys(settings.hooks).some((key) =>
-            settings.hooks[key]?.some((h: any) =>
+            settings.hooks[key]?.some((h) =>
               h.hooks?.some(
-                (hook: any) =>
-                  hook.command?.includes('stts') || hook.command?.includes('@eh-aye/stts')
+                (hook) => hook.command?.includes('stts') || hook.command?.includes('@eh-aye/stts')
               )
             )
           );
@@ -159,7 +187,7 @@ program
   .command('test')
   .description('Test TTS functionality')
   .option('-m, --message <text>', 'Custom message to speak', 'Testing TTS functionality')
-  .action(async (options) => {
+  .action(async (options: TestOptions) => {
     try {
       const { loadTTS } = await import('../tts/index.js');
       const tts = loadTTS();
@@ -183,9 +211,19 @@ program
         process.exit(1);
       }
     } catch (error) {
-      console.error(chalk.red(`Test failed: ${error}`));
+      console.error(
+        chalk.red(`Test failed: ${error instanceof Error ? error.message : String(error)}`)
+      );
       process.exit(1);
     }
   });
+
+// Handle uncaught errors
+process.on('unhandledRejection', (error) => {
+  console.error(
+    chalk.red(`Unhandled error: ${error instanceof Error ? error.message : String(error)}`)
+  );
+  process.exit(1);
+});
 
 program.parse();

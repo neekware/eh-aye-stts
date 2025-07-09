@@ -55,6 +55,7 @@ export class ElevenLabsProvider extends BaseTTSProvider {
       );
 
       // Play the audio stream
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await this.playAudioStream(response.data);
       return true;
     } catch (error) {
@@ -73,7 +74,7 @@ export class ElevenLabsProvider extends BaseTTSProvider {
     return gender === 'male' ? 'ErXwobaYiN019PkySvjV' : 'EXAVITQu4vr4xnSDxMaL'; // Antoni : Rachel
   }
 
-  private async playAudioStream(audioStream: any): Promise<void> {
+  private async playAudioStream(audioStream: AsyncIterable<Uint8Array>): Promise<void> {
     // Save to temp file first for better compatibility
     const tempFile = join(tmpdir(), `stts-${Date.now()}.mp3`);
 

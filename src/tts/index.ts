@@ -12,7 +12,7 @@ export function loadTTS(userConfig: TTSConfig = {}): TTSLoader {
     envConfig.priority = process.env.TTS_PRIORITY.split(',').map((s) => s.trim());
   }
   if (process.env.TTS_VOICE_GENDER) {
-    envConfig.voiceGender = process.env.TTS_VOICE_GENDER as any;
+    envConfig.voiceGender = process.env.TTS_VOICE_GENDER as 'male' | 'female';
   }
   if (process.env.ELEVENLABS_API_KEY) {
     envConfig.elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;

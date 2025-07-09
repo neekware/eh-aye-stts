@@ -29,7 +29,7 @@ export class StopHook extends BaseHook {
     try {
       await this.tts.speak(message);
     } catch (error) {
-      this.logger.error(`TTS error: ${error}`);
+      this.logger.error(`TTS error: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 }
@@ -37,5 +37,5 @@ export class StopHook extends BaseHook {
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   const hook = new StopHook();
-  hook.run();
+  void hook.run();
 }

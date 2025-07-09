@@ -42,7 +42,7 @@ export class NotificationHook extends BaseHook {
         this.logger.debug('Notification spoken successfully');
       }
     } catch (error) {
-      this.logger.error(`TTS error: ${error}`);
+      this.logger.error(`TTS error: ${error instanceof Error ? error.message : String(error)}`);
       // Don't fail the hook if TTS fails
     }
 
@@ -56,5 +56,5 @@ export class NotificationHook extends BaseHook {
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   const hook = new NotificationHook();
-  hook.run();
+  void hook.run();
 }

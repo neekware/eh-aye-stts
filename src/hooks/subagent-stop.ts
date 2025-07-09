@@ -25,7 +25,7 @@ export class SubagentStopHook extends BaseHook {
     try {
       await this.tts.speak('Agent task completed');
     } catch (error) {
-      this.logger.error(`TTS error: ${error}`);
+      this.logger.error(`TTS error: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 }
@@ -33,5 +33,5 @@ export class SubagentStopHook extends BaseHook {
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   const hook = new SubagentStopHook();
-  hook.run();
+  void hook.run();
 }

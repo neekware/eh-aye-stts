@@ -19,7 +19,7 @@ export abstract class BaseHook {
       format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.printf(({ timestamp, level, message }) => {
-          return `[${timestamp}] ${level}: ${message}`;
+          return `[${String(timestamp)}] ${level}: ${String(message)}`;
         })
       ),
       transports: [
@@ -51,7 +51,7 @@ export abstract class BaseHook {
       let data = '';
       process.stdin.setEncoding('utf8');
 
-      process.stdin.on('data', (chunk) => {
+      process.stdin.on('data', (chunk: string) => {
         data += chunk;
       });
 
@@ -61,11 +61,13 @@ export abstract class BaseHook {
     });
   }
 
-  protected parseInput(input: string): any {
+  protected parseInput<T = unknown>(input: string): T | null {
     try {
-      return JSON.parse(input);
+      return JSON.parse(input) as T;
     } catch (error) {
-      this.logger.error(`Failed to parse input: ${error}`);
+      this.logger.error(
+        `Failed to parse input: ${error instanceof Error ? error.message : String(error)}`
+      );
       return null;
     }
   }
@@ -87,7 +89,9 @@ export abstract class BaseHook {
       await this.execute();
       process.exit(0);
     } catch (error) {
-      this.logger.error(`Hook execution failed: ${error}`);
+      this.logger.error(
+        `Hook execution failed: ${error instanceof Error ? error.message : String(error)}`
+      );
       this.logEvent({
         type: 'error',
         timestamp: new Date().toISOString(),

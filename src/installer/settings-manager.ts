@@ -9,7 +9,7 @@ export class SettingsManager {
   async loadSettings(): Promise<ClaudeSettings> {
     try {
       const content = await fs.readFile(this.settingsPath, 'utf8');
-      return JSON.parse(content);
+      return JSON.parse(content) as ClaudeSettings;
     } catch (error) {
       // If file doesn't exist or is invalid, return empty settings
       return {};

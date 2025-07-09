@@ -51,6 +51,7 @@ export class OpenAIProvider extends BaseTTSProvider {
         }
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await this.playAudioStream(response.data);
       return true;
     } catch (error) {
@@ -64,7 +65,7 @@ export class OpenAIProvider extends BaseTTSProvider {
     return gender === 'male' ? 'onyx' : 'nova';
   }
 
-  private async playAudioStream(audioStream: any): Promise<void> {
+  private async playAudioStream(audioStream: AsyncIterable<Uint8Array>): Promise<void> {
     // Save to temp file first for better compatibility
     const tempFile = join(tmpdir(), `stts-${Date.now()}.mp3`);
 

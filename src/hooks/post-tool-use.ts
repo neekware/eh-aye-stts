@@ -68,7 +68,7 @@ export class PostToolUseHook extends BaseHook {
         this.logger.warn('Failed to announce message');
       }
     } catch (error) {
-      this.logger.error(`TTS error: ${error}`);
+      this.logger.error(`TTS error: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -91,5 +91,5 @@ export class PostToolUseHook extends BaseHook {
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   const hook = new PostToolUseHook();
-  hook.run();
+  void hook.run();
 }
