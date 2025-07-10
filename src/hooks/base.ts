@@ -133,7 +133,6 @@ export abstract class BaseHook {
     try {
       await this.ensureLogDirectory();
       await this.execute();
-      process.exit(0);
     } catch (error) {
       this.logger.error(
         `Hook execution failed: ${error instanceof Error ? error.message : String(error)}`
@@ -146,7 +145,7 @@ export abstract class BaseHook {
           error: error instanceof Error ? error.message : String(error),
         },
       });
-      process.exit(2);
     }
+    process.exit(0);
   }
 }

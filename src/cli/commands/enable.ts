@@ -1,8 +1,8 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
-import { SETTINGS_PATH } from '../../defaults';
+import { SETTINGS_PATH, CLAUDE_DIR, CLAUDE_SETTINGS_FILE } from '../../defaults';
 import { ToolDetector } from '../../installer/detector';
 import { SettingsManager } from '../../installer/settings-manager';
 
@@ -60,24 +60,33 @@ Supported tools: claude-code, claude`
           process.exit(1);
         }
 
-        // Install hooks
-        const manager = new SettingsManager(settingsPath, tool);
+        // Determine wrapper type first
+        if (options.user && options.workspace) {
+          console.error(chalk.red('Cannot specify both --user and --workspace flags'));
+          process.exit(1);
+        }
+
+        let wrapperType: 'global' | 'local';
+        let actualSettingsPath = settingsPath;
+
+        if (options.workspace) {
+          // If --workspace is explicitly specified, use workspace settings
+          wrapperType = 'local';
+          const workspaceSettingsPath = join(process.cwd(), CLAUDE_DIR, CLAUDE_SETTINGS_FILE);
+          actualSettingsPath = workspaceSettingsPath;
+        } else {
+          // Default behavior (no flag or --user): use global settings
+          wrapperType = 'global';
+        }
+
+        // Create manager with appropriate settings path
+        const manager = new SettingsManager(actualSettingsPath, tool);
 
         try {
-          // Install wrapper scripts and determine wrapper type
-          if (options.user && options.workspace) {
-            console.error(chalk.red('Cannot specify both --user and --workspace flags'));
-            process.exit(1);
-          }
-
-          let wrapperType: 'global' | 'local';
+          // Install wrapper scripts
           if (options.workspace) {
-            // If --workspace is explicitly specified, install local wrapper
-            wrapperType = 'local';
             await manager.installLocalWrappers();
           } else {
-            // Default behavior (no flag or --user): install global wrapper
-            wrapperType = 'global';
             await manager.installGlobalWrappers();
           }
 
@@ -113,6 +122,15 @@ Supported tools: claude-code, claude`
           console.log(chalk.gray(`\nConfiguration saved to: ${configPath}`));
 
           console.log(chalk.green('\n✨ TTS hooks installed successfully!'));
+
+          if (options.workspace) {
+            console.log(chalk.blue(`\n📁 Workspace settings updated: ${actualSettingsPath}`));
+            console.log(chalk.gray('   (These settings apply to this project only)'));
+          } else {
+            console.log(chalk.blue(`\n📁 User settings updated: ${actualSettingsPath}`));
+            console.log(chalk.gray('   (These settings apply to all projects)'));
+          }
+
           console.log(chalk.gray(`\nHooks will be triggered on:`));
           console.log(chalk.gray('  • Tool usage announcements'));
           console.log(chalk.gray('  • Notifications'));

@@ -1,5 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
+import { join } from 'path';
+import { CLAUDE_DIR, CLAUDE_SETTINGS_FILE } from '../../defaults';
 import { ToolDetector } from '../../installer/detector';
 import { SettingsManager } from '../../installer/settings-manager';
 
@@ -32,17 +34,25 @@ Supported tools: claude-code, claude`
 
       console.log(chalk.blue(`🔇 Disabling TTS for ${tool}...\n`));
 
-      const manager = new SettingsManager(settingsPath, tool);
+      // Determine which settings file to use
+      if (options.user && options.workspace) {
+        console.error(chalk.red('Cannot specify both --user and --workspace flags'));
+        process.exit(1);
+      }
+
+      let actualSettingsPath = settingsPath;
+      if (options.workspace) {
+        // If --workspace is explicitly specified, use workspace settings
+        const workspaceSettingsPath = join(process.cwd(), CLAUDE_DIR, CLAUDE_SETTINGS_FILE);
+        actualSettingsPath = workspaceSettingsPath;
+      }
+
+      const manager = new SettingsManager(actualSettingsPath, tool);
 
       try {
         await manager.removeHooks();
 
         // Remove wrapper scripts
-        if (options.user && options.workspace) {
-          console.error(chalk.red('Cannot specify both --user and --workspace flags'));
-          process.exit(1);
-        }
-
         if (options.workspace) {
           // If --workspace is explicitly specified, remove local wrapper
           await manager.removeLocalWrappers();
@@ -52,6 +62,12 @@ Supported tools: claude-code, claude`
         }
 
         console.log(chalk.green('\n✓ TTS hooks removed successfully'));
+
+        if (options.workspace) {
+          console.log(chalk.blue(`\n📁 Workspace settings updated: ${actualSettingsPath}`));
+        } else {
+          console.log(chalk.blue(`\n📁 User settings updated: ${actualSettingsPath}`));
+        }
       } catch (error) {
         console.error(
           chalk.red(

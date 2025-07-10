@@ -35,6 +35,7 @@ coverage/
 # Temporary files
 *.tmp
 .cache/
+.mypy_cache/
 
 # NPM package files
 *.tgz

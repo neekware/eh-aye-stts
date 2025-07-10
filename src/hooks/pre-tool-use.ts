@@ -75,8 +75,7 @@ export class PreToolUseHook extends BaseHook {
         // Announce the block
         await announceIfEnabled(`Warning: Blocked dangerous command`, 'urgent');
 
-        // Exit with code 2 to indicate blocked operation
-        process.exit(2);
+        process.exit(1);
       }
     }
 

@@ -10,29 +10,26 @@ export abstract class ClaudeCodeHook {
       const input = await this.readStdin();
       const data = this.parseInput(input);
 
-      if (!data) {
+      if (data) {
+        // Create plugin event
+        const event: PluginEvent = {
+          type: this.eventType,
+          source: 'claude-code',
+          timestamp: new Date().toISOString(),
+          data,
+        };
+
+        // Get registry and broadcast event
+        const registry = getRegistry();
+        registry.initialize();
+        await registry.broadcastEvent(event);
+      } else {
         console.error('Invalid input data');
-        process.exit(2);
       }
-
-      // Create plugin event
-      const event: PluginEvent = {
-        type: this.eventType,
-        source: 'claude-code',
-        timestamp: new Date().toISOString(),
-        data,
-      };
-
-      // Get registry and broadcast event
-      const registry = getRegistry();
-      registry.initialize();
-      await registry.broadcastEvent(event);
-
-      process.exit(0);
     } catch (error) {
       console.error('Hook error:', error);
-      process.exit(2);
     }
+    process.exit(0);
   }
 
   protected async readStdin(): Promise<string> {
