@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { spawn } from 'child_process';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -25,13 +25,12 @@ export function hookCommand(): Command {
       try {
         // Read existing logs or create new array
         let logs: any[] = [];
-        if (existsSync(debugLog)) {
-          try {
-            const content = readFileSync(debugLog, 'utf-8');
-            logs = JSON.parse(content);
-          } catch {
-            logs = [];
-          }
+        try {
+          const content = readFileSync(debugLog, 'utf-8');
+          logs = JSON.parse(content);
+        } catch {
+          // File doesn't exist or is invalid JSON, start with empty array
+          logs = [];
         }
 
         // Append new entry and write back
