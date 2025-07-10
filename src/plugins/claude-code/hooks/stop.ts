@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 import { ClaudeCodeHook } from './base-hook';
-import { promises as fs } from 'fs';
-import * as path from 'path';
+import { promises as fs, appendFileSync, mkdirSync } from 'fs';
+import { join } from 'path';
+import { LOGS_DIR } from '../../../defaults';
+import { getProjectName } from '../../../utils/project';
 
 class StopHook extends ClaudeCodeHook {
   protected eventType = 'stop';
@@ -12,8 +14,8 @@ class StopHook extends ClaudeCodeHook {
       const data = this.parseInput(input);
 
       if (data) {
-        // Handle --chat flag
-        if (process.argv.includes('--chat') && data.transcript_path) {
+        // Always export chat if transcript_path is provided
+        if (data.transcript_path) {
           await this.exportChat(data.transcript_path as string);
         }
 
@@ -48,15 +50,31 @@ class StopHook extends ClaudeCodeHook {
         }
       }
 
-      // Create logs directory if it doesn't exist
-      const logsDir = path.join(process.cwd(), 'logs');
-      await fs.mkdir(logsDir, { recursive: true });
+      const projectName = getProjectName();
+      const projectLogDir = join(LOGS_DIR, projectName);
+      await fs.mkdir(projectLogDir, { recursive: true });
+      const logFile = join(projectLogDir, 'chat.log');
+      await fs.writeFile(logFile, JSON.stringify(chatData, null, 2));
 
-      // Write to logs/chat.json
-      const chatFile = path.join(logsDir, 'chat.json');
-      await fs.writeFile(chatFile, JSON.stringify(chatData, null, 2));
+      this.debugLog(`Chat log exported to: ${logFile}`);
     } catch (error) {
-      // Fail silently
+      this.debugLog(
+        `Failed to export chat: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  private debugLog(message: string): void {
+    try {
+      const projectName = getProjectName();
+      const projectLogDir = join(LOGS_DIR, projectName);
+      const debugLog = join(projectLogDir, 'claude-hook-debug.log');
+      const timestamp = new Date().toISOString();
+      const logEntry = `[${timestamp}] StopHook: ${message}\n`;
+      mkdirSync(projectLogDir, { recursive: true });
+      appendFileSync(debugLog, logEntry);
+    } catch {
+      // Ignore logging errors
     }
   }
 }

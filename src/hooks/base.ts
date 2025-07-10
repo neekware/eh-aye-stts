@@ -3,6 +3,7 @@ import winston from 'winston';
 import { join } from 'path';
 import { promises as fs, mkdirSync, appendFileSync } from 'fs';
 import { LOGS_DIR } from '../defaults';
+import { getProjectName } from '../utils/project';
 
 export abstract class BaseHook {
   protected logger: winston.Logger;
@@ -10,15 +11,9 @@ export abstract class BaseHook {
   protected projectName: string;
 
   constructor(protected hookName: string) {
-    this.projectName = this.extractProjectName();
+    this.projectName = getProjectName();
     this.logger = this.createLogger();
     this.jsonLogger = this.createJsonLogger();
-  }
-
-  private extractProjectName(): string {
-    const cwd = process.cwd();
-    const pathParts = cwd.split('/').filter((part) => part.length > 0);
-    return pathParts[pathParts.length - 1] || 'default';
   }
 
   private createLogger(): winston.Logger {
@@ -38,9 +33,14 @@ export abstract class BaseHook {
     });
   }
 
-  private createJsonLogger(): winston.Logger {
+  public getLogFileName(customName?: string): string {
     const projectLogDir = join(LOGS_DIR, this.projectName);
-    const logFile = join(projectLogDir, 'hook.log');
+    const logFileName = customName ? `${customName}.log` : `${this.hookName}.log`;
+    return join(projectLogDir, logFileName);
+  }
+
+  private createJsonLogger(): winston.Logger {
+    const logFile = this.getLogFileName(this.hookName);
 
     return winston.createLogger({
       format: winston.format.combine(
