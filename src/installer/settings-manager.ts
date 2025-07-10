@@ -165,7 +165,7 @@ export class SettingsManager {
       }
 
       const hookEntry: HookMatcher = {
-        matcher: '*',
+        matcher: '',
         hooks: [
           {
             type: 'command',
@@ -183,16 +183,35 @@ export class SettingsManager {
       // Check if our STTS hook is already installed
       // Pattern matches: stts hook command
       const sttsHookPattern = /stts hook/;
-      const existing = settings.hooks[hookKey].find((h) =>
+      const existingIndex = settings.hooks[hookKey].findIndex((h) =>
         h.hooks.some((hook) => sttsHookPattern.test(hook.command))
       );
 
-      if (!existing) {
+      if (existingIndex === -1) {
+        // No existing STTS hook, add new one
         settings.hooks[hookKey].push(hookEntry);
         updated = true;
         console.log(chalk.green(`✓ Installed STTS ${name} hook`));
       } else {
-        console.log(chalk.yellow(`⚠ STTS ${name} hook already installed`));
+        // Check if the existing hook has the correct command for the wrapper type
+        const existingHook = settings.hooks[hookKey][existingIndex];
+        const existingCommand = existingHook.hooks.find((h) =>
+          sttsHookPattern.test(h.command)
+        )?.command;
+
+        if (existingCommand !== command) {
+          // Update the command to match the wrapper type
+          const hookIndex = existingHook.hooks.findIndex((h) => sttsHookPattern.test(h.command));
+          if (hookIndex !== -1) {
+            existingHook.hooks[hookIndex].command = command;
+            updated = true;
+            console.log(chalk.green(`✓ Updated STTS ${name} hook to use ${wrapperType} wrapper`));
+          }
+        } else {
+          console.log(
+            chalk.yellow(`⚠ STTS ${name} hook already configured for ${wrapperType} wrapper`)
+          );
+        }
       }
     }
 

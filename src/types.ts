@@ -8,6 +8,7 @@ export interface ToolInfo {
 export interface HookConfig {
   type: 'command';
   command: string;
+  timeout?: number;
 }
 
 export interface HookMatcher {

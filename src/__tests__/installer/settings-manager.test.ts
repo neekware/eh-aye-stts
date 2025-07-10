@@ -111,7 +111,7 @@ describe('SettingsManager', () => {
       const consoleSpy = vi.spyOn(console, 'log');
       await manager.installHooks('direct');
 
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('already installed'));
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('already configured'));
     });
 
     it('should preserve non-STTS hooks', async () => {
