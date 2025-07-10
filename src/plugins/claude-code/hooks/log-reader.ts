@@ -28,14 +28,20 @@ export class LogReader {
         const lines = content.trim().split('\n').filter(Boolean);
 
         // Parse each line as a separate JSON event
+        interface LogEntry {
+          type?: string;
+          hook?: string;
+          timestamp: string;
+          data?: unknown;
+        }
         for (const line of lines.slice(-this.MAX_LOG_LINES)) {
           try {
-            const parsed = JSON.parse(line);
+            const parsed = JSON.parse(line) as LogEntry;
             // Convert log format to HookEvent format
             const event: HookEvent = {
               type: parsed.type || parsed.hook || logFile.replace('.json', ''),
               timestamp: parsed.timestamp,
-              data: parsed.data || parsed,
+              data: (parsed.data || parsed) as Record<string, unknown>,
             };
             allEvents.push(event);
           } catch {

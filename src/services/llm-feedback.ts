@@ -140,11 +140,11 @@ Rules:
       let output = '';
       let error = '';
 
-      claude.stdout.on('data', (data) => {
+      claude.stdout.on('data', (data: Buffer) => {
         output += data.toString();
       });
 
-      claude.stderr.on('data', (data) => {
+      claude.stderr.on('data', (data: Buffer) => {
         error += data.toString();
       });
 

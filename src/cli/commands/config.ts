@@ -354,16 +354,16 @@ Examples:
       const configPath = SETTINGS_PATH;
 
       // Load existing config or create new one
-      let config: any = { ...DEFAULT_CONFIG };
+      let config: Record<string, unknown> = { ...DEFAULT_CONFIG };
 
       try {
-        config = JSON.parse(readFileSync(configPath, 'utf-8'));
+        config = JSON.parse(readFileSync(configPath, 'utf-8')) as Record<string, unknown>;
       } catch (error) {
         // Use default config if file doesn't exist
       }
 
       // Parse value
-      let parsedValue: any = value;
+      let parsedValue: string | number | boolean = value;
       if (value === 'true') parsedValue = true;
       else if (value === 'false') parsedValue = false;
       else if (!isNaN(Number(value))) parsedValue = Number(value);
