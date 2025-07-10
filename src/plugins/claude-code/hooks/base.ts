@@ -1,7 +1,7 @@
 import { HookEvent } from '../../../types';
 import winston from 'winston';
 import { join } from 'path';
-import { promises as fs, mkdirSync, readFileSync, writeFileSync, existsSync } from 'fs';
+import { promises as fs, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { LOGS_DIR } from '../../../defaults';
 import { getProjectName } from '../../../utils/project';
 
@@ -101,13 +101,12 @@ export abstract class BaseHook {
 
           // Read existing logs or create new array
           let logs: any[] = [];
-          if (existsSync(debugLog)) {
-            try {
-              const content = readFileSync(debugLog, 'utf-8');
-              logs = JSON.parse(content);
-            } catch {
-              logs = [];
-            }
+          try {
+            const content = readFileSync(debugLog, 'utf-8');
+            logs = JSON.parse(content);
+          } catch {
+            // File doesn't exist or is invalid JSON, start with empty array
+            logs = [];
           }
 
           // Append new entry and write back
