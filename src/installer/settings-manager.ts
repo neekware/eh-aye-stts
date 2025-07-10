@@ -123,6 +123,9 @@ export class SettingsManager {
   }
 
   async installHooks(wrapperType: 'global' | 'local' | 'direct' = 'direct'): Promise<void> {
+    // Purge any invalid or duplicate STTS hooks first
+    await this.purgeSttsHooks();
+
     // Create backup before modifying settings
     const backupPath = await this.backupSettings();
     if (backupPath) {
@@ -303,6 +306,101 @@ export class SettingsManager {
 
     // Clean up any provider-created backups from the original location
     await this.cleanupProviderBackups();
+  }
+
+  async purgeSttsHooks(): Promise<void> {
+    const settings = await this.loadSettings();
+
+    if (!settings.hooks) {
+      return;
+    }
+
+    let purged = false;
+    // Pattern to match any STTS hook command variations
+    const sttsHookPattern = /stts\s+hook/;
+    const validHookTypes = [
+      'pre-tool-use',
+      'post-tool-use',
+      'notification',
+      'stop',
+      'subagent-stop',
+    ];
+
+    // Process each hook type
+    for (const hookType of Object.keys(settings.hooks)) {
+      const hooks = settings.hooks[hookType as keyof typeof settings.hooks];
+      if (!hooks || !Array.isArray(hooks)) continue;
+
+      const uniqueHooks: HookMatcher[] = [];
+      const seenCommands = new Set<string>();
+
+      for (const hookMatcher of hooks) {
+        if (!hookMatcher.hooks || !Array.isArray(hookMatcher.hooks)) continue;
+
+        // Filter out invalid and duplicate STTS hooks
+        const validHooks = hookMatcher.hooks.filter((hook) => {
+          if (!sttsHookPattern.test(hook.command)) {
+            // Not an STTS hook, keep it
+            return true;
+          }
+
+          // It's an STTS hook, validate it
+          const commandKey = hook.command.trim();
+
+          // Check for duplicates
+          if (seenCommands.has(commandKey)) {
+            console.log(
+              chalk.yellow(`⚠ Removing duplicate STTS hook in ${hookType}: ${commandKey}`)
+            );
+            purged = true;
+            return false;
+          }
+
+          // Check if it's a valid STTS hook command
+          const isValid = validHookTypes.some((type) => commandKey.includes(`hook ${type}`));
+
+          if (!isValid) {
+            console.log(
+              chalk.yellow(`⚠ Removing invalid STTS hook in ${hookType}: ${commandKey}`)
+            );
+            purged = true;
+            return false;
+          }
+
+          seenCommands.add(commandKey);
+          return true;
+        });
+
+        // Only keep the hook matcher if it has valid hooks
+        if (validHooks.length > 0) {
+          uniqueHooks.push({
+            ...hookMatcher,
+            hooks: validHooks,
+          });
+        } else if (hookMatcher.hooks.some((h) => !sttsHookPattern.test(h.command))) {
+          // Keep non-STTS hooks even if all STTS hooks were removed
+          uniqueHooks.push(hookMatcher);
+        }
+      }
+
+      // Update or remove the hook type
+      if (uniqueHooks.length > 0) {
+        settings.hooks[hookType as keyof typeof settings.hooks] = uniqueHooks;
+      } else {
+        delete settings.hooks[hookType as keyof typeof settings.hooks];
+        purged = true;
+      }
+    }
+
+    // Clean up empty hooks object
+    if (settings.hooks && Object.keys(settings.hooks).length === 0) {
+      delete settings.hooks;
+    }
+
+    if (purged) {
+      await this.saveSettings(settings);
+      console.log(chalk.green('✓ Purged invalid/duplicate STTS hooks'));
+    }
   }
 
   generateWrapperScript(isUser: boolean): string {

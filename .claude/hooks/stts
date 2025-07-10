@@ -1,0 +1,10 @@
+#!/bin/bash
+# STTS wrapper script for claude-code
+# Auto-generated - do not edit manually
+
+if command -v stts >/dev/null 2>&1; then
+    exec stts "$@"
+else
+    # stts not available, silently continue
+    exit 0
+fi
