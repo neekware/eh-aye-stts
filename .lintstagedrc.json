@@ -1,0 +1,4 @@
+{
+  "*.{ts,tsx}": ["prettier --write", "eslint --fix", "bash -c 'npm run test'"],
+  "*.{js,jsx,json,md,yml,yaml}": ["prettier --write"]
+}

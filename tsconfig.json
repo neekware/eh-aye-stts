@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "rootDir": ".",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": false,
+    "types": ["vitest/globals"]
+  },
+  "tsc-alias": {
+    "verbose": false,
+    "resolveFullPaths": true,
+    "replacers": {
+      "^(\\.{1,2}/.*)(?<!\\.(js|ts))$": "$1.js"
+    }
+  },
+  "include": ["src/**/*", "tools/**/*"],
+  "ts-node": {
+    "esm": true
+  },
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+}

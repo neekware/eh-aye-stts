@@ -1,0 +1,4 @@
+# Update lines of code statistics
+bash scripts/update-loc.sh
+
+npx lint-staged

@@ -1,0 +1,108 @@
+{
+  "name": "@eh-aye/stts",
+  "version": "0.1.0",
+  "description": "Smart Text-to-Speech (TTS) integration for Claude Code and other development tools. Hear notifications, tool executions, and more with multiple voice providers.",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "type": "module",
+  "bin": {
+    "stts": "dist/src/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc && tsc-alias",
+    "dev": "node dev.js",
+    "dev:build": "tsc --watch",
+    "prepublishOnly": "npm run build && node scripts/prepublish.js",
+    "validate": "node scripts/prepublish.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "test:manual": "./scripts/tests/run.sh",
+    "test:manual:build": "./scripts/tests/run.sh build",
+    "test:manual:enable": "./scripts/tests/run.sh enable",
+    "test:manual:disable": "./scripts/tests/run.sh disable",
+    "test:manual:verify": "./scripts/tests/run.sh verify",
+    "test:manual:all": "./scripts/tests/run.sh all",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
+    "spell": "cspell \"src/**/*.ts\" \"*.md\" \"*.json\"",
+    "spell:check": "cspell \"src/**/*.ts\" \"*.md\" \"*.json\" --no-progress",
+    "prepare": "husky",
+    "clean": "rm -rf dist",
+    "prepack": "npm run clean && npm run build",
+    "loc": "tsx tools/utils/loc.ts",
+    "update:readme": "npm run loc",
+    "dev:test": "./scripts/dev-test.sh",
+    "dev:install": "./scripts/test-local-install.sh",
+    "dev:uninstall": "./scripts/uninstall.sh"
+  },
+  "keywords": [
+    "tts",
+    "text-to-speech",
+    "claude-code",
+    "developer-tools",
+    "hooks",
+    "voice",
+    "notifications",
+    "elevenlabs",
+    "openai",
+    "accessibility"
+  ],
+  "author": {
+    "name": "Val Neekman",
+    "email": "val@neekware.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neekware/eh-aye-stts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/neekware/eh-aye-stts/issues"
+  },
+  "homepage": "https://github.com/neekware/eh-aye-stts#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "chalk": "^4.1.2",
+    "commander": "^11.0.0",
+    "dotenv": "^16.0.0",
+    "glob": "^10.3.10",
+    "prettier": "^3.6.2",
+    "say": "^0.16.0",
+    "tmp": "^0.2.3",
+    "which": "^4.0.0",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@types/node": "^20.0.0",
+    "@types/tmp": "^0.2.6",
+    "@types/which": "^3.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.2",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.2.0",
+    "semantic-release": "^23.0.0",
+    "tsc-alias": "^1.8.16",
+    "tsx": "^4.6.2",
+    "typescript": "^5.0.0",
+    "vitest": "^3.2.4"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ]
+}
