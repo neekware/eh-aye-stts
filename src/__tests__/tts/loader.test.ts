@@ -40,13 +40,21 @@ describe('TTSLoader', () => {
 
   describe('listAvailable', () => {
     it('should return array of available provider names', async () => {
+      // Mock isAvailable for providers to avoid actual system checks
+      const mockProviders = new Map();
+      mockProviders.set('say', { isAvailable: vi.fn().mockResolvedValue(true) });
+      mockProviders.set('elevenlabs', { isAvailable: vi.fn().mockResolvedValue(false) });
+      mockProviders.set('openai', { isAvailable: vi.fn().mockResolvedValue(false) });
+
+      // Replace the providers map
+      (loader as any).providers = mockProviders;
+
       const available = await loader.listAvailable();
 
       expect(Array.isArray(available)).toBe(true);
-      // At least say provider should be available on macOS
-      if (process.platform === 'darwin') {
-        expect(available).toContain('say');
-      }
-    });
+      expect(available).toContain('say');
+      expect(available).not.toContain('elevenlabs');
+      expect(available).not.toContain('openai');
+    }, 10000); // Increase timeout to 10 seconds
   });
 });

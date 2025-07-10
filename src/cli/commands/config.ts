@@ -8,6 +8,12 @@ interface Config {
   audioEnabled: boolean;
   enableDangerousCommandBlocking: boolean;
   customDangerousCommands: string[];
+  llmEnabled?: boolean;
+  llmModel?: string;
+  llmStyle?: 'casual' | 'professional' | 'encouraging';
+  llmMaxWords?: number;
+  llmCacheEnabled?: boolean;
+  llmCacheTTL?: number;
 }
 
 export function configCommand(): Command {
@@ -18,13 +24,18 @@ Commands:
   show                Show current configuration
   audio               Configure audio announcements
   dangerous-commands  Configure dangerous command blocking
+  llm                 Configure LLM feedback settings
+  set <key> <value>   Set a configuration value
 
 Examples:
   stts config show
   stts config audio --enable
   stts config audio --disable
   stts config dangerous-commands --enable
-  stts config dangerous-commands --add "sudo rm -rf"`
+  stts config dangerous-commands --add "sudo rm -rf"
+  stts config llm --enable
+  stts config llm --style casual
+  stts config set llmMaxWords 8`
   );
 
   // Add subcommands
@@ -57,6 +68,20 @@ Examples:
           }
         } else {
           console.log(chalk.gray('✓ Dangerous command blocking: DISABLED'));
+        }
+
+        // LLM settings
+        console.log('');
+        if (config.llmEnabled !== false) {
+          console.log(chalk.green('🤖 LLM feedback: ENABLED'));
+          console.log(chalk.gray(`   Model: ${config.llmModel || 'claude-3-5-sonnet-20241022'}`));
+          console.log(chalk.gray(`   Style: ${config.llmStyle || 'casual'}`));
+          console.log(chalk.gray(`   Max words: ${config.llmMaxWords || 10}`));
+          if (config.llmCacheEnabled !== false) {
+            console.log(chalk.gray(`   Cache: enabled (TTL: ${config.llmCacheTTL || 300}s)`));
+          }
+        } else {
+          console.log(chalk.yellow('🤖 LLM feedback: DISABLED'));
         }
 
         console.log(chalk.gray(`\nConfig file: ${configPath}`));
@@ -188,6 +213,166 @@ Examples:
 
       // Save config
       // Ensure directory exists
+      const configDir = dirname(configPath);
+      if (!existsSync(configDir)) {
+        mkdirSync(configDir, { recursive: true });
+      }
+      writeFileSync(configPath, JSON.stringify(config, null, 2));
+      console.log(chalk.gray(`\nConfiguration saved to: ${configPath}`));
+    });
+
+  // Add llm command
+  config
+    .command('llm')
+    .description('Configure LLM feedback settings')
+    .option('--enable', 'Enable LLM-powered feedback')
+    .option('--disable', 'Disable LLM-powered feedback')
+    .option('--style <style>', 'Set feedback style (casual, professional, encouraging)')
+    .option('--max-words <number>', 'Set maximum words for feedback')
+    .option('--model <model>', 'Set Claude model to use')
+    .option('--cache-enable', 'Enable response caching')
+    .option('--cache-disable', 'Disable response caching')
+    .option('--cache-ttl <seconds>', 'Set cache TTL in seconds')
+    .action(
+      (options: {
+        enable?: boolean;
+        disable?: boolean;
+        style?: string;
+        maxWords?: string;
+        model?: string;
+        cacheEnable?: boolean;
+        cacheDisable?: boolean;
+        cacheTtl?: string;
+      }) => {
+        const configPath = SETTINGS_PATH;
+
+        // Show current status if no options provided
+        if (!Object.keys(options).length) {
+          try {
+            const config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
+            if (config.llmEnabled !== false) {
+              console.log(chalk.green('🤖 LLM feedback is currently ENABLED'));
+              console.log(
+                chalk.gray(`   Model: ${config.llmModel || 'claude-3-5-sonnet-20241022'}`)
+              );
+              console.log(chalk.gray(`   Style: ${config.llmStyle || 'casual'}`));
+              console.log(chalk.gray(`   Max words: ${config.llmMaxWords || 10}`));
+              if (config.llmCacheEnabled !== false) {
+                console.log(chalk.gray(`   Cache: enabled (TTL: ${config.llmCacheTTL || 300}s)`));
+              } else {
+                console.log(chalk.gray('   Cache: disabled'));
+              }
+            } else {
+              console.log(chalk.yellow('🤖 LLM feedback is currently DISABLED'));
+            }
+          } catch (error) {
+            console.log(chalk.green('🤖 LLM feedback is ENABLED (default)'));
+          }
+          console.log(chalk.gray('\nTo change: stts config llm --enable or --disable'));
+          console.log(chalk.gray('           stts config llm --style casual'));
+          return;
+        }
+
+        // Load existing config or create new one
+        let config: Config = { ...DEFAULT_CONFIG };
+
+        try {
+          config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
+        } catch (error) {
+          // Use default config if file doesn't exist
+        }
+
+        // Update config
+        if (options.enable) {
+          config.llmEnabled = true;
+          console.log(chalk.green('✓ LLM feedback enabled'));
+        } else if (options.disable) {
+          config.llmEnabled = false;
+          console.log(chalk.green('✓ LLM feedback disabled'));
+        }
+
+        if (options.style) {
+          if (['casual', 'professional', 'encouraging'].includes(options.style)) {
+            config.llmStyle = options.style as 'casual' | 'professional' | 'encouraging';
+            console.log(chalk.green(`✓ Feedback style set to: ${options.style}`));
+          } else {
+            console.log(chalk.red('Invalid style. Choose: casual, professional, or encouraging'));
+            return;
+          }
+        }
+
+        if (options.maxWords) {
+          const maxWords = parseInt(options.maxWords, 10);
+          if (!isNaN(maxWords) && maxWords > 0 && maxWords <= 50) {
+            config.llmMaxWords = maxWords;
+            console.log(chalk.green(`✓ Max words set to: ${maxWords}`));
+          } else {
+            console.log(chalk.red('Invalid max words. Must be between 1 and 50'));
+            return;
+          }
+        }
+
+        if (options.model) {
+          config.llmModel = options.model;
+          console.log(chalk.green(`✓ Model set to: ${options.model}`));
+        }
+
+        if (options.cacheEnable) {
+          config.llmCacheEnabled = true;
+          console.log(chalk.green('✓ Response caching enabled'));
+        } else if (options.cacheDisable) {
+          config.llmCacheEnabled = false;
+          console.log(chalk.green('✓ Response caching disabled'));
+        }
+
+        if (options.cacheTtl) {
+          const ttl = parseInt(options.cacheTtl, 10);
+          if (!isNaN(ttl) && ttl > 0) {
+            config.llmCacheTTL = ttl;
+            console.log(chalk.green(`✓ Cache TTL set to: ${ttl} seconds`));
+          } else {
+            console.log(chalk.red('Invalid TTL. Must be a positive number'));
+            return;
+          }
+        }
+
+        // Save config
+        const configDir = dirname(configPath);
+        if (!existsSync(configDir)) {
+          mkdirSync(configDir, { recursive: true });
+        }
+        writeFileSync(configPath, JSON.stringify(config, null, 2));
+        console.log(chalk.gray(`\nConfiguration saved to: ${configPath}`));
+      }
+    );
+
+  // Add generic set command
+  config
+    .command('set <key> <value>')
+    .description('Set a configuration value')
+    .action((key: string, value: string) => {
+      const configPath = SETTINGS_PATH;
+
+      // Load existing config or create new one
+      let config: any = { ...DEFAULT_CONFIG };
+
+      try {
+        config = JSON.parse(readFileSync(configPath, 'utf-8'));
+      } catch (error) {
+        // Use default config if file doesn't exist
+      }
+
+      // Parse value
+      let parsedValue: any = value;
+      if (value === 'true') parsedValue = true;
+      else if (value === 'false') parsedValue = false;
+      else if (!isNaN(Number(value))) parsedValue = Number(value);
+
+      // Set the value
+      config[key] = parsedValue;
+      console.log(chalk.green(`✓ Set ${key} = ${parsedValue}`));
+
+      // Save config
       const configDir = dirname(configPath);
       if (!existsSync(configDir)) {
         mkdirSync(configDir, { recursive: true });

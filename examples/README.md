@@ -57,6 +57,19 @@ Shows how background agents can send audio notifications:
 npx tsx examples/agent-notifications.ts
 ```
 
+### 5. LLM-Powered Feedback (`llm-feedback.ts`)
+
+Demonstrates dynamic, context-aware messaging with Claude CLI:
+
+- Configuring LLM feedback settings
+- Context-aware message generation
+- Session summaries with intelligent insights
+- Cache configuration for performance
+
+```bash
+npx tsx examples/llm-feedback.ts
+```
+
 ## Running the Examples
 
 1. Make sure you have the required dependencies installed:

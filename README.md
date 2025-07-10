@@ -12,6 +12,7 @@ A powerful text-to-speech library with 15 different emotions, multiple provider 
 - 🔊 **Multiple TTS Providers** - OpenAI, ElevenLabs, and system voices
 - 🔌 **Plugin System** - Extend functionality with custom plugins
 - 🤖 **Claude Code Integration** - Optional voice notifications for Claude Code
+- 🧠 **LLM-Powered Feedback** - Dynamic, context-aware messages using Claude CLI
 - 🎯 **Simple API** - Just `speak("Hello")` to get started
 
 📊 **[View Architecture Diagram](./docs/ARCHITECTURE-FLOW.md)** - See how all the components work together
@@ -282,6 +283,40 @@ export STTS_ELEVENLABS_API_KEY="..."
 export STTS_CLAUDE_SETTINGS_PATH="/path/to/claude/settings.json"
 ```
 
+### LLM-Powered Feedback (Claude Code Integration)
+
+STTS can generate dynamic, context-aware messages using Claude CLI instead of static notifications:
+
+```bash
+# Enable LLM feedback (enabled by default)
+stts config llm --enable
+
+# Configure LLM settings
+stts config llm --style casual      # Options: casual, professional, encouraging
+stts config llm --max-words 10      # Limit response length
+stts config llm --model claude-3-5-sonnet-20241022  # Claude model to use
+
+# Or use the generic config command
+stts config set llmEnabled true
+stts config set llmStyle casual
+stts config set llmMaxWords 8
+```
+
+**Features:**
+
+- **Context-aware messages**: Generates feedback based on command type, duration, and outcome
+- **Session summaries**: Provides intelligent summaries when sessions end
+- **Automatic fallbacks**: Uses static messages when Claude CLI is unavailable
+- **Response caching**: Caches similar responses to minimize LLM calls
+- **Zero configuration**: Works out-of-the-box with Claude Code
+
+**Examples:**
+
+- Build success: "Nice! Build crushed it" instead of "Build completed in 45 seconds"
+- Test failure: "Tests need some love" instead of "Test failed with error"
+- Long task: "Finally done, great patience" instead of "Command completed in 120 seconds"
+- Session end: "Productive session, nice work" instead of "Session completed"
+
 ## Architecture
 
 ```mermaid
@@ -338,14 +373,14 @@ graph TB
 | ----------- | ------- | --------- | -------- | -------- | -------- |
 | Environment | 2       | 21        | 4        | 14       | 3        |
 | Git         | 2       | 59        | 30       | 17       | 12       |
-| JSON        | 145     | 772       | 243      | 506      | 23       |
+| JSON        | 145     | 771       | 243      | 506      | 22       |
 | JavaScript  | 2       | 111       | 84       | 9        | 18       |
 | License     | 1       | 21        | 17       | 0        | 4        |
-| Markdown    | 17      | 2164      | 1177     | 375      | 612      |
+| Markdown    | 18      | 2755      | 1594     | 432      | 729      |
 | Shell       | 11      | 605       | 373      | 112      | 120      |
-| TypeScript  | 64      | 6496      | 4986     | 484      | 1026     |
+| TypeScript  | 72      | 8247      | 6361     | 571      | 1315     |
 | YAML        | 5       | 216       | 180      | 4        | 32       |
-| **Total**   | **249** | **10465** | **7094** | **1521** | **1850** |
+| **Total**   | **258** | **12806** | **8886** | **1665** | **2255** |
 
 _Last updated: 2025-07-10_
 
