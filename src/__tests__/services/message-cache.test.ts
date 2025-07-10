@@ -126,9 +126,9 @@ describe('MessageCache', () => {
     });
 
     it('should handle LRU eviction when cache is full', () => {
-      // Note: The actual MAX_CACHE_SIZE in MessageCache is 100
+      // Note: The actual MAX_CACHE_SIZE in MessageCache is 500
       // We'll test that it respects the limit by filling it up
-      const MAX_CACHE_SIZE = 100;
+      const MAX_CACHE_SIZE = 500;
 
       // Fill the cache to its limit
       for (let i = 0; i < MAX_CACHE_SIZE; i++) {
@@ -144,8 +144,9 @@ describe('MessageCache', () => {
       // The new entry should be present
       expect(MessageCache.get('key-new')).toBe('new-message');
 
-      // Cache size should still be at max (one old entry was evicted)
-      expect(MessageCache.size()).toBe(MAX_CACHE_SIZE);
+      // Cache size should be MAX_CACHE_SIZE - BATCH_EVICT_SIZE + 1 (batch eviction occurred)
+      // MessageCache evicts 100 entries at once when full
+      expect(MessageCache.size()).toBe(401); // 500 - 100 + 1
     });
   });
 

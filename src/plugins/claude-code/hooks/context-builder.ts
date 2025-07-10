@@ -140,6 +140,12 @@ export class ContextBuilder {
       parts.push(`Duration: ${seconds}s`);
     }
 
+    // Include result summary for documentation updates
+    if (context.result && context.tool === 'MultiEdit' && context.command?.includes('doc')) {
+      const resultSummary = context.result.substring(0, 100);
+      parts.push(`Result: ${resultSummary}`);
+    }
+
     if (context.errorCount !== undefined && context.successCount !== undefined) {
       parts.push(`Session: ${context.successCount} successes, ${context.errorCount} errors`);
     }

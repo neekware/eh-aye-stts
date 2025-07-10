@@ -288,8 +288,10 @@ export STTS_CLAUDE_SETTINGS_PATH="/path/to/claude/settings.json"
 STTS can generate dynamic, context-aware messages using Claude CLI instead of static notifications:
 
 ```bash
-# Enable LLM feedback (enabled by default)
-stts config llm --enable
+# Enable/disable LLM feedback
+stts llm enable              # Enable LLM-powered feedback
+stts llm disable             # Disable LLM feedback
+stts llm status              # Show current LLM configuration
 
 # Configure LLM settings
 stts config llm --style casual      # Options: casual, professional, encouraging
@@ -300,6 +302,11 @@ stts config llm --model claude-3-5-sonnet-20241022  # Claude model to use
 stts config set llmEnabled true
 stts config set llmStyle casual
 stts config set llmMaxWords 8
+
+# Manage LLM response cache
+stts llm cache show          # View cache statistics and entries
+stts llm cache clear         # Clear all cached responses
+stts llm cache export        # Export cache to JSON file
 ```
 
 **Features:**
@@ -373,14 +380,14 @@ graph TB
 | ----------- | ------- | --------- | -------- | -------- | -------- |
 | Environment | 2       | 21        | 4        | 14       | 3        |
 | Git         | 2       | 59        | 30       | 17       | 12       |
-| JSON        | 145     | 772       | 243      | 506      | 23       |
+| JSON        | 145     | 771       | 243      | 506      | 22       |
 | JavaScript  | 2       | 111       | 84       | 9        | 18       |
 | License     | 1       | 21        | 17       | 0        | 4        |
-| Markdown    | 18      | 2772      | 1590     | 438      | 744      |
-| Shell       | 11      | 605       | 373      | 112      | 120      |
-| TypeScript  | 72      | 8267      | 6379     | 571      | 1317     |
+| Markdown    | 20      | 3143      | 1811     | 492      | 840      |
+| Shell       | 12      | 697       | 431      | 126      | 140      |
+| TypeScript  | 74      | 9052      | 7030     | 606      | 1416     |
 | YAML        | 5       | 216       | 180      | 4        | 32       |
-| **Total**   | **258** | **12844** | **8900** | **1671** | **2273** |
+| **Total**   | **263** | **14091** | **9830** | **1774** | **2487** |
 
 _Last updated: 2025-07-10_
 
@@ -401,6 +408,7 @@ For detailed documentation, see the [docs directory](./docs):
 - 🏗️ [Architecture Flow](./docs/ARCHITECTURE-FLOW.md) - Detailed component relationships
 - 🔧 [Development Guide](./docs/DEVELOPMENT.md) - Setup and contribution guide
 - 🧪 [Testing Guide](./docs/TESTING.md) - Testing TTS functionality
+- 🤖 [LLM Debugging Guide](./docs/LLM-DEBUGGING.md) - Debug and monitor LLM integration
 - 📋 [TODO/Roadmap](./docs/TODO.md) - Future enhancements and ideas
 
 ## Development

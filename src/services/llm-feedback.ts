@@ -11,7 +11,7 @@ export interface FeedbackOptions {
 
 export class LLMFeedbackGenerator {
   private static readonly DEFAULT_MODEL = 'claude-3-5-sonnet-20241022';
-  private static readonly CLAUDE_TIMEOUT = 5000; // 5 seconds
+  private static readonly CLAUDE_TIMEOUT = 30000; // 30 seconds
 
   private static readonly FALLBACK_MESSAGES: Record<string, string[]> = {
     'post-tool-use-success': [
@@ -44,9 +44,25 @@ export class LLMFeedbackGenerator {
     context: HookContext,
     options: FeedbackOptions = {}
   ): Promise<string> {
+    if (process.env.DEBUG) {
+      console.debug('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.debug('[LLM] generateFeedback called with context:', {
+        eventType: context.eventType,
+        tool: context.tool,
+        command: context.command?.substring(0, 100),
+        result: context.result?.substring(0, 100),
+        exitCode: context.exitCode,
+        duration: context.duration,
+      });
+      console.debug('[LLM] Options:', options);
+    }
+
     // Check if LLM is enabled
     const llmEnabled = getConfigValue('llmEnabled', true);
     if (!llmEnabled) {
+      if (process.env.DEBUG) {
+        console.debug('[LLM] LLM is disabled, using fallback message');
+      }
       return this.getFallbackMessage(context);
     }
 
@@ -56,30 +72,48 @@ export class LLMFeedbackGenerator {
       const cacheKey = MessageCache.getCacheKey(context);
       const cached = MessageCache.get(cacheKey);
       if (cached) {
+        if (process.env.DEBUG) {
+          console.debug('[LLM] Found cached message:', cached);
+        }
         return cached;
       }
     }
 
     // Check if Claude CLI is available
     if (!(await this.isClaudeAvailable())) {
+      if (process.env.DEBUG) {
+        console.debug('[LLM] Claude CLI not available, using fallback');
+      }
       return this.getFallbackMessage(context);
     }
 
     const prompt = this.buildPrompt(context, options);
+    if (process.env.DEBUG) {
+      console.debug('[LLM] Generated prompt:');
+      console.debug('---PROMPT START---');
+      console.debug(prompt);
+      console.debug('---PROMPT END---');
+    }
+
+    // Store the prompt for cache debugging
+    MessageCache.setLastPrompt(prompt);
 
     try {
       const message = await this.callClaude(prompt);
 
-      // Cache the result
+      // Cache the result with prompt
       if (cacheEnabled && message) {
         const cacheKey = MessageCache.getCacheKey(context);
-        MessageCache.set(cacheKey, message);
+        MessageCache.set(cacheKey, message, prompt);
+        if (process.env.DEBUG) {
+          console.debug('[LLM] Cached message with key:', cacheKey);
+        }
       }
 
       return message || this.getFallbackMessage(context);
     } catch (error) {
       if (process.env.DEBUG) {
-        console.debug('Claude CLI failed:', error);
+        console.debug('[LLM] Claude CLI failed:', error);
       }
       return this.getFallbackMessage(context);
     }
@@ -103,11 +137,22 @@ Rules:
 - Avoid technical jargon
 - Be concise and clear`;
 
+    // Add specific guidance for documentation updates
+    if (context.tool === 'MultiEdit' && context.command?.toLowerCase().includes('doc')) {
+      prompt += '\n- Keep it simple like "Added those docs" or "Docs updated"';
+    }
+
     // Add event-specific guidance
     switch (context.eventType) {
       case 'post-tool-use':
         if (context.duration && context.duration > 30000) {
           prompt += '\n- Acknowledge the long wait time positively';
+        }
+        // Add specific guidance for documentation updates
+        if (context.tool === 'Write' && context.command?.includes('doc')) {
+          prompt += '\n- Mention the documentation update naturally';
+          prompt +=
+            '\n- Example: "Hey, I added those docs you wanted" instead of verbose descriptions';
         }
         break;
       case 'stop':
@@ -124,6 +169,11 @@ Rules:
 
     prompt += '\n\nRespond with ONLY the feedback message, nothing else.';
 
+    // Debug logging
+    if (process.env.DEBUG) {
+      console.debug('[LLM] Generated prompt:', prompt);
+    }
+
     return prompt;
   }
 
@@ -132,10 +182,18 @@ Rules:
       const model = getConfigValue('llmModel', this.DEFAULT_MODEL);
       const args = ['-p', prompt, '--model', model];
 
+      if (process.env.DEBUG) {
+        console.debug('[LLM] Calling Claude CLI with model:', model);
+        console.debug('[LLM] Command:', 'claude', args.join(' '));
+      }
+
       const claude = spawn('claude', args, {
         stdio: ['pipe', 'pipe', 'pipe'],
         env: { ...process.env, CLAUDE_NO_COLOR: '1' },
       });
+
+      // Close stdin immediately since we're using -p flag, not piping
+      claude.stdin.end();
 
       let output = '';
       let error = '';
@@ -152,19 +210,35 @@ Rules:
         if (code === 0) {
           // Clean the output - remove any extra whitespace or newlines
           const cleaned = output.trim().replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+
+          if (process.env.DEBUG) {
+            console.debug('[LLM] Raw output:', output);
+            console.debug('[LLM] Cleaned output:', cleaned);
+          }
+
           resolve(cleaned);
         } else {
+          if (process.env.DEBUG) {
+            console.debug('[LLM] Claude CLI failed with code:', code);
+            console.debug('[LLM] Error output:', error);
+          }
           reject(new Error(`Claude CLI failed with code ${code}: ${error}`));
         }
       });
 
       claude.on('error', (err) => {
+        if (process.env.DEBUG) {
+          console.debug('[LLM] Claude spawn error:', err);
+        }
         reject(err);
       });
 
       // Timeout
       setTimeout(() => {
         claude.kill();
+        if (process.env.DEBUG) {
+          console.debug('[LLM] Claude CLI timeout after', this.CLAUDE_TIMEOUT, 'ms');
+        }
         reject(new Error('Claude CLI timeout'));
       }, this.CLAUDE_TIMEOUT);
     });

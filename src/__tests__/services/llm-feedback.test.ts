@@ -41,6 +41,9 @@ describe('LLMFeedbackGenerator', () => {
     it('should generate feedback using Claude CLI when available', async () => {
       const mockSpawn = vi.fn();
       const mockProcess = {
+        stdin: {
+          end: vi.fn(),
+        },
         stdout: {
           on: vi.fn((event, callback) => {
             if (event === 'data') {
@@ -168,6 +171,9 @@ describe('LLMFeedbackGenerator', () => {
 
       const mockSpawn = vi.fn();
       const mockProcess = {
+        stdin: {
+          end: vi.fn(),
+        },
         stdout: {
           on: vi.fn((event, callback) => {
             if (event === 'data') {
