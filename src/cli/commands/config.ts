@@ -36,7 +36,7 @@ Examples:
 
       console.log(chalk.blue('📊 STTS Configuration\n'));
 
-      if (existsSync(configPath)) {
+      try {
         const config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
 
         // Audio status
@@ -60,7 +60,7 @@ Examples:
         }
 
         console.log(chalk.gray(`\nConfig file: ${configPath}`));
-      } else {
+      } catch (error) {
         console.log(chalk.gray('No configuration file found. Using defaults:'));
         console.log(chalk.green('🔊 Audio announcements: ENABLED (default)'));
         console.log(chalk.gray('✓ Dangerous command blocking: DISABLED (default)'));
@@ -79,14 +79,14 @@ Examples:
 
       // Show current status if no options provided
       if (!options.enable && !options.disable) {
-        if (existsSync(configPath)) {
+        try {
           const config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
           if (config.audioEnabled) {
             console.log(chalk.green('🔊 Audio announcements are currently ENABLED'));
           } else {
             console.log(chalk.yellow('🔇 Audio announcements are currently DISABLED'));
           }
-        } else {
+        } catch (error) {
           console.log(chalk.green('🔊 Audio announcements are ENABLED (default)'));
         }
         console.log(chalk.gray('\nTo change: stts config audio --enable or --disable'));
@@ -96,8 +96,10 @@ Examples:
       // Load existing config or create new one
       let config: Config = { ...DEFAULT_CONFIG };
 
-      if (existsSync(configPath)) {
+      try {
         config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
+      } catch (error) {
+        // Use default config if file doesn't exist
       }
 
       // Update config
@@ -132,7 +134,7 @@ Examples:
 
       // Show current status if no options provided
       if (!options.enable && !options.disable && !options.add) {
-        if (existsSync(configPath)) {
+        try {
           const config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
           if (config.enableDangerousCommandBlocking) {
             console.log(chalk.yellow('⚠️  Dangerous command blocking is currently ENABLED'));
@@ -145,7 +147,7 @@ Examples:
           } else {
             console.log(chalk.gray('✓ Dangerous command blocking is currently DISABLED'));
           }
-        } else {
+        } catch (error) {
           console.log(chalk.gray('✓ Dangerous command blocking is DISABLED (default)'));
         }
         console.log(
@@ -157,8 +159,10 @@ Examples:
       // Load existing config or create new one
       let config: Config = { ...DEFAULT_CONFIG };
 
-      if (existsSync(configPath)) {
+      try {
         config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
+      } catch (error) {
+        // Use default config if file doesn't exist
       }
 
       // Update config

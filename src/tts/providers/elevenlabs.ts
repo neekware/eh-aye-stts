@@ -2,8 +2,7 @@ import { spawn } from 'child_process';
 import { BaseTTSProvider } from './base';
 import { TTSConfig, Emotion } from '../types';
 import { promises as fs } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
+import * as tmp from 'tmp';
 import { getEnvWithFallback } from '../../utils/config';
 
 export class ElevenLabsProvider extends BaseTTSProvider {
@@ -89,8 +88,9 @@ export class ElevenLabsProvider extends BaseTTSProvider {
   }
 
   private async playAudioStream(audioStream: AsyncIterable<Uint8Array>): Promise<void> {
-    // Save to temp file first for better compatibility
-    const tempFile = join(tmpdir(), `stts-${Date.now()}.mp3`);
+    // Create secure temp file
+    const tmpobj = tmp.fileSync({ postfix: '.mp3' });
+    const tempFile = tmpobj.name;
 
     try {
       // Write stream to temp file
@@ -104,10 +104,10 @@ export class ElevenLabsProvider extends BaseTTSProvider {
       await this.playAudioFile(tempFile);
 
       // Clean up
-      await fs.unlink(tempFile).catch(() => {});
+      tmpobj.removeCallback();
     } catch (error) {
       // Clean up on error
-      await fs.unlink(tempFile).catch(() => {});
+      tmpobj.removeCallback();
       throw error;
     }
   }
