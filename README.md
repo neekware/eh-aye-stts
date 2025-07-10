@@ -158,8 +158,8 @@ stts enable claude-code --dangerous-commands
 stts enable claude-code --no-audio
 
 # Install wrapper scripts (advanced)
-stts enable claude-code --global    # Global wrapper in ~/.stts/hooks/ (warns if stts missing)
-stts enable claude-code --local     # Local wrapper in .claude/hooks/ (silent if stts missing)
+stts enable claude-code --user       # User-level wrapper in ~/.stts/hooks/ (warns if stts missing)
+stts enable claude-code --workspace  # Workspace-level wrapper in .claude/hooks/ (silent if stts missing)
 
 # Note: Currently only claude-code and claude are supported
 # Future versions will add support for cursor, vscode, windsurf, zed
@@ -172,20 +172,20 @@ stts test
 
 STTS can install wrapper scripts to handle situations where Claude Code might overwrite your settings:
 
-- **Global wrapper** (`--global`): Installs to `~/.stts/hooks/stts` and warns if stts command is not available
-- **Local wrapper** (`--local`): Installs to `.claude/hooks/stts` and silently continues if stts is not available
+- **User-level wrapper** (`--user`): Installs to `~/.stts/hooks/stts` and warns if stts command is not available
+- **Workspace-level wrapper** (`--workspace`): Installs to `.claude/hooks/stts` and silently continues if stts is not available
 
 ```bash
 # Remove wrapper scripts
-stts disable claude-code --global   # Remove global wrapper
-stts disable claude-code --local    # Remove local wrapper
+stts disable claude-code --user       # Remove user-level wrapper
+stts disable claude-code --workspace  # Remove workspace-level wrapper
 ```
 
 ### Configuration
 
 STTS can be configured via:
 
-- Configuration files: `~/.stts.json` (global) and `./.stts.json` (project-specific)
+- Configuration files: `~/.stts.json` (user-level) and `./.stts.json` (workspace-specific)
 - Environment variables (override config files)
 - CLI commands
 
@@ -225,8 +225,8 @@ stts restore 1             # Restore backup #1 directly
 
 Configuration is loaded in this order (later sources override earlier ones):
 
-1. Global config: `~/.stts.json`
-2. Project config: `./.stts.json` (in current directory)
+1. User config: `~/.stts.json`
+2. Workspace config: `./.stts.json` (in current directory)
 3. Environment variables
 
 #### Environment Variables
