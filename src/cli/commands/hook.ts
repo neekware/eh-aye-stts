@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { spawn } from 'child_process';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { appendFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -12,13 +12,31 @@ export function hookCommand(): Command {
     .description('Execute TTS hooks (internal use)')
     .argument('<type>', 'Hook type to execute')
     .action((type: string) => {
-      // Log what Claude is passing to debug
-      const debugLog = join(dirname(__dirname), '..', '..', '..', 'claude-hook-debug.log');
+      // Log hook command execution for debugging
+      const debugLog = join(dirname(__dirname), '..', '..', '..', 'hook-debug.json');
       const timestamp = new Date().toISOString();
-      const logEntry = `[${timestamp}] Hook called with type: ${type}, args: ${JSON.stringify(process.argv)}\n`;
+      const logEntry = {
+        timestamp,
+        hook: 'hook-command',
+        type,
+        args: process.argv,
+      };
 
       try {
-        appendFileSync(debugLog, logEntry);
+        // Read existing logs or create new array
+        let logs: any[] = [];
+        if (existsSync(debugLog)) {
+          try {
+            const content = readFileSync(debugLog, 'utf-8');
+            logs = JSON.parse(content);
+          } catch {
+            logs = [];
+          }
+        }
+
+        // Append new entry and write back
+        logs.push(logEntry);
+        writeFileSync(debugLog, JSON.stringify(logs, null, 2));
       } catch (err) {
         // Ignore logging errors
       }

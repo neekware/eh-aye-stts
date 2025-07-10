@@ -1,7 +1,7 @@
 import { HookEvent } from '../types';
 import winston from 'winston';
 import { join } from 'path';
-import { promises as fs, mkdirSync, appendFileSync } from 'fs';
+import { promises as fs, mkdirSync, readFileSync, writeFileSync, existsSync } from 'fs';
 import { LOGS_DIR } from '../defaults';
 import { getProjectName } from '../utils/project';
 
@@ -35,7 +35,7 @@ export abstract class BaseHook {
 
   public getLogFileName(customName?: string): string {
     const projectLogDir = join(LOGS_DIR, this.projectName);
-    const logFileName = customName ? `${customName}.log` : `${this.hookName}.log`;
+    const logFileName = customName ? `${customName}.json` : `${this.hookName}.json`;
     return join(projectLogDir, logFileName);
   }
 
@@ -88,11 +88,31 @@ export abstract class BaseHook {
         // Debug logging for stdin data
         try {
           const projectLogDir = join(LOGS_DIR, this.projectName);
-          const debugLog = join(projectLogDir, 'claude-hook-debug.log');
+          const debugLog = join(projectLogDir, 'hook-debug.json');
           const timestamp = new Date().toISOString();
-          const logEntry = `[${timestamp}] ${this.hookName} stdin data: ${trimmedData || '(empty)'}\n`;
+          const logEntry = {
+            timestamp,
+            hook: this.hookName,
+            event: 'stdin_data',
+            data: trimmedData || '(empty)',
+          };
+
           mkdirSync(projectLogDir, { recursive: true });
-          appendFileSync(debugLog, logEntry);
+
+          // Read existing logs or create new array
+          let logs: any[] = [];
+          if (existsSync(debugLog)) {
+            try {
+              const content = readFileSync(debugLog, 'utf-8');
+              logs = JSON.parse(content);
+            } catch {
+              logs = [];
+            }
+          }
+
+          // Append new entry and write back
+          logs.push(logEntry);
+          writeFileSync(debugLog, JSON.stringify(logs, null, 2));
         } catch (err) {
           // Ignore logging errors
         }

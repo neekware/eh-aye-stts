@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { ClaudeCodeHook } from './base-hook';
-import { promises as fs, appendFileSync, mkdirSync } from 'fs';
+import { promises as fs, readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { LOGS_DIR } from '../../../defaults';
 import { getProjectName } from '../../../utils/project';
@@ -53,7 +53,7 @@ class StopHook extends ClaudeCodeHook {
       const projectName = getProjectName();
       const projectLogDir = join(LOGS_DIR, projectName);
       await fs.mkdir(projectLogDir, { recursive: true });
-      const logFile = join(projectLogDir, 'chat.log');
+      const logFile = join(projectLogDir, 'chat.json');
       await fs.writeFile(logFile, JSON.stringify(chatData, null, 2));
 
       this.debugLog(`Chat log exported to: ${logFile}`);
@@ -68,11 +68,30 @@ class StopHook extends ClaudeCodeHook {
     try {
       const projectName = getProjectName();
       const projectLogDir = join(LOGS_DIR, projectName);
-      const debugLog = join(projectLogDir, 'claude-hook-debug.log');
+      const debugLog = join(projectLogDir, 'claude-hook-debug.json');
       const timestamp = new Date().toISOString();
-      const logEntry = `[${timestamp}] StopHook: ${message}\n`;
+      const logEntry = {
+        timestamp,
+        hook: 'StopHook',
+        message,
+      };
+
       mkdirSync(projectLogDir, { recursive: true });
-      appendFileSync(debugLog, logEntry);
+
+      // Read existing logs or create new array
+      let logs: any[] = [];
+      if (existsSync(debugLog)) {
+        try {
+          const content = readFileSync(debugLog, 'utf-8');
+          logs = JSON.parse(content);
+        } catch {
+          logs = [];
+        }
+      }
+
+      // Append new entry and write back
+      logs.push(logEntry);
+      writeFileSync(debugLog, JSON.stringify(logs, null, 2));
     } catch {
       // Ignore logging errors
     }
