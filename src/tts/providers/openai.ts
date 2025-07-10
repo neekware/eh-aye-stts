@@ -74,10 +74,24 @@ export class OpenAIProvider extends BaseTTSProvider {
     try {
       // Write stream to temp file
       const chunks: Buffer[] = [];
+      let totalSize = 0;
+      const MAX_AUDIO_SIZE = 10 * 1024 * 1024; // 10MB max for audio files
+
       for await (const chunk of audioStream) {
+        totalSize += chunk.length;
+        if (totalSize > MAX_AUDIO_SIZE) {
+          throw new Error('Audio file too large');
+        }
         chunks.push(Buffer.from(chunk));
       }
-      await fs.writeFile(tempFile, Buffer.concat(chunks));
+
+      const audioData = Buffer.concat(chunks);
+      // Validate it's actually an MP3 file (check magic bytes)
+      if (audioData.length < 3 || (audioData[0] !== 0xff && audioData[0] !== 0x49)) {
+        throw new Error('Invalid audio data received');
+      }
+
+      await fs.writeFile(tempFile, audioData);
 
       // Play the temp file
       await this.playAudioFile(tempFile);
