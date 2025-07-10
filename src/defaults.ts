@@ -32,7 +32,6 @@ export const HOOK_NAMES = {
   NOTIFICATION: 'Notification',
   STOP: 'Stop',
   SUBAGENT_STOP: 'SubagentStop',
-  AGENT: 'Agent',
 };
 
 // Tool names

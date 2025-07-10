@@ -12,7 +12,7 @@ export abstract class ClaudeCodeHook {
 
       if (!data) {
         console.error('Invalid input data');
-        process.exit(1);
+        process.exit(2);
       }
 
       // Create plugin event
@@ -31,7 +31,7 @@ export abstract class ClaudeCodeHook {
       process.exit(0);
     } catch (error) {
       console.error('Hook error:', error);
-      process.exit(1);
+      process.exit(2);
     }
   }
 

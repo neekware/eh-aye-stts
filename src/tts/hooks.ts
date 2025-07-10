@@ -14,11 +14,14 @@ export async function ttsNotificationHook(config: TTSConfig = {}): Promise<void>
 
     if (!success) {
       console.error('Failed to speak notification');
-      process.exit(1);
+      process.exit(2);
     }
+
+    // Success - exit with 0
+    process.exit(0);
   } catch (error) {
     console.error('Error processing notification:', error);
-    process.exit(1);
+    process.exit(2);
   }
 }
 

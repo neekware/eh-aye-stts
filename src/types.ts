@@ -23,7 +23,6 @@ export interface ClaudeSettings {
     Notification?: HookMatcher[];
     Stop?: HookMatcher[];
     SubagentStop?: HookMatcher[];
-    Agent?: HookMatcher[];
   };
   [key: string]: unknown;
 }
@@ -67,20 +66,6 @@ export interface SubagentStopEvent {
   taskDescription?: string;
   duration?: number;
   success?: boolean;
-}
-
-export interface AgentEvent {
-  agentId: string;
-  type: 'start' | 'progress' | 'complete' | 'error';
-  taskDescription?: string;
-  message?: string;
-  progress?: number;
-  metadata?: {
-    emotion?: string;
-    priority?: 'low' | 'normal' | 'high';
-    announce?: boolean;
-    [key: string]: unknown;
-  };
 }
 
 export interface STTSConfig {

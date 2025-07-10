@@ -143,7 +143,6 @@ export class SettingsManager {
       { name: 'Notification', script: 'notification.js' },
       { name: 'Stop', script: 'stop.js' },
       { name: 'SubagentStop', script: 'subagent-stop.js' },
-      { name: 'Agent', script: 'agent.js' },
     ];
 
     let updated = false;

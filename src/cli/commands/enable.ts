@@ -117,7 +117,6 @@ Supported tools: claude-code, claude`
           console.log(chalk.gray('  • Tool usage announcements'));
           console.log(chalk.gray('  • Notifications'));
           console.log(chalk.gray('  • Session completion'));
-          console.log(chalk.gray('  • Agent task completion'));
 
           // Always show current status
           console.log(chalk.blue('\n📊 Current Configuration:'));

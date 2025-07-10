@@ -29,7 +29,6 @@ export function hookCommand(): Command {
         notification: 'notification.js',
         stop: 'stop.js',
         'subagent-stop': 'subagent-stop.js',
-        agent: 'agent.js',
       };
 
       const scriptFile = hookMap[type];

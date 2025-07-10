@@ -6,7 +6,6 @@ import {
   NotificationEvent,
   StopEvent,
   SubagentStopEvent,
-  AgentEvent,
 } from '../../types';
 import { VERSION } from '../../utils/version';
 
@@ -38,9 +37,6 @@ export class ClaudeCodePlugin extends BasePlugin {
         break;
       case 'subagent-stop':
         await this.handleSubagentStop(event.data as unknown as SubagentStopEvent);
-        break;
-      case 'agent':
-        await this.handleAgent(event.data as unknown as AgentEvent);
         break;
     }
   }
@@ -123,72 +119,6 @@ export class ClaudeCodePlugin extends BasePlugin {
       }
     } else {
       emotion = 'cheerful';
-    }
-
-    await this.audio.speak(message, { emotion });
-  }
-
-  private async handleAgent(event: AgentEvent): Promise<void> {
-    // Check if we should announce this event
-    if (event.metadata?.announce === false) {
-      return;
-    }
-
-    // Determine emotion
-    let emotion: Emotion = 'neutral';
-    if (event.metadata?.emotion) {
-      emotion = event.metadata.emotion as Emotion;
-    } else {
-      switch (event.type) {
-        case 'start':
-          emotion = 'neutral';
-          break;
-        case 'progress':
-          emotion = 'calm';
-          break;
-        case 'complete':
-          emotion = 'cheerful';
-          break;
-        case 'error':
-          emotion = 'concerned';
-          break;
-      }
-    }
-
-    // Build message
-    let message = '';
-    if (event.message) {
-      message = event.message;
-    } else {
-      switch (event.type) {
-        case 'start':
-          message = event.taskDescription
-            ? `Starting background task: ${event.taskDescription}`
-            : 'Starting background agent task';
-          break;
-        case 'progress':
-          if (event.progress !== undefined) {
-            message = `Background task ${event.progress}% complete`;
-          } else {
-            message = 'Background task in progress';
-          }
-          break;
-        case 'complete':
-          message = event.taskDescription
-            ? `Background task completed: ${event.taskDescription}`
-            : 'Background agent task completed';
-          break;
-        case 'error':
-          message = event.taskDescription
-            ? `Background task failed: ${event.taskDescription}`
-            : 'Background agent task failed';
-          break;
-      }
-    }
-
-    // Only announce high priority progress updates
-    if (event.type === 'progress' && event.metadata?.priority !== 'high') {
-      return;
     }
 
     await this.audio.speak(message, { emotion });
