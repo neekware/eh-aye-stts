@@ -27,7 +27,7 @@ export class SubagentStopHook extends BaseHook {
     });
 
     // Announce subagent completion with appropriate emotion
-    let emotion: Emotion = 'neutral';
+    let emotion: Emotion;
     let message = 'Agent task completed';
 
     // Check the reason for more context
