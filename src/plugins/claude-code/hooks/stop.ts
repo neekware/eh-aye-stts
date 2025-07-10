@@ -1,99 +1,47 @@
 #!/usr/bin/env node
-import { ClaudeCodeHook } from './base-hook';
-import { promises as fs, readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
-import { join } from 'path';
-import { LOGS_DIR } from '../../../defaults';
-import { getProjectName } from '../../../utils/project';
+import { BaseHook } from './base';
+import { StopEvent } from '../types';
+import { Emotion } from '../../../tts/index';
+import { announceIfEnabled } from '../../../tts/announce';
 
-class StopHook extends ClaudeCodeHook {
-  protected eventType = 'stop';
-
-  async run(): Promise<void> {
-    try {
-      const input = await this.readStdin();
-      const data = this.parseInput(input);
-
-      if (data) {
-        // Always export chat if transcript_path is provided
-        if (data.transcript_path) {
-          await this.exportChat(data.transcript_path as string);
-        }
-
-        // Continue with normal event processing
-        await super.run();
-      } else {
-        console.error('Invalid input data');
-      }
-    } catch (error) {
-      console.error('Hook error:', error);
-    }
-    process.exit(0);
+export class StopHook extends BaseHook {
+  constructor() {
+    super('stop');
   }
 
-  private async exportChat(transcriptPath: string): Promise<void> {
-    try {
-      // Check if transcript exists
-      await fs.access(transcriptPath);
+  async execute(): Promise<void> {
+    const input = await this.readStdin();
 
-      // Read transcript (JSONL format)
-      const content = await fs.readFile(transcriptPath, 'utf-8');
-      const chatData: any[] = [];
-
-      // Parse each line as JSON
-      for (const line of content.trim().split('\n')) {
-        if (line) {
-          try {
-            chatData.push(JSON.parse(line));
-          } catch {
-            // Skip invalid lines
-          }
-        }
-      }
-
-      const projectName = getProjectName();
-      const projectLogDir = join(LOGS_DIR, projectName);
-      await fs.mkdir(projectLogDir, { recursive: true });
-      const logFile = join(projectLogDir, 'chat.json');
-      await fs.writeFile(logFile, JSON.stringify(chatData, null, 2));
-
-      this.debugLog(`Chat log exported to: ${logFile}`);
-    } catch (error) {
-      this.debugLog(
-        `Failed to export chat: ${error instanceof Error ? error.message : String(error)}`
-      );
+    // If no input (e.g., run manually), exit gracefully
+    if (!input) {
+      return;
     }
-  }
 
-  private debugLog(message: string): void {
+    const event = this.parseInput(input) as StopEvent;
+
+    // Log the stop event
+    this.logEvent({
+      type: 'stop',
+      timestamp: new Date().toISOString(),
+      data: { ...(event || {}) },
+    });
+
+    // Announce session end with appropriate emotion
+    const messages = ['Session completed', 'Task finished', 'Work complete', 'All done'];
+    const message = messages[Math.floor(Math.random() * messages.length)];
+
+    // Determine emotion based on exit code and reason
+    let emotion: Emotion = 'neutral';
+    if (event?.exitCode === 0 || !event?.exitCode) {
+      emotion = 'cheerful'; // Success
+    } else if (event?.exitCode !== 0) {
+      emotion = 'concerned'; // Non-zero exit code
+    }
+
     try {
-      const projectName = getProjectName();
-      const projectLogDir = join(LOGS_DIR, projectName);
-      const debugLog = join(projectLogDir, 'claude-hook-debug.json');
-      const timestamp = new Date().toISOString();
-      const logEntry = {
-        timestamp,
-        hook: 'StopHook',
-        message,
-      };
-
-      mkdirSync(projectLogDir, { recursive: true });
-
-      // Read existing logs or create new array
-      let logs: any[] = [];
-      if (existsSync(debugLog)) {
-        try {
-          const content = readFileSync(debugLog, 'utf-8');
-          logs = JSON.parse(content);
-        } catch {
-          logs = [];
-        }
-      }
-
-      // Append new entry and write back
-      logs.push(logEntry);
-      writeFileSync(debugLog, JSON.stringify(logs, null, 2));
-    } catch {
-      // Ignore logging errors
+      await announceIfEnabled(message, emotion);
+    } catch (error) {
+      this.logger.error(`TTS error: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 }

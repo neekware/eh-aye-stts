@@ -2,7 +2,7 @@ import which from 'which';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { ToolInfo } from '../types';
-import { getClaudeSettingsPath, getClaudeSettingsDir } from '../utils/claude-settings';
+import { getClaudeSettingsPath, getClaudeSettingsDir } from '../plugins/claude-code/settings';
 import { CLAUDE_DIR, CLAUDE_SETTINGS_FILE } from '../defaults';
 
 export class ToolDetector {

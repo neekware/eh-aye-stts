@@ -1,6 +1,6 @@
 import { getConfigValue } from '../utils/config';
-import { loadTTS } from '../tts';
-import { Emotion } from '../tts/types';
+import { loadTTS } from './index';
+import { Emotion } from './types';
 
 export async function announceIfEnabled(message: string, emotion?: Emotion): Promise<void> {
   // Check if audio is enabled

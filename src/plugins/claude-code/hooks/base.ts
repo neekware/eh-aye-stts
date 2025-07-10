@@ -1,9 +1,9 @@
-import { HookEvent } from '../types';
+import { HookEvent } from '../../../types';
 import winston from 'winston';
 import { join } from 'path';
 import { promises as fs, mkdirSync, readFileSync, writeFileSync, existsSync } from 'fs';
-import { LOGS_DIR } from '../defaults';
-import { getProjectName } from '../utils/project';
+import { LOGS_DIR } from '../../../defaults';
+import { getProjectName } from '../../../utils/project';
 
 export abstract class BaseHook {
   protected logger: winston.Logger;

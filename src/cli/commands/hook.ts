@@ -56,7 +56,7 @@ export function hookCommand(): Command {
       }
 
       // Path to the hook script in dist
-      const hookPath = join(__dirname, '..', '..', 'hooks', scriptFile);
+      const hookPath = join(__dirname, '..', '..', 'plugins', 'claude-code', 'hooks', scriptFile);
 
       // Spawn the hook script, passing stdin through
       const child = spawn('node', [hookPath], {

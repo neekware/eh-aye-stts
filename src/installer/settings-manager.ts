@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import { dirname, join, basename } from 'path';
-import { ClaudeSettings, HookMatcher } from '../types';
+import { ClaudeSettings, HookMatcher } from '../plugins/claude-code/types';
 import { STTS_DIR, HOOKS_DIR, WRAPPER_SCRIPTS, CLAUDE_DIR } from '../defaults';
 import chalk from 'chalk';
 import { platform } from 'os';

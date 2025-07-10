@@ -6,7 +6,7 @@ import {
   NotificationEvent,
   StopEvent,
   SubagentStopEvent,
-} from '../../types';
+} from './types';
 import { VERSION } from '../../utils/version';
 
 export class ClaudeCodePlugin extends BasePlugin {

@@ -1,5 +1,5 @@
 import { join, dirname } from 'path';
-import { HOME_DIR, CLAUDE_DIR, CLAUDE_SETTINGS_FILE, TTS_ENV_VARS } from '../defaults';
+import { HOME_DIR, CLAUDE_DIR, CLAUDE_SETTINGS_FILE, TTS_ENV_VARS } from '../../defaults';
 
 /**
  * Get the path to Claude settings file.
