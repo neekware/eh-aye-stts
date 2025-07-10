@@ -80,7 +80,7 @@ describe('Backup and Restore Tests', () => {
     const consoleSpy = vi.spyOn(console, 'log');
 
     // Install hooks
-    await manager.installHooks();
+    await manager.installHooks('direct');
 
     // Should log backup creation
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('📁 Created backup:'));

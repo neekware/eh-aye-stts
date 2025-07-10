@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import { dirname, join, basename } from 'path';
 import { ClaudeSettings, HookMatcher } from '../types';
-import { STTS_DIR, HOOKS_DIR, WRAPPER_SCRIPTS } from '../defaults';
+import { STTS_DIR, HOOKS_DIR, WRAPPER_SCRIPTS, CLAUDE_DIR } from '../defaults';
 import chalk from 'chalk';
 import { platform } from 'os';
 
@@ -122,7 +122,7 @@ export class SettingsManager {
     }
   }
 
-  async installHooks(): Promise<void> {
+  async installHooks(wrapperType: 'global' | 'local' | 'direct' = 'direct'): Promise<void> {
     // Create backup before modifying settings
     const backupPath = await this.backupSettings();
     if (backupPath) {
@@ -149,14 +149,27 @@ export class SettingsManager {
     let updated = false;
 
     for (const { name, script } of hookTypes) {
-      // Use stts command instead of absolute paths
       const hookType = script.replace('.js', '');
+
+      // Determine the command based on wrapper type
+      let command: string;
+      if (wrapperType === 'global') {
+        // Use the global wrapper path
+        command = `~/.stts/hooks/stts hook ${hookType}`;
+      } else if (wrapperType === 'local') {
+        // Use the local wrapper path
+        command = `.claude/hooks/stts hook ${hookType}`;
+      } else {
+        // Direct stts command (for backward compatibility)
+        command = `stts hook ${hookType}`;
+      }
+
       const hookEntry: HookMatcher = {
         matcher: '*',
         hooks: [
           {
             type: 'command',
-            command: `stts hook ${hookType}`,
+            command,
           },
         ],
       };
@@ -274,19 +287,19 @@ export class SettingsManager {
     await this.cleanupProviderBackups();
   }
 
-  generateWrapperScript(isGlobal: boolean): string {
+  generateWrapperScript(isUser: boolean): string {
     const isWindows = platform() === 'win32';
     const template = isWindows ? WRAPPER_SCRIPTS.BATCH : WRAPPER_SCRIPTS.BASH;
 
     let fallbackBehavior: string;
     if (isWindows) {
-      fallbackBehavior = isGlobal
-        ? WRAPPER_SCRIPTS.BATCH_GLOBAL_FALLBACK
-        : WRAPPER_SCRIPTS.BATCH_LOCAL_FALLBACK;
+      fallbackBehavior = isUser
+        ? WRAPPER_SCRIPTS.BATCH_USER_FALLBACK
+        : WRAPPER_SCRIPTS.BATCH_WORKSPACE_FALLBACK;
     } else {
-      fallbackBehavior = isGlobal
-        ? WRAPPER_SCRIPTS.GLOBAL_FALLBACK
-        : WRAPPER_SCRIPTS.LOCAL_FALLBACK;
+      fallbackBehavior = isUser
+        ? WRAPPER_SCRIPTS.USER_FALLBACK
+        : WRAPPER_SCRIPTS.WORKSPACE_FALLBACK;
     }
 
     return template
@@ -311,7 +324,7 @@ export class SettingsManager {
       await fs.chmod(scriptPath, 0o755);
     }
 
-    console.log(chalk.green(`✓ Installed global wrapper: ${scriptPath}`));
+    console.log(chalk.green(`✓ Installed user-level wrapper: ${scriptPath}`));
   }
 
   async installLocalWrappers(): Promise<void> {
@@ -319,9 +332,9 @@ export class SettingsManager {
     const isWindows = platform() === 'win32';
     const scriptName = isWindows ? 'stts.bat' : 'stts';
 
-    // Local hooks go in .claude/hooks directory relative to settings
-    const settingsDir = dirname(this.settingsPath);
-    const localHooksDir = join(settingsDir, 'hooks');
+    // Local hooks go in PROJECT's .claude/hooks directory
+    const projectClaudeDir = join(process.cwd(), CLAUDE_DIR);
+    const localHooksDir = join(projectClaudeDir, 'hooks');
     const scriptPath = join(localHooksDir, scriptName);
 
     // Create local hooks directory
@@ -335,7 +348,7 @@ export class SettingsManager {
       await fs.chmod(scriptPath, 0o755);
     }
 
-    console.log(chalk.green(`✓ Installed local wrapper: ${scriptPath}`));
+    console.log(chalk.green(`✓ Installed workspace wrapper: ${scriptPath}`));
   }
 
   async removeGlobalWrappers(): Promise<void> {
@@ -345,7 +358,7 @@ export class SettingsManager {
 
     try {
       await fs.unlink(scriptPath);
-      console.log(chalk.green(`✓ Removed global wrapper: ${scriptPath}`));
+      console.log(chalk.green(`✓ Removed user-level wrapper: ${scriptPath}`));
     } catch (error) {
       // Script doesn't exist, ignore
     }
@@ -355,13 +368,14 @@ export class SettingsManager {
     const isWindows = platform() === 'win32';
     const scriptName = isWindows ? 'stts.bat' : 'stts';
 
-    const settingsDir = dirname(this.settingsPath);
-    const localHooksDir = join(settingsDir, 'hooks');
+    // Remove from PROJECT's .claude/hooks directory
+    const projectClaudeDir = join(process.cwd(), CLAUDE_DIR);
+    const localHooksDir = join(projectClaudeDir, 'hooks');
     const scriptPath = join(localHooksDir, scriptName);
 
     try {
       await fs.unlink(scriptPath);
-      console.log(chalk.green(`✓ Removed local wrapper: ${scriptPath}`));
+      console.log(chalk.green(`✓ Removed workspace wrapper: ${scriptPath}`));
     } catch (error) {
       // Script doesn't exist, ignore
     }

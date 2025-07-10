@@ -81,7 +81,7 @@ describe('SettingsManager', () => {
       mockMkdir.mockResolvedValue(undefined as any);
       mockWriteFile.mockResolvedValue(undefined as any);
 
-      await manager.installHooks();
+      await manager.installHooks('direct');
 
       expect(mockWriteFile).toHaveBeenCalled();
       const savedSettings = JSON.parse(mockWriteFile.mock.calls[0][1] as string);
@@ -109,7 +109,7 @@ describe('SettingsManager', () => {
       mockReadFile.mockResolvedValue(JSON.stringify(existingSettings) as any);
 
       const consoleSpy = vi.spyOn(console, 'log');
-      await manager.installHooks();
+      await manager.installHooks('direct');
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('already installed'));
     });
@@ -133,7 +133,7 @@ describe('SettingsManager', () => {
       mockReadFile.mockResolvedValue(JSON.stringify(existingSettings) as any);
       mockWriteFile.mockResolvedValue(undefined as any);
 
-      await manager.installHooks();
+      await manager.installHooks('direct');
 
       const savedSettings = JSON.parse(mockWriteFile.mock.calls[0][1] as string);
       expect(savedSettings.hooks.Notification).toHaveLength(2);

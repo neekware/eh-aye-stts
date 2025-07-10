@@ -42,6 +42,12 @@ export class PreToolUseHook extends BaseHook {
 
   async execute(): Promise<void> {
     const input = await this.readStdin();
+
+    // If no input (e.g., run manually), exit gracefully
+    if (!input) {
+      return;
+    }
+
     const event = this.parseInput(input) as PreToolUseEvent;
 
     if (!event) {

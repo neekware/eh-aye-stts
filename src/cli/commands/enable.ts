@@ -13,26 +13,35 @@ export function enableCommand(): Command {
     .option('--dangerous-commands', 'Enable dangerous command blocking')
     .option('--no-audio', 'Disable audio announcements')
     .option(
-      '--global',
-      'Install wrapper scripts globally in ~/.stts/hooks/ (warns if stts missing)'
+      '--user',
+      'Install wrapper scripts at user level in ~/.stts/hooks/ (warns if stts missing)'
     )
-    .option('--local', 'Install wrapper scripts locally in .claude/hooks/ (silent if stts missing)')
+    .option(
+      '--workspace',
+      'Install wrapper scripts in workspace in .claude/hooks/ (silent if stts missing)'
+    )
     .addHelpText(
       'after',
       `
 Examples:
-  stts enable claude-code                Enable basic TTS hooks
-  stts enable claude-code --global       Install global wrapper script
-  stts enable claude-code --local        Install local wrapper script
+  stts enable claude-code                Enable TTS hooks + user wrapper (default)
+  stts enable claude-code --user         Same as above (explicit user wrapper)
+  stts enable claude-code --workspace    Enable TTS hooks + workspace wrapper
   stts enable claude-code --no-audio     Enable without audio announcements
 
+Note: By default, wrapper scripts are installed at user level in ~/.stts/hooks/
 Supported tools: claude-code, claude`
     )
     .showHelpAfterError()
     .action(
       async (
         tool: string,
-        options: { dangerousCommands?: boolean; audio?: boolean; global?: boolean; local?: boolean }
+        options: {
+          dangerousCommands?: boolean;
+          audio?: boolean;
+          user?: boolean;
+          workspace?: boolean;
+        }
       ) => {
         const detector = new ToolDetector();
         const results = await detector.detect(tool);
@@ -55,19 +64,25 @@ Supported tools: claude-code, claude`
         const manager = new SettingsManager(settingsPath, tool);
 
         try {
-          await manager.installHooks();
-
-          // Install wrapper scripts if requested
-          if (options.global && options.local) {
-            console.error(chalk.red('Cannot specify both --global and --local flags'));
+          // Install wrapper scripts and determine wrapper type
+          if (options.user && options.workspace) {
+            console.error(chalk.red('Cannot specify both --user and --workspace flags'));
             process.exit(1);
           }
 
-          if (options.global) {
-            await manager.installGlobalWrappers();
-          } else if (options.local) {
+          let wrapperType: 'global' | 'local';
+          if (options.workspace) {
+            // If --workspace is explicitly specified, install local wrapper
+            wrapperType = 'local';
             await manager.installLocalWrappers();
+          } else {
+            // Default behavior (no flag or --user): install global wrapper
+            wrapperType = 'global';
+            await manager.installGlobalWrappers();
           }
+
+          // Install hooks with appropriate wrapper type
+          await manager.installHooks(wrapperType);
 
           // Always create/update config file
           const configPath = SETTINGS_PATH;

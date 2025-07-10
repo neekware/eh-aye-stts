@@ -66,10 +66,10 @@ else
     {{FALLBACK_BEHAVIOR}}
 fi`,
 
-  GLOBAL_FALLBACK: `echo "Warning: stts command not found. Please install stts first." >&2
+  USER_FALLBACK: `echo "Warning: stts command not found. Please install stts first." >&2
     exit 1`,
 
-  LOCAL_FALLBACK: `# stts not available, silently continue
+  WORKSPACE_FALLBACK: `# stts not available, silently continue
     exit 0`,
 
   BATCH: `@echo off
@@ -83,9 +83,9 @@ if %errorlevel% == 0 (
     {{FALLBACK_BEHAVIOR}}
 )`,
 
-  BATCH_GLOBAL_FALLBACK: `echo Warning: stts command not found. Please install stts first. >&2
+  BATCH_USER_FALLBACK: `echo Warning: stts command not found. Please install stts first. >&2
     exit /b 1`,
 
-  BATCH_LOCAL_FALLBACK: `REM stts not available, silently continue
+  BATCH_WORKSPACE_FALLBACK: `REM stts not available, silently continue
     exit /b 0`,
 };
