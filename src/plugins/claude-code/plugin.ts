@@ -84,7 +84,7 @@ export class ClaudeCodePlugin extends BasePlugin {
   }
 
   private async handleSubagentStop(event: SubagentStopEvent): Promise<void> {
-    let emotion: Emotion = 'neutral';
+    let emotion: Emotion;
     let message = 'Agent task completed';
 
     // Use task description if available
