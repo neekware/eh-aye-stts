@@ -40,25 +40,56 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 ## Development Setup
 
 1. Clone your fork:
+
    ```bash
    git clone https://github.com/your-username/stts.git
    cd stts
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Run in development mode:
+
    ```bash
    npm run dev -- [command]
    ```
 
 4. Run tests:
+
    ```bash
    npm test
    ```
+
+5. Test GitHub Actions locally (requires Docker):
+
+   ```bash
+   # Install act if not already installed
+   brew install act  # macOS with Homebrew
+   # or see https://github.com/nektos/act for other platforms
+
+   # Run all workflows
+   act push
+
+   # Run specific job
+   act push -j test
+
+   # Run with specific Node version
+   act push -j test --matrix node-version:20.x
+
+   # For Apple M-series Macs, use this flag
+   act push --container-architecture linux/amd64
+   ```
+
+   The project has three GitHub Actions workflows:
+   - **CI workflow** (`.github/workflows/ci.yml`) - Runs linting, tests, and builds
+   - **CodeQL** (`.github/workflows/codeql.yml`) - Security analysis
+   - **Release** (`.github/workflows/release.yml`) - Automated releases
+
+   Note: When running locally, the coverage upload step will fail (expected) as it requires GitHub authentication.
 
 ## Coding Standards
 
