@@ -1,9 +1,10 @@
 import which from 'which';
 import { promises as fs } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { ToolInfo } from '../types';
 import { getClaudeSettingsPath, getClaudeSettingsDir } from '../plugins/claude-code/settings';
 import { CLAUDE_DIR, CLAUDE_SETTINGS_FILE } from '../defaults';
+import { isWindows, normalizePath, execCommand } from '../utils/platform';
 
 export class ToolDetector {
   private tools: Map<string, ToolInfo> = new Map();
@@ -68,9 +69,39 @@ export class ToolDetector {
           await which('claude');
           return true;
         } catch {
+          // On Windows, also check common installation paths
+          if (isWindows()) {
+            return await this.checkWindowsInstallation(tool);
+          }
           return false;
         }
       }
+      return false;
+    }
+  }
+
+  private async checkWindowsInstallation(_tool: ToolInfo): Promise<boolean> {
+    // Common Windows installation paths for Claude
+    const possiblePaths = [
+      join(process.env.LOCALAPPDATA || '', 'Programs', 'claude', 'claude.exe'),
+      join(process.env.PROGRAMFILES || 'C:\\Program Files', 'Claude', 'claude.exe'),
+      join(process.env['PROGRAMFILES(X86)'] || 'C:\\Program Files (x86)', 'Claude', 'claude.exe'),
+    ];
+
+    for (const path of possiblePaths) {
+      try {
+        await fs.access(normalizePath(path));
+        return true;
+      } catch {
+        // Continue checking other paths
+      }
+    }
+
+    // Check if Claude is installed via Windows Store or other package managers
+    try {
+      const { code } = await execCommand('where claude 2>nul');
+      return code === 0;
+    } catch {
       return false;
     }
   }
@@ -94,14 +125,18 @@ export class ToolDetector {
 
   private async findClaudeDirectory(): Promise<string | null> {
     let currentDir = process.cwd();
+    const root = this.getRootDirectory(currentDir);
 
-    while (currentDir !== '/') {
+    while (currentDir !== root) {
       const claudeDir = join(currentDir, CLAUDE_DIR);
       try {
         await fs.access(claudeDir);
         return claudeDir;
       } catch {
-        currentDir = join(currentDir, '..');
+        const parentDir = dirname(currentDir);
+        // Prevent infinite loop
+        if (parentDir === currentDir) break;
+        currentDir = parentDir;
       }
     }
 
@@ -113,5 +148,14 @@ export class ToolDetector {
     } catch {
       return null;
     }
+  }
+
+  private getRootDirectory(path: string): string {
+    if (isWindows()) {
+      // On Windows, root is like 'C:\' or 'D:\'
+      const match = path.match(/^[A-Za-z]:\\/);
+      return match ? match[0] : 'C:\\';
+    }
+    return '/';
   }
 }

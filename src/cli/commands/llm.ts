@@ -9,6 +9,13 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
 import { SETTINGS_PATH, DEFAULT_CONFIG } from '../../defaults';
 
+interface CacheEvent {
+  timestamp: string | number;
+  type: 'set' | 'hit' | 'miss' | 'evict';
+  key: string;
+  message?: string;
+}
+
 export function llmCommand(): Command {
   const llm = new Command('llm')
     .description('Manage LLM feedback and caching features')
@@ -283,7 +290,7 @@ For JSON context testing:
 
           recentLines.forEach((line) => {
             try {
-              const event = JSON.parse(line);
+              const event = JSON.parse(line) as CacheEvent;
               displayCacheEvent(event);
             } catch (e) {
               // Skip invalid lines
@@ -321,7 +328,7 @@ For JSON context testing:
             .filter((line) => line);
           newLines.forEach((line) => {
             try {
-              const event = JSON.parse(line);
+              const event = JSON.parse(line) as CacheEvent;
               displayCacheEvent(event);
             } catch (e) {
               // Skip invalid lines
@@ -344,7 +351,7 @@ For JSON context testing:
       }
 
       // Helper function to display cache events
-      function displayCacheEvent(event: any) {
+      function displayCacheEvent(event: CacheEvent) {
         const time = new Date(event.timestamp).toLocaleTimeString();
 
         switch (event.type) {
