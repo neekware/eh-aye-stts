@@ -2,6 +2,7 @@ import { spawn } from 'child_process';
 import { HookContext, ContextBuilder } from '../plugins/claude-code/hooks/context-builder';
 import { getConfigValue } from '../utils/config';
 import { MessageCache } from './message-cache';
+import { debugLogger } from '../utils/debug-logger';
 
 export interface FeedbackOptions {
   maxWords?: number;
@@ -44,6 +45,7 @@ export class LLMFeedbackGenerator {
     context: HookContext,
     options: FeedbackOptions = {}
   ): Promise<string> {
+    debugLogger.llm('generateFeedback_start', { context, options });
     if (process.env.DEBUG) {
       console.debug('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.debug('[LLM] generateFeedback called with context:', {
@@ -60,6 +62,7 @@ export class LLMFeedbackGenerator {
     // Check if LLM is enabled
     const llmEnabled = getConfigValue('llmEnabled', true);
     if (!llmEnabled) {
+      debugLogger.llm('llm_disabled');
       if (process.env.DEBUG) {
         console.debug('[LLM] LLM is disabled, using fallback message');
       }
@@ -72,11 +75,13 @@ export class LLMFeedbackGenerator {
       const cacheKey = MessageCache.getCacheKey(context);
       const cached = MessageCache.get(cacheKey);
       if (cached) {
+        debugLogger.cache('cache_hit', { cacheKey, message: cached });
         if (process.env.DEBUG) {
           console.debug('[LLM] Found cached message:', cached);
         }
         return cached;
       }
+      debugLogger.cache('cache_miss', { cacheKey });
     }
 
     // Check if Claude CLI is available
@@ -123,7 +128,25 @@ export class LLMFeedbackGenerator {
     const { maxWords = 10, style = 'casual' } = options;
     const contextSummary = ContextBuilder.getContextSummary(context);
 
-    let prompt = `Generate a ${maxWords} word or less ${style} conversational feedback message.
+    // Special handling if we have a transcript message in the command field
+    let prompt: string;
+
+    if (context.eventType === 'stop' && context.command && context.command.length > 50) {
+      // This is likely an assistant message from the transcript
+      prompt = `Transform this assistant message into a ${maxWords} word or less ${style} conversational summary.
+
+Assistant's message: "${context.command}"
+
+Rules:
+- Capture the essence of what was done
+- Maximum ${maxWords} words
+- No punctuation at the end
+- Be natural and conversational
+- Focus on the key action or outcome
+- Example: If the assistant says "I've updated the documentation with examples...", you might say "Added those docs with examples"`;
+    } else {
+      // Standard prompt for other contexts
+      prompt = `Generate a ${maxWords} word or less ${style} conversational feedback message.
 
 Context: ${contextSummary}
 
@@ -136,6 +159,7 @@ Rules:
 - If failed, be supportive
 - Avoid technical jargon
 - Be concise and clear`;
+    }
 
     // Add specific guidance for documentation updates
     if (context.tool === 'MultiEdit' && context.command?.toLowerCase().includes('doc')) {

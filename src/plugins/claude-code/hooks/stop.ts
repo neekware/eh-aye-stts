@@ -6,6 +6,8 @@ import { announceIfEnabled } from '../../../tts/announce';
 import { ContextBuilder, HookContext } from './context-builder';
 import { LLMFeedbackGenerator } from '../../../services/llm-feedback';
 import { getConfigValue } from '../../../utils/config';
+import { TranscriptParser } from '../../../services/transcript-parser';
+import { debugLogger } from '../../../utils/debug-logger';
 
 export class StopHook extends BaseHook {
   constructor() {
@@ -22,6 +24,8 @@ export class StopHook extends BaseHook {
 
     const event = this.parseInput(input) as StopEvent;
 
+    debugLogger.hook('stop', 'execute', { event });
+
     // Log the stop event
     this.logEvent({
       type: 'stop',
@@ -36,14 +40,47 @@ export class StopHook extends BaseHook {
       data: (event || {}) as Record<string, unknown>,
     });
 
+    // If we have a transcript, extract the last assistant message
+    if (event?.transcript_path) {
+      debugLogger.info(
+        'stop',
+        'transcript_found',
+        `Processing transcript: ${event.transcript_path}`
+      );
+
+      const lastMessage = TranscriptParser.getLastAssistantMessage(event.transcript_path);
+      if (lastMessage) {
+        // Add the last assistant message to context
+        context.command = lastMessage;
+        debugLogger.info('stop', 'assistant_message_extracted', undefined, {
+          preview: lastMessage.substring(0, 100) + '...',
+        });
+      }
+
+      // Get session stats for better context
+      const stats = TranscriptParser.getSessionStats(event.transcript_path);
+      if (stats.messageCount > 0) {
+        context.sessionDuration = stats.duration;
+        context.errorCount = stats.hasErrors ? 1 : 0;
+        debugLogger.info('stop', 'session_stats', undefined, stats);
+      }
+    }
+
     // Generate session summary message
     const message = await this.generateMessage(context, event);
     const emotion = this.determineEmotion(context, event);
+
+    debugLogger.info('stop', 'generated_message', message, { emotion });
 
     try {
       await announceIfEnabled(message, emotion);
     } catch (error) {
       this.logger.error(`TTS error: ${error instanceof Error ? error.message : String(error)}`);
+      debugLogger.error(
+        'stop',
+        'tts_error',
+        error instanceof Error ? error.message : String(error)
+      );
     }
   }
 

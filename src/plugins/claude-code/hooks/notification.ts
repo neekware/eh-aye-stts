@@ -7,6 +7,7 @@ import { ContextBuilder } from './context-builder';
 import { LLMFeedbackGenerator } from '../../../services/llm-feedback';
 import { getConfigValue } from '../../../utils/config';
 import chalk from 'chalk';
+import { debugLogger } from '../../../utils/debug-logger';
 
 export class NotificationHook extends BaseHook {
   constructor() {
@@ -22,6 +23,8 @@ export class NotificationHook extends BaseHook {
     }
 
     const event = this.parseInput(input) as NotificationEvent;
+
+    debugLogger.hook('notification', 'execute', { event });
 
     if (!event || !event.message) {
       this.logger.warn('No message in notification event');

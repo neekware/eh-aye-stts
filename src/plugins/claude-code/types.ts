@@ -45,6 +45,10 @@ export interface NotificationEvent {
 export interface StopEvent {
   reason?: string;
   exitCode?: number;
+  session_id?: string;
+  transcript_path?: string;
+  hook_event_name?: string;
+  stop_hook_active?: boolean;
 }
 
 export interface SubagentStopEvent {
