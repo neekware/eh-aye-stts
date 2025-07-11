@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import { dirname, join, basename } from 'path';
 import { ClaudeSettings, HookMatcher } from '../plugins/claude-code/types';
-import { STTS_DIR, HOOKS_DIR, WRAPPER_SCRIPTS, CLAUDE_DIR } from '../defaults';
+import { STTS_DIR, HOOKS_DIR, CLAUDE_DIR } from '../defaults';
 import chalk from 'chalk';
 import { platform } from 'os';
 
@@ -403,28 +403,52 @@ export class SettingsManager {
     }
   }
 
-  generateWrapperScript(isUser: boolean): string {
+  async generateWrapperScript(isUser: boolean): Promise<string> {
     const isWindows = platform() === 'win32';
-    const template = isWindows ? WRAPPER_SCRIPTS.BATCH : WRAPPER_SCRIPTS.BASH;
 
-    let fallbackBehavior: string;
-    if (isWindows) {
-      fallbackBehavior = isUser
-        ? WRAPPER_SCRIPTS.BATCH_USER_FALLBACK
-        : WRAPPER_SCRIPTS.BATCH_WORKSPACE_FALLBACK;
-    } else {
-      fallbackBehavior = isUser
-        ? WRAPPER_SCRIPTS.USER_FALLBACK
-        : WRAPPER_SCRIPTS.WORKSPACE_FALLBACK;
+    // Try multiple potential paths for template files
+    const templateFileName = isWindows ? 'stts-wrapper.bat' : 'stts-wrapper.sh';
+    const possiblePaths = [
+      join(__dirname, '..', '..', 'scripts', 'templates', templateFileName),
+      join(process.cwd(), 'scripts', 'templates', templateFileName),
+      join(__dirname, '..', '..', '..', 'scripts', 'templates', templateFileName),
+    ];
+
+    for (const templatePath of possiblePaths) {
+      try {
+        let content = await fs.readFile(templatePath, 'utf8');
+
+        // Set fallback mode based on context
+        const fallbackMode = isUser ? 'user' : 'workspace';
+
+        // For scripts that need to set environment variables
+        if (isWindows) {
+          // Replace @echo off line with our version
+          content = content.replace(
+            '@echo off',
+            `@echo off\nset STTS_FALLBACK_MODE=${fallbackMode}`
+          );
+        } else {
+          // Replace shebang line with portable shell version
+          content = content.replace(
+            '#!/bin/bash',
+            `#!/bin/sh\nexport STTS_FALLBACK_MODE="${fallbackMode}"`
+          );
+        }
+
+        return content;
+      } catch (error) {
+        // Try next path
+        continue;
+      }
     }
 
-    return template
-      .replace(/{{PROVIDER}}/g, this.provider)
-      .replace(/{{FALLBACK_BEHAVIOR}}/g, fallbackBehavior);
+    // Template files not found - this is an error
+    throw new Error(`Template files not found. Expected ${templateFileName} in scripts/templates/`);
   }
 
   async installGlobalWrappers(): Promise<void> {
-    const scriptContent = this.generateWrapperScript(true);
+    const scriptContent = await this.generateWrapperScript(true);
     const isWindows = platform() === 'win32';
     const scriptName = isWindows ? 'stts.bat' : 'stts';
     const scriptPath = join(HOOKS_DIR, scriptName);
@@ -444,7 +468,7 @@ export class SettingsManager {
   }
 
   async installLocalWrappers(): Promise<void> {
-    const scriptContent = this.generateWrapperScript(false);
+    const scriptContent = await this.generateWrapperScript(false);
     const isWindows = platform() === 'win32';
     const scriptName = isWindows ? 'stts.bat' : 'stts';
 

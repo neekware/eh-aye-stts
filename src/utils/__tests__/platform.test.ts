@@ -124,7 +124,7 @@ describe('Platform Utilities', () => {
       vi.spyOn(os, 'platform').mockReturnValue('darwin');
 
       const shell = getShell();
-      expect(shell.command).toBe('/bin/sh');
+      expect(shell.command).toBe('sh');
       expect(shell.args).toEqual(['-c']);
     });
   });
@@ -220,7 +220,7 @@ describe('Platform Utilities', () => {
       expect(result.stdout).toBe('output');
       expect(result.stderr).toBe('error');
       expect(result.code).toBe(0);
-      expect(mockSpawn).toHaveBeenCalledWith('/bin/sh', ['-c', 'echo test'], expect.any(Object));
+      expect(mockSpawn).toHaveBeenCalledWith('sh', ['-c', 'echo test'], expect.any(Object));
     });
 
     it('should handle command errors', async () => {

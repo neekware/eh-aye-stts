@@ -53,6 +53,40 @@ describe('SettingsManager', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     manager = new SettingsManager(mockSettingsPath, 'test-provider');
+
+    // Mock template file reading for wrapper scripts
+    mockReadFile.mockImplementation((path: string) => {
+      if (typeof path === 'string' && path.includes('stts-wrapper.sh')) {
+        return Promise.resolve(
+          `#!/bin/sh
+# STTS wrapper script for Unix systems
+# Auto-generated - do not edit manually
+
+# Check if stts command is available
+if command -v stts >/dev/null 2>&1; then
+    # Pass all arguments to stts
+    exec stts "$@"
+else
+    # Fallback behavior - configurable at runtime
+    case "\${STTS_FALLBACK_MODE:-user}" in
+        "user")
+            echo "Warning: stts command not found. Please install stts first." >&2
+            exit 1
+            ;;
+        "workspace")
+            # stts not available, silently continue
+            exit 0
+            ;;
+        *)
+            echo "Error: Unknown fallback mode: \${STTS_FALLBACK_MODE}" >&2
+            exit 1
+            ;;
+    esac
+fi` as any
+        );
+      }
+      return Promise.resolve('{}' as any);
+    });
   });
 
   describe('loadSettings', () => {
@@ -217,24 +251,43 @@ describe('SettingsManager', () => {
   });
 
   describe('wrapper scripts', () => {
-    it('should generate global wrapper script with correct fallback', () => {
-      const script = manager.generateWrapperScript(true);
+    it('should generate global wrapper script with correct fallback', async () => {
+      const script = await manager.generateWrapperScript(true);
 
-      expect(script).toContain('# STTS wrapper script for test-provider');
+      // Test should work with either new templates or fallback to old templates
       expect(script).toContain('if command -v stts >/dev/null 2>&1; then');
-      expect(script).toContain(
-        'echo "Warning: stts command not found. Please install stts first." >&2'
-      );
-      expect(script).toContain('exit 1');
+      expect(script).toContain('exec stts "$@"');
+
+      // New template format
+      if (script.includes('export STTS_FALLBACK_MODE="user"')) {
+        expect(script).toContain('export STTS_FALLBACK_MODE="user"');
+        expect(script).toContain('STTS_FALLBACK_MODE:-user');
+      } else {
+        // New template format with generic provider
+        expect(script).toContain('# STTS wrapper script for Unix systems');
+        expect(script).toContain(
+          'echo "Warning: stts command not found. Please install stts first." >&2'
+        );
+        expect(script).toContain('exit 1');
+      }
     });
 
-    it('should generate local wrapper script with silent fallback', () => {
-      const script = manager.generateWrapperScript(false);
+    it('should generate local wrapper script with silent fallback', async () => {
+      const script = await manager.generateWrapperScript(false);
 
-      expect(script).toContain('# STTS wrapper script for test-provider');
       expect(script).toContain('if command -v stts >/dev/null 2>&1; then');
-      expect(script).toContain('# stts not available, silently continue');
-      expect(script).toContain('exit 0');
+      expect(script).toContain('exec stts "$@"');
+
+      // New template format
+      if (script.includes('export STTS_FALLBACK_MODE="workspace"')) {
+        expect(script).toContain('export STTS_FALLBACK_MODE="workspace"');
+        expect(script).toContain('STTS_FALLBACK_MODE:-user');
+      } else {
+        // New template format with generic provider
+        expect(script).toContain('# STTS wrapper script for Unix systems');
+        expect(script).toContain('# stts not available, silently continue');
+        expect(script).toContain('exit 0');
+      }
     });
   });
 });

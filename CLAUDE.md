@@ -19,4 +19,9 @@ This project follows the LEVER optimization framework. Before implementing any n
 
 If any answer is "Yes", use that approach instead of creating new code.
 
+## Pre-Release Rule: NO DEPRECATION
+
+Since we haven't released v1.0 yet, NEVER add DEPRECATED comments or backward compatibility layers.
+Simply replace, update, and improve code directly. Clean removal is better than deprecation warnings.
+
 Full template available in `.claude/principles.md`

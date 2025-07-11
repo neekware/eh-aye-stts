@@ -57,39 +57,3 @@ export const TTS_ENV_VARS = {
   OPENAI_MODEL: 'STTS_OPENAI_MODEL',
   CLAUDE_SETTINGS_PATH: 'STTS_CLAUDE_SETTINGS_PATH',
 };
-
-// Wrapper script templates
-export const WRAPPER_SCRIPTS = {
-  BASH: `#!/bin/bash
-# STTS wrapper script for {{PROVIDER}}
-# Auto-generated - do not edit manually
-
-if command -v stts >/dev/null 2>&1; then
-    exec stts "$@"
-else
-    {{FALLBACK_BEHAVIOR}}
-fi`,
-
-  USER_FALLBACK: `echo "Warning: stts command not found. Please install stts first." >&2
-    exit 1`,
-
-  WORKSPACE_FALLBACK: `# stts not available, silently continue
-    exit 0`,
-
-  BATCH: `@echo off
-REM STTS wrapper script for {{PROVIDER}}
-REM Auto-generated - do not edit manually
-
-where stts >nul 2>&1
-if %errorlevel% == 0 (
-    stts %*
-) else (
-    {{FALLBACK_BEHAVIOR}}
-)`,
-
-  BATCH_USER_FALLBACK: `echo Warning: stts command not found. Please install stts first. >&2
-    exit /b 1`,
-
-  BATCH_WORKSPACE_FALLBACK: `REM stts not available, silently continue
-    exit /b 0`,
-};

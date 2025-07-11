@@ -80,8 +80,8 @@ export function getShell(): { command: string; args: string[] } {
     return { command: 'cmd.exe', args: ['/c'] };
   }
 
-  // Unix-like systems
-  return { command: '/bin/sh', args: ['-c'] };
+  // Unix-like systems - use portable shell
+  return { command: 'sh', args: ['-c'] };
 }
 
 /**
