@@ -87,7 +87,7 @@
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
-    "@types/node": "^20.0.0",
+    "@types/node": "^20.19.7",
     "@types/tmp": "^0.2.6",
     "@types/which": "^3.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
