@@ -1,7 +1,7 @@
 {
   "name": "@eh-aye/stts",
   "version": "0.1.0",
-  "description": "Smart Text-to-Speech (TTS) integration for Claude Code and other development tools. Hear notifications, tool executions, and more with multiple voice providers.",
+  "description": "Simple Text-to-Speech (TTS) integration for Claude Code and other development tools. Hear notifications and tool executions using system voice.",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "type": "module",
@@ -53,8 +53,6 @@
     "hooks",
     "voice",
     "notifications",
-    "elevenlabs",
-    "openai",
     "accessibility"
   ],
   "author": {

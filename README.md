@@ -1,21 +1,18 @@
-# @eh-aye/stts - Smart Text-to-Speech with Emotions 🔊
+# @eh-aye/stts - Simple Text-to-Speech 🔊
 
 [![npm version](https://badge.fury.io/js/@ehaye%2Fstts.svg)](https://www.npmjs.com/package/@eh-aye/stts)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/node/v/@eh-aye/stts.svg)](https://nodejs.org)
 
-A powerful text-to-speech library with 15 different emotions, multiple provider support, and a flexible plugin system.
+A simple text-to-speech library using system voice with a flexible plugin system.
 
 ## Features
 
-- 🎭 **15 Emotions** - From cheerful to melancholic, angry to empathetic
-- 🔊 **Multiple TTS Providers** - OpenAI, ElevenLabs, and system voices
+- 🔊 **System Voice** - Uses your system's built-in text-to-speech
 - 🔌 **Plugin System** - Extend functionality with custom plugins
 - 🤖 **Claude Code Integration** - Optional voice notifications for Claude Code
 - 🧠 **LLM-Powered Feedback** - Dynamic, context-aware messages using Claude CLI
 - 🎯 **Simple API** - Just `speak("Hello")` to get started
-
-📊 **[View Architecture Diagram](./docs/ARCHITECTURE-FLOW.md)** - See how all the components work together
 
 ## When Your Code Finds Its Voice 🗣️💻
 
@@ -38,45 +35,17 @@ import { speak } from '@eh-aye/stts';
 
 // Simple speech
 await speak('Hello, world!');
-
-// With emotion
-await speak('Great job!', { emotion: 'cheerful' });
-
-// Auto-detect emotion
-await speak('Oh no, something went wrong!', { autoDetectEmotion: true });
 ```
-
-## Available Emotions
-
-- `cheerful` - Happy and enthusiastic
-- `neutral` - Calm and professional
-- `concerned` - Thoughtful and worried
-- `urgent` - Attention-grabbing
-- `disappointed` - Sad but understanding
-- `excited` - Very energetic
-- `sarcastic` - Ironic and witty
-- `calm` - Peaceful and composed
-- `angry` - Frustrated and intense
-- `empathetic` - Understanding and compassionate
-- `confused` - Puzzled and uncertain
-- `hopeful` - Optimistic and positive
-- `fearful` - Anxious and worried
-- `melancholic` - Sad and reflective
-- `curious` - Interested and inquisitive
 
 ## API
 
 ### Core Functions
 
 ```typescript
-// Speak with options
-speak(text: string, options?: {
-  emotion?: Emotion,
-  provider?: string,
-  autoDetectEmotion?: boolean
-}): Promise<boolean>
+// Speak text
+speak(text: string): Promise<boolean>
 
-// Speak with context-based emotion
+// Speak with context
 speakWithEmotion(text: string, context?: {
   success?: boolean,
   error?: boolean
@@ -85,39 +54,13 @@ speakWithEmotion(text: string, context?: {
 // Create custom audio service
 createAudioService(config?: TTSConfig): AudioService
 
-// Get available providers
+// Get available providers (returns ['system'])
 getAvailableProviders(): Promise<string[]>
 ```
 
-## TTS Providers
+## TTS System
 
-### Local System Voice (Default)
-
-Works out of the box on macOS, Windows, and Linux.
-
-### OpenAI TTS
-
-High-quality neural voices. Set your API key:
-
-```bash
-# Preferred (avoids conflicts with other tools)
-export STTS_OPENAI_API_KEY="your-key-here"
-
-# Or use the fallback
-export OPENAI_API_KEY="your-key-here"
-```
-
-### ElevenLabs
-
-Premium voice synthesis with advanced emotion control:
-
-```bash
-# Preferred (avoids conflicts with other tools)
-export STTS_ELEVENLABS_API_KEY="your-key-here"
-
-# Or use the fallback
-export ELEVENLABS_API_KEY="your-key-here"
-```
+STTS uses your system's built-in text-to-speech voice. On macOS, this uses the `say` command with the system's default voice.
 
 ## Plugin System
 
@@ -373,16 +316,6 @@ This adds voice notifications for:
 Configure via environment variables:
 
 ```bash
-# Provider priority
-export STTS_PRIORITY="openai,elevenlabs,say"
-
-# Voice settings
-export STTS_VOICE_TYPE="female"
-
-# API Keys (use STTS_ prefix to avoid conflicts)
-export STTS_OPENAI_API_KEY="sk-..."
-export STTS_ELEVENLABS_API_KEY="..."
-
 # Claude integration settings
 export STTS_CLAUDE_SETTINGS_PATH="/path/to/claude/settings.json"
 ```
@@ -438,14 +371,10 @@ graph TB
 
     %% Core Audio API
     API --> AS[AudioService]
-    AS --> ED[Emotion Detector]
     AS --> TL[TTS Loader]
 
     %% TTS System
-    TL --> TP[TTS Providers]
-    TP --> Say[Say Provider<br/>Local System Voice]
-    TP --> OAI[OpenAI Provider<br/>Neural Voices]
-    TP --> EL[ElevenLabs Provider<br/>Premium Synthesis]
+    TL --> Say[System Voice Provider<br/>macOS/Windows/Linux]
 
     %% Plugin System
     API --> PR[Plugin Registry]
@@ -457,20 +386,15 @@ graph TB
     CC[Claude Code] -.->|Events| CCP
     CP -.->|Custom Events| PR
 
-    %% Emotion Flow
-    ED --> |Emotion Detection| AS
-    AS --> |Emotion + Text| TP
+    %% Audio Flow
+    AS --> |Text| Say
 
     style User fill:#4fc3f7,stroke:#0288d1,stroke-width:2px,color:#000
     style CLI fill:#4fc3f7,stroke:#0288d1,stroke-width:2px,color:#000
     style API fill:#66bb6a,stroke:#2e7d32,stroke-width:2px,color:#000
     style AS fill:#66bb6a,stroke:#2e7d32,stroke-width:2px,color:#000
-    style ED fill:#ab47bc,stroke:#6a1b9a,stroke-width:2px,color:#000
     style TL fill:#ffa726,stroke:#e65100,stroke-width:2px,color:#000
-    style TP fill:#ffca28,stroke:#f57c00,stroke-width:2px,color:#000
     style Say fill:#e0e0e0,stroke:#616161,stroke-width:2px,color:#000
-    style OAI fill:#e0e0e0,stroke:#616161,stroke-width:2px,color:#000
-    style EL fill:#e0e0e0,stroke:#616161,stroke-width:2px,color:#000
     style PR fill:#ff7043,stroke:#d84315,stroke-width:2px,color:#000
     style BP fill:#a1887f,stroke:#4e342e,stroke-width:2px,color:#000
     style CP fill:#90a4ae,stroke:#37474f,stroke-width:2px,color:#000
@@ -480,19 +404,19 @@ graph TB
 
 ## 📊 Lines of Code
 
-| Language    | Files   | Lines    | Code     | Comments | Blanks   |
-| ----------- | ------- | -------- | -------- | -------- | -------- |
-| Batch       | 1       | 20       | 12       | 7        | 1        |
-| Environment | 2       | 21       | 4        | 14       | 3        |
-| Git         | 2       | 71       | 35       | 20       | 16       |
-| JSON        | 149     | 1329     | 470      | 833      | 26       |
-| JavaScript  | 7       | 741      | 531      | 77       | 133      |
-| License     | 1       | 21       | 17       | 0        | 4        |
-| Markdown    | 11      | 1338     | 733      | 199      | 406      |
-| Shell       | 13      | 716      | 437      | 138      | 141      |
-| TypeScript  | 57      | 5414     | 4019     | 482      | 913      |
-| YAML        | 5       | 216      | 180      | 4        | 32       |
-| **Total**   | **248** | **9887** | **6438** | **1774** | **1675** |
+| Language    | Files   | Lines     | Code     | Comments | Blanks   |
+| ----------- | ------- | --------- | -------- | -------- | -------- |
+| Batch       | 1       | 20        | 12       | 7        | 1        |
+| Environment | 2       | 21        | 4        | 14       | 3        |
+| Git         | 2       | 71        | 35       | 20       | 16       |
+| JSON        | 149     | 1692      | 634      | 1033     | 25       |
+| JavaScript  | 7       | 741       | 531      | 77       | 133      |
+| License     | 1       | 21        | 17       | 0        | 4        |
+| Markdown    | 11      | 1251      | 678      | 185      | 388      |
+| Shell       | 13      | 716       | 437      | 138      | 141      |
+| TypeScript  | 57      | 5404      | 4016     | 482      | 906      |
+| YAML        | 5       | 216       | 180      | 4        | 32       |
+| **Total**   | **248** | **10153** | **6544** | **1960** | **1649** |
 
 _Last updated: 2025-07-11_
 
@@ -503,18 +427,6 @@ See the [examples](./examples) directory for:
 - Basic usage
 - Custom audio services
 - Plugin development
-- Emotion detection
-
-## Documentation
-
-For detailed documentation, see the [docs directory](./docs):
-
-- 📚 [Technical Documentation](./docs/TECH.md) - Architecture and implementation details
-- 🏗️ [Architecture Flow](./docs/ARCHITECTURE-FLOW.md) - Detailed component relationships
-- 🔧 [Development Guide](./docs/DEVELOPMENT.md) - Setup and contribution guide
-- 🧪 [Testing Guide](./docs/TESTING.md) - Testing TTS functionality
-- 🤖 [LLM Debugging Guide](./docs/LLM-DEBUGGING.md) - Debug and monitor LLM integration
-- 📋 [TODO/Roadmap](./docs/TODO.md) - Future enhancements and ideas
 
 ## Development
 
