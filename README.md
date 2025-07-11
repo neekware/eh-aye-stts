@@ -92,37 +92,41 @@ If you're using Claude Code, you can enable voice notifications:
 # Install STTS globally
 npm install -g @eh-aye/stts
 
-# Enable Claude Code integration (standard)
+# Enable Claude Code integration
 stts enable claude-code
-
-# Enable with dangerous command blocking (optional)
-stts enable claude-code --dangerous-commands
 
 # Enable without audio (silent mode)
 stts enable claude-code --no-audio
 
-# Install wrapper scripts (advanced)
-stts enable claude-code --user       # User-level wrapper in ~/.stts/hooks/ (warns if stts missing)
-stts enable claude-code --workspace  # Workspace-level wrapper in .claude/hooks/ (silent if stts missing)
-
-# Note: Currently only claude-code and claude are supported
-# Future versions will add support for cursor, vscode, windsurf, zed
+# After enabling, you can use these commands in Claude Code:
+audio enable    # Enable audio notifications
+audio disable   # Disable audio notifications
 
 # Test it works
 stts test
+
+# Or from within Claude Code:
+audio enable   # Enable audio notifications
+audio disable  # Disable audio notifications
 ```
 
-### Wrapper Scripts
+### How It Works
 
-STTS can install wrapper scripts to handle situations where Claude Code might overwrite your settings:
+STTS installs three components:
 
-- **User-level wrapper** (`--user`): Installs to `~/.stts/hooks/stts` and warns if stts command is not available
-- **Workspace-level wrapper** (`--workspace`): Installs to `.claude/hooks/stts` and silently continues if stts is not available
+1. **Global wrapper** at `~/.stts/hooks/stts` - Handles the actual TTS execution
+2. **Local settings** in `.claude/settings.local.json` - Your personal hooks configuration (not tracked by git)
+3. **Audio command** at `~/.claude/commands/audio` - Quick enable/disable from within Claude Code
+
+This setup ensures:
+
+- Your TTS preferences don't affect other team members
+- You can quickly toggle audio on/off without leaving Claude Code
+- The wrapper is available globally for all your projects
 
 ```bash
-# Remove wrapper scripts
-stts disable claude-code --user       # Remove user-level wrapper
-stts disable claude-code --workspace  # Remove workspace-level wrapper
+# Disable Claude Code integration
+stts disable claude-code
 ```
 
 ### Configuration
@@ -137,7 +141,6 @@ STTS can be configured via:
 
 ```json
 {
-  "audioEnabled": true,
   "enableDangerousCommandBlocking": false,
   "customDangerousCommands": []
 }
@@ -409,14 +412,14 @@ graph TB
 | Batch       | 1       | 20        | 12       | 7        | 1        |
 | Environment | 2       | 21        | 4        | 14       | 3        |
 | Git         | 2       | 71        | 35       | 20       | 16       |
-| JSON        | 149     | 1692      | 634      | 1033     | 25       |
+| JSON        | 151     | 4763      | 1754     | 2982     | 27       |
 | JavaScript  | 7       | 741       | 531      | 77       | 133      |
 | License     | 1       | 21        | 17       | 0        | 4        |
-| Markdown    | 11      | 1251      | 678      | 185      | 388      |
+| Markdown    | 11      | 1251      | 683      | 182      | 386      |
 | Shell       | 13      | 716       | 437      | 138      | 141      |
-| TypeScript  | 57      | 5404      | 4016     | 482      | 906      |
+| TypeScript  | 57      | 5398      | 3993     | 490      | 915      |
 | YAML        | 5       | 216       | 180      | 4        | 32       |
-| **Total**   | **248** | **10153** | **6544** | **1960** | **1649** |
+| **Total**   | **250** | **13218** | **7646** | **3914** | **1658** |
 
 _Last updated: 2025-07-11_
 

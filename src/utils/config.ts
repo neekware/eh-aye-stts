@@ -85,10 +85,6 @@ export function loadSTTSConfig(): STTSConfig {
   }
 
   // 3. Environment variables override everything
-  if (process.env[ENV_VARS.AUDIO_ENABLED] === 'false') {
-    config.audioEnabled = false;
-  }
-
   if (
     process.env[ENV_VARS.DEBUG] === 'true' ||
     process.env.DEBUG === 'true' ||

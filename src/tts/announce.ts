@@ -1,14 +1,7 @@
-import { getConfigValue } from '../utils/config';
 import { Emotion } from './types';
 import { loadTTS } from './index';
 
 export async function announceIfEnabled(message: string, emotion?: Emotion): Promise<void> {
-  // Check if audio is enabled
-  const audioEnabled = getConfigValue('audioEnabled', true);
-  if (!audioEnabled) {
-    return;
-  }
-
   try {
     const tts = loadTTS();
     const success = await tts.speak(message, emotion);

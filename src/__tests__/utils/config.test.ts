@@ -17,11 +17,9 @@ vi.mock('../../defaults', () => ({
   STTS_DIR: '/home/user/.stts',
   SETTINGS_PATH: '/home/user/.stts/settings.json',
   DEFAULT_CONFIG: {
-    audioEnabled: true,
     debug: false,
   },
   ENV_VARS: {
-    AUDIO_ENABLED: 'STTS_AUDIO_ENABLED',
     DEBUG: 'STTS_DEBUG',
   },
 }));
@@ -39,7 +37,6 @@ describe('Config', () => {
       const config = loadSTTSConfig();
 
       expect(config).toEqual({
-        audioEnabled: true,
         debug: false,
       });
     });
@@ -52,14 +49,13 @@ describe('Config', () => {
       });
       vi.mocked(readFileSync).mockReturnValue(
         JSON.stringify({
-          audioEnabled: false,
+          debug: true,
         })
       );
       vi.mocked(mkdirSync).mockImplementation(() => undefined);
 
       expect(loadSTTSConfig()).toEqual({
-        audioEnabled: false,
-        debug: false,
+        debug: true,
       });
     });
 
@@ -73,15 +69,14 @@ describe('Config', () => {
       vi.mocked(readFileSync).mockImplementation((path) => {
         const pathStr = path as string;
         if (pathStr.endsWith('.stts.json')) {
-          return JSON.stringify({ audioEnabled: false });
+          return JSON.stringify({ debug: true });
         }
         return '{}';
       });
       vi.mocked(mkdirSync).mockImplementation(() => undefined);
 
       expect(loadSTTSConfig()).toEqual({
-        audioEnabled: false,
-        debug: false,
+        debug: true,
       });
     });
 
@@ -96,18 +91,17 @@ describe('Config', () => {
       vi.mocked(readFileSync).mockImplementation((path) => {
         const pathStr = path as string;
         if (pathStr === '/home/user/.stts/settings.json') {
-          return JSON.stringify({ audioEnabled: false, debug: true });
+          return JSON.stringify({ debug: true });
         }
         if (pathStr.endsWith('.stts.json')) {
-          return JSON.stringify({ audioEnabled: true });
+          return JSON.stringify({ debug: false });
         }
         return '{}';
       });
       vi.mocked(mkdirSync).mockImplementation(() => undefined);
 
       expect(loadSTTSConfig()).toEqual({
-        audioEnabled: true,
-        debug: false, // Project config doesn't specify debug, so it uses default
+        debug: false, // Project config overrides global
       });
     });
 
@@ -123,7 +117,6 @@ describe('Config', () => {
       const config = loadSTTSConfig();
 
       expect(config).toEqual({
-        audioEnabled: true,
         debug: false,
       });
     });
@@ -132,16 +125,13 @@ describe('Config', () => {
       vi.mocked(existsSync).mockReturnValue(false);
       vi.mocked(mkdirSync).mockImplementation(() => undefined);
 
-      process.env.STTS_AUDIO_ENABLED = 'false';
       process.env.STTS_DEBUG = 'true';
 
       expect(loadSTTSConfig()).toEqual({
-        audioEnabled: false,
         debug: true,
       });
 
       // Clean up
-      delete process.env.STTS_AUDIO_ENABLED;
       delete process.env.STTS_DEBUG;
     });
   });
@@ -151,7 +141,6 @@ describe('Config', () => {
       vi.mocked(existsSync).mockReturnValue(false);
       vi.mocked(mkdirSync).mockImplementation(() => undefined);
 
-      expect(getConfigValue('audioEnabled')).toBe(true);
       expect(getConfigValue('debug')).toBe(false);
     });
 
@@ -165,12 +154,11 @@ describe('Config', () => {
 
   describe('mergeWithDefaults', () => {
     it('should merge existing config with defaults', () => {
-      const existingConfig = { audioEnabled: false };
+      const existingConfig = { debug: true };
       const merged = mergeWithDefaults(existingConfig);
 
       expect(merged).toEqual({
-        audioEnabled: false,
-        debug: false,
+        debug: true,
       });
     });
 
@@ -179,7 +167,6 @@ describe('Config', () => {
       const merged = mergeWithDefaults(existingConfig);
 
       expect(merged).toEqual({
-        audioEnabled: true,
         debug: false,
       });
     });
