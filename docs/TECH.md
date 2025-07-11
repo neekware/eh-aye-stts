@@ -8,6 +8,7 @@ STTS (Smart Text-to-Speech) is a modular TypeScript application that integrates 
 - **Hook System**: Event-driven hooks for tool integration
 - **TTS Providers**: Abstracted TTS implementations with fallback support
 - **Settings Management**: Safe JSON manipulation for tool configurations
+- **LLM Integration**: Claude API integration for natural language responses
 
 ## Hook System Details
 
@@ -35,6 +36,7 @@ STTS (Smart Text-to-Speech) is a modular TypeScript application that integrates 
 
 - **Input Format**: `{"message": "text", "type": "optional", "level": "optional"}`
 - **Graceful Failures**: TTS errors don't break the hook chain
+- **LLM Enhancement**: Optional Claude-powered natural responses for specific event types
 
 ### Hook Installation Process
 
@@ -45,6 +47,32 @@ STTS (Smart Text-to-Speech) is a modular TypeScript application that integrates 
    ```javascript
    /stts\/dist\/hooks\/|@ehaye\/stts|node .*\/stts\/dist\/hooks\//;
    ```
+
+## LLM Integration Architecture
+
+### Claude API Integration
+
+- **Service**: `src/services/llm-service.ts` - Manages Claude API communication
+- **Configuration**: Environment variables for API key and model selection
+- **Caching**: In-memory transcript cache for context retention
+- **Fallback**: Graceful degradation when LLM is unavailable
+
+### Transcript Processing
+
+- **Extractor**: `src/services/transcript-extractor.ts` - Extracts relevant information from Claude Code transcripts
+- **Context Management**: Maintains conversation history for better responses
+- **Information Extraction**:
+  - Task summaries
+  - Code changes
+  - Error messages
+  - Test results
+
+### LLM Features
+
+1. **Natural Language Responses**: Contextual feedback based on conversation history
+2. **Transcript Caching**: Stores Claude Code transcripts for context
+3. **Smart Extraction**: Identifies key information from transcripts
+4. **Flexible Configuration**: Enable/disable per hook type
 
 ## Security Implementation
 
@@ -104,6 +132,10 @@ stts/
 │   ├── installer/            # Tool detection and settings
 │   │   ├── detector.ts       # Tool discovery logic
 │   │   └── settings-manager.ts # JSON manipulation
+│   ├── services/             # Core services
+│   │   ├── llm-service.ts    # Claude API integration
+│   │   ├── transcript-cache.ts # In-memory transcript storage
+│   │   └── transcript-extractor.ts # Information extraction
 │   ├── tts/                  # TTS provider system
 │   │   ├── types.ts          # TypeScript interfaces
 │   │   ├── loader.ts         # Provider management
@@ -270,6 +302,9 @@ npm publish --access public
 - Log file rotation at 10MB
 - Async operations for I/O
 - Provider caching for 15 minutes
+- LLM response timeout: 5 seconds
+- Transcript cache limit: 100 entries
+- Cache TTL: 1 hour
 
 ## Future Enhancements
 
@@ -279,3 +314,6 @@ npm publish --access public
 - [ ] Configuration UI
 - [ ] Backup/restore settings
 - [ ] Hook templating system
+- [x] LLM-powered natural language responses
+- [ ] Extended LLM context management
+- [ ] Multi-model LLM support

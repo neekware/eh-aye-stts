@@ -1,5 +1,22 @@
 # TODO: Future Enhancements
 
+## Recently Completed Features
+
+### ✅ LLM-Powered Natural Language Responses (v1.1.0)
+
+- **Implemented**: Claude API integration for contextual feedback
+- **Features**:
+  - Natural language responses for hook events
+  - Transcript caching for conversation context
+  - Smart information extraction from Claude Code transcripts
+  - Configurable per-hook LLM settings
+  - Graceful fallback when LLM unavailable
+- **Configuration**:
+  - `TTS_USE_LLM`: Enable/disable LLM features
+  - `CLAUDE_API_KEY`: API authentication
+  - `TTS_LLM_MODEL`: Model selection
+  - `TTS_LLM_DEBUG`: Debug logging
+
 ## AI-Powered Emotion Detection
 
 ### Current Limitations
@@ -15,6 +32,8 @@ The current emotion detection system has several limitations:
 ### Proposed Solution: AI-Powered Emotion Detection
 
 Create an intelligent emotion detection system that analyzes the context of AI responses and user interactions to select the most appropriate emotion for TTS.
+
+**Note**: With the LLM integration now complete, this feature could leverage the existing `LLMService` infrastructure to analyze emotions alongside generating responses.
 
 ### Implementation Steps
 
