@@ -14,4 +14,5 @@ export interface HookEvent {
 export interface STTSConfig {
   audioEnabled?: boolean;
   debug?: boolean;
+  audioDevice?: string; // Preferred audio output device for macOS say command
 }

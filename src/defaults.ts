@@ -13,12 +13,14 @@ export const SETTINGS_PATH = join(STTS_DIR, 'settings.json');
 export const DEFAULT_CONFIG = {
   audioEnabled: true,
   debug: false,
+  audioDevice: undefined as string | undefined, // Let system auto-detect by default
 };
 
 // Environment variable names
 export const ENV_VARS = {
   AUDIO_ENABLED: 'STTS_AUDIO_ENABLED',
   DEBUG: 'STTS_DEBUG',
+  AUDIO_DEVICE: 'STTS_AUDIO_DEVICE',
 };
 
 // Hook names

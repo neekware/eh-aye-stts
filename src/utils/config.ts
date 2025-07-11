@@ -97,6 +97,10 @@ export function loadSTTSConfig(): STTSConfig {
     config.debug = true;
   }
 
+  if (process.env[ENV_VARS.AUDIO_DEVICE]) {
+    config.audioDevice = process.env[ENV_VARS.AUDIO_DEVICE];
+  }
+
   return config;
 }
 
