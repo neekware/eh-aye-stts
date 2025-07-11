@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
 import { SETTINGS_PATH, DEFAULT_CONFIG } from '../../defaults';
+import { mergeWithDefaults } from '../../utils/config';
 
 interface Config {
   audioEnabled: boolean;
@@ -15,6 +16,19 @@ interface Config {
   llmMaxWords?: number;
   llmCacheEnabled?: boolean;
   llmCacheTTL?: number;
+}
+
+/**
+ * Load config from file or return merged defaults
+ */
+function loadConfigFromFile(configPath: string): Config {
+  try {
+    const existingConfig = JSON.parse(readFileSync(configPath, 'utf-8')) as Partial<Config>;
+    return mergeWithDefaults(existingConfig) as Config;
+  } catch (error) {
+    // File doesn't exist or is invalid, return defaults
+    return { ...DEFAULT_CONFIG } as Config;
+  }
 }
 
 export function configCommand(): Command {
@@ -51,7 +65,7 @@ Examples:
       console.log(chalk.blue('📊 STTS Configuration\n'));
 
       try {
-        const config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
+        const config = loadConfigFromFile(configPath);
 
         // Audio status
         if (config.audioEnabled) {
@@ -115,7 +129,7 @@ Examples:
       // Show current status if no options provided
       if (!options.enable && !options.disable) {
         try {
-          const config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
+          const config = loadConfigFromFile(configPath);
           if (config.audioEnabled) {
             console.log(chalk.green('🔊 Audio announcements are currently ENABLED'));
           } else {
@@ -129,13 +143,7 @@ Examples:
       }
 
       // Load existing config or create new one
-      let config: Config = { ...DEFAULT_CONFIG };
-
-      try {
-        config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
-      } catch (error) {
-        // Use default config if file doesn't exist
-      }
+      const config: Config = loadConfigFromFile(configPath);
 
       // Update config
       if (options.enable) {
@@ -168,7 +176,7 @@ Examples:
       // Show current status if no options provided
       if (!options.enable && !options.disable) {
         try {
-          const config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
+          const config = loadConfigFromFile(configPath);
           if (config.debug) {
             console.log(chalk.blue('🐛 Debug mode is currently ENABLED'));
           } else {
@@ -182,13 +190,7 @@ Examples:
       }
 
       // Load existing config or create new one
-      let config: Config = { ...DEFAULT_CONFIG };
-
-      try {
-        config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
-      } catch (error) {
-        // Use default config if file doesn't exist
-      }
+      const config: Config = loadConfigFromFile(configPath);
 
       // Update config
       if (options.enable) {
@@ -224,7 +226,7 @@ Examples:
       // Show current status if no options provided
       if (!options.enable && !options.disable && !options.add) {
         try {
-          const config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
+          const config = loadConfigFromFile(configPath);
           if (config.enableDangerousCommandBlocking) {
             console.log(chalk.yellow('⚠️  Dangerous command blocking is currently ENABLED'));
             if (config.customDangerousCommands?.length > 0) {
@@ -246,13 +248,7 @@ Examples:
       }
 
       // Load existing config or create new one
-      let config: Config = { ...DEFAULT_CONFIG };
-
-      try {
-        config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
-      } catch (error) {
-        // Use default config if file doesn't exist
-      }
+      const config: Config = loadConfigFromFile(configPath);
 
       // Update config
       if (options.enable) {
@@ -313,7 +309,7 @@ Examples:
         // Show current status if no options provided
         if (!Object.keys(options).length) {
           try {
-            const config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
+            const config = loadConfigFromFile(configPath);
             if (config.llmEnabled !== false) {
               console.log(chalk.green('🤖 LLM feedback is currently ENABLED'));
               console.log(
@@ -338,13 +334,7 @@ Examples:
         }
 
         // Load existing config or create new one
-        let config: Config = { ...DEFAULT_CONFIG };
-
-        try {
-          config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
-        } catch (error) {
-          // Use default config if file doesn't exist
-        }
+        const config: Config = loadConfigFromFile(configPath);
 
         // Update config
         if (options.enable) {
@@ -420,11 +410,7 @@ Examples:
       // Load existing config or create new one
       let config: Record<string, unknown> = { ...DEFAULT_CONFIG };
 
-      try {
-        config = JSON.parse(readFileSync(configPath, 'utf-8')) as Record<string, unknown>;
-      } catch (error) {
-        // Use default config if file doesn't exist
-      }
+      config = loadConfigFromFile(configPath) as unknown as Record<string, unknown>;
 
       // Parse value
       let parsedValue: string | number | boolean = value;

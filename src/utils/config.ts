@@ -1,4 +1,4 @@
-import { readFileSync, existsSync, mkdirSync } from 'fs';
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { STTSConfig } from '../types';
 import {
@@ -15,6 +15,60 @@ function ensureConfigDirExists(): void {
   }
 }
 
+/**
+ * Merges existing config with defaults, preserving user settings while
+ * adding new defaults and removing deprecated fields.
+ */
+export function mergeWithDefaults(existingConfig: Partial<STTSConfig>): STTSConfig {
+  // Start with default config, then merge existing config
+  const mergedConfig = { ...DEFAULT_CONFIG, ...existingConfig };
+
+  // List of deprecated fields to remove (add any deprecated fields here)
+  const deprecatedFields: string[] = [];
+
+  // Remove deprecated fields
+  for (const field of deprecatedFields) {
+    delete (mergedConfig as Record<string, unknown>)[field];
+  }
+
+  return mergedConfig;
+}
+
+/**
+ * Loads and updates config file on first load, ensuring existing settings
+ * are preserved while new defaults are added.
+ */
+function loadAndUpdateConfigFile(configPath: string): STTSConfig | null {
+  if (!existsSync(configPath)) {
+    return null;
+  }
+
+  try {
+    const configData = readFileSync(configPath, 'utf-8');
+    const existingConfig = JSON.parse(configData) as Partial<STTSConfig>;
+
+    // Merge with defaults
+    const mergedConfig = mergeWithDefaults(existingConfig);
+
+    // Check if update is needed (new default fields added or deprecated fields removed)
+    const defaultKeys = Object.keys(DEFAULT_CONFIG);
+    const existingKeys = Object.keys(existingConfig);
+    const hasNewDefaults = defaultKeys.some((key) => !(key in existingConfig));
+    const deprecatedFields: string[] = [];
+    const hasDeprecatedFields = existingKeys.some((key) => deprecatedFields.includes(key));
+
+    if (hasNewDefaults || hasDeprecatedFields) {
+      // Write back the merged config
+      writeFileSync(configPath, JSON.stringify(mergedConfig, null, 2));
+    }
+
+    return mergedConfig;
+  } catch (error) {
+    console.error(`Failed to parse config from ${configPath}:`, error);
+    return null;
+  }
+}
+
 export function loadSTTSConfig(): STTSConfig {
   let config: STTSConfig = { ...DEFAULT_CONFIG };
 
@@ -22,26 +76,16 @@ export function loadSTTSConfig(): STTSConfig {
   ensureConfigDirExists();
 
   // 1. Load global config from ~/.stts/settings.json
-  if (existsSync(SETTINGS_PATH)) {
-    try {
-      const configData = readFileSync(SETTINGS_PATH, 'utf-8');
-      const globalConfig = JSON.parse(configData) as STTSConfig;
-      config = { ...config, ...globalConfig };
-    } catch (error) {
-      console.error(`Failed to parse config from ${SETTINGS_PATH}:`, error);
-    }
+  const globalConfig = loadAndUpdateConfigFile(SETTINGS_PATH);
+  if (globalConfig) {
+    config = { ...config, ...globalConfig };
   }
 
   // 2. Load project config from current directory (overrides global)
   const projectConfigPath = join(process.cwd(), PROJECT_CONFIG_FILE);
-  if (existsSync(projectConfigPath)) {
-    try {
-      const configData = readFileSync(projectConfigPath, 'utf-8');
-      const projectConfig = JSON.parse(configData) as STTSConfig;
-      config = { ...config, ...projectConfig };
-    } catch (error) {
-      console.error(`Failed to parse config from ${projectConfigPath}:`, error);
-    }
+  const projectConfig = loadAndUpdateConfigFile(projectConfigPath);
+  if (projectConfig) {
+    config = { ...config, ...projectConfig };
   }
 
   // 3. Environment variables override everything

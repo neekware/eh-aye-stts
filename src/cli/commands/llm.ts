@@ -4,6 +4,7 @@ import { LLMFeedbackGenerator } from '../../services/llm-feedback';
 import { MessageCache } from '../../services/message-cache';
 import { HookContext } from '../../plugins/claude-code/hooks/context-builder';
 import { loadSTTSConfig } from '../../utils/config';
+import { STTSConfig } from '../../types';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
 import { SETTINGS_PATH, DEFAULT_CONFIG } from '../../defaults';
@@ -76,7 +77,14 @@ For JSON context testing:
         console.log(chalk.yellow('Testing with context...'));
 
         try {
-          const contextData = JSON.parse(options.context);
+          const contextData = JSON.parse(options.context) as {
+            eventType?: string;
+            tool?: string;
+            command?: string;
+            result?: string;
+            exitCode?: number;
+            duration?: number;
+          };
           console.log(chalk.gray('Context:'), contextData);
 
           const context: HookContext = {
@@ -324,7 +332,7 @@ For JSON context testing:
         writeFileSync(options.output, JSON.stringify(data, null, 2));
         console.log(chalk.green(`✓ Exported ${entries.length} entries to ${options.output}`));
       } catch (error) {
-        console.error(chalk.red(`Failed to export: ${error}`));
+        console.error(chalk.red(`Failed to export: ${String(error)}`));
       }
     });
 
@@ -333,10 +341,10 @@ For JSON context testing:
     .command('enable')
     .description('Enable LLM feedback generation')
     .action(() => {
-      let config: any = { ...DEFAULT_CONFIG };
+      let config: STTSConfig = { ...DEFAULT_CONFIG };
 
       try {
-        config = JSON.parse(readFileSync(SETTINGS_PATH, 'utf-8'));
+        config = JSON.parse(readFileSync(SETTINGS_PATH, 'utf-8')) as STTSConfig;
       } catch (error) {
         // Use default config if file doesn't exist
       }
@@ -356,10 +364,10 @@ For JSON context testing:
     .command('disable')
     .description('Disable LLM feedback generation')
     .action(() => {
-      let config: any = { ...DEFAULT_CONFIG };
+      let config: STTSConfig = { ...DEFAULT_CONFIG };
 
       try {
-        config = JSON.parse(readFileSync(SETTINGS_PATH, 'utf-8'));
+        config = JSON.parse(readFileSync(SETTINGS_PATH, 'utf-8')) as STTSConfig;
       } catch (error) {
         // Use default config if file doesn't exist
       }

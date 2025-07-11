@@ -56,7 +56,7 @@ export class ElevenLabsProvider extends BaseTTSProvider {
       }
 
       const response = await axios.default.post(
-        `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+        `https://api.elevenlabs.io/v3/text-to-speech/${voiceId}`,
         requestBody,
         {
           headers: {

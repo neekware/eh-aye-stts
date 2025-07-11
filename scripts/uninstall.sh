@@ -33,22 +33,20 @@ done
 echo -e "\n${YELLOW}📦 Uninstalling package...${NC}"
 npm uninstall -g @eh-aye/stts
 
-# Clean up configuration if requested
-echo -e "\n${YELLOW}🧹 Clean up configuration?${NC}"
-echo -e "Configuration files are located at:"
-echo -e "  • ~/.stts/settings.json"
-echo -e "  • ~/.stts/logs/"
+# Clean up logs but preserve configuration
+echo -e "\n${YELLOW}🧹 Cleaning up logs...${NC}"
+if [ -d ~/.stts/logs ]; then
+    rm -f ~/.stts/logs/*
+    echo -e "${GREEN}✓ Logs removed${NC}"
+else
+    echo -e "${BLUE}ℹ️  No logs to clean${NC}"
+fi
+
+echo -e "\n${BLUE}ℹ️  Configuration preserved${NC}"
+echo -e "Configuration files remain at:"
+echo -e "  • ~/.stts/settings.json (global settings)"
 echo -e "  • ./.stts.json (project configs)"
 echo -e ""
-read -p "Remove all STTS configuration files? (y/N) " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    echo -e "${YELLOW}🗑️  Removing configuration...${NC}"
-    rm -rf ~/.stts
-    find . -name ".stts.json" -type f -delete 2>/dev/null || true
-    echo -e "${GREEN}✓ Configuration removed${NC}"
-else
-    echo -e "${BLUE}ℹ️  Configuration preserved${NC}"
-fi
+echo -e "${YELLOW}Note: Your settings have been preserved for future installations${NC}"
 
 echo -e "\n${GREEN}✅ STTS uninstalled successfully!${NC}"
