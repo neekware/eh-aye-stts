@@ -43,9 +43,6 @@ Supported tools: claude`
         // Install hooks in settings.local.json
         await manager.installHooks('local');
 
-        // Install audio command in ~/.claude/commands/
-        await manager.installAudioCommand();
-
         console.log(chalk.green('\n✨ TTS hooks installed successfully!'));
 
         console.log(chalk.blue(`\n📁 Local settings updated: ${actualSettingsPath}`));

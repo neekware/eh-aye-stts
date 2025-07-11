@@ -1,29 +1,49 @@
-# Audio Command
+# Audio Command [enable, disable, status]
 
-Simple command to control stts for Claude.
+Control STTS (Smart Text-to-Speech) for Claude.
 
-## Commands
+## What would you like to do?
 
-### Enable Audio
+Choose one of the following options by typing the number:
 
-```bash
-stts claude enable
-```
+1. **Enable Audio** - Turn on text-to-speech announcements
+2. **Disable Audio** - Turn off text-to-speech announcements
+3. **Check Status** - See if audio is currently enabled
 
-### Disable Audio
+---
 
-```bash
-stts claude disable
-```
+### Option 1: Enable Audio
 
-### Check Status
+To enable audio, run:
 
 ```bash
-stts claude status
+!stts claude enable
 ```
 
-## Usage
+### Option 2: Disable Audio
 
-- `/audio enable` - Enable audio
-- `/audio disable` - Disable audio
-- `/audio status` - Check status
+To disable audio, run:
+
+```bash
+!stts claude disable
+```
+
+### Option 3: Check Status
+
+To check the current status, run:
+
+```bash
+!stts claude status
+```
+
+---
+
+## Quick Usage
+
+You can also use these commands directly:
+
+- `/audio 1` or `/audio enable` - Enable audio
+- `/audio 2` or `/audio disable` - Disable audio
+- `/audio 3` or `/audio status` - Check status
+
+When you use `/audio $ARGUMENTS`, I'll execute the appropriate command based on your choice.

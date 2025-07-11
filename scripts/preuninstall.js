@@ -89,6 +89,56 @@ async function cleanupLogs() {
   }
 }
 
+async function removeAudioCommand() {
+  console.log('\n🗑️  Removing audio command...');
+
+  const audioPath = join(homedir(), '.claude', 'commands', 'audio.md');
+
+  try {
+    await fs.unlink(audioPath);
+    console.log('✅ Audio command removed');
+  } catch (error) {
+    // File doesn't exist, that's fine
+    console.log('ℹ️  No audio command to remove');
+  }
+}
+
+async function replaceWithNoopWrapper() {
+  console.log('\n🔄 Replacing STTS wrapper with no-op...');
+
+  const isWindows = process.platform === 'win32';
+  const wrapperName = isWindows ? 'stts.bat' : 'stts';
+  const wrapperPath = join(homedir(), '.stts', 'hooks', wrapperName);
+
+  const noopScript = isWindows
+    ? `@echo off
+REM STTS no-op wrapper - package uninstalled
+REM This prevents errors if hooks are still configured
+exit /b 0`
+    : `#!/bin/sh
+# STTS no-op wrapper - package uninstalled  
+# This prevents errors if hooks are still configured
+exit 0`;
+
+  try {
+    // Ensure directory exists
+    await fs.mkdir(join(homedir(), '.stts', 'hooks'), { recursive: true });
+
+    // Write no-op script
+    await fs.writeFile(wrapperPath, noopScript);
+
+    // Make executable on Unix
+    if (!isWindows) {
+      await fs.chmod(wrapperPath, 0o755);
+    }
+
+    console.log('✅ STTS wrapper replaced with no-op');
+    console.log('   (This prevents errors if hooks are still configured)');
+  } catch (error) {
+    console.log('⚠️  Could not create no-op wrapper:', error.message);
+  }
+}
+
 async function main() {
   // List of tools to try disabling
   const tools = ['claude', 'cursor', 'windsurf', 'zed'];
@@ -117,6 +167,12 @@ async function main() {
 
   // Clean up logs
   await cleanupLogs();
+
+  // Remove audio command
+  await removeAudioCommand();
+
+  // Replace wrapper with no-op to prevent errors
+  await replaceWithNoopWrapper();
 
   // Inform about preserved configuration
   console.log('\nℹ️  Configuration preserved at:');

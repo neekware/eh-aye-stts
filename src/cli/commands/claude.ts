@@ -30,7 +30,6 @@ Examples:
       try {
         await manager.installGlobalWrapper();
         await manager.installHooks('local');
-        await manager.installAudioCommand();
 
         console.log(chalk.green('\n✨ TTS hooks installed successfully!'));
         console.log(chalk.blue(`\n📁 Local settings updated: ${actualSettingsPath}`));
@@ -104,8 +103,12 @@ Examples:
         const settings = JSON.parse(content);
         const hooks = settings.hooks || {};
 
-        const hasHooks = Object.values(hooks).some((commands: any) =>
-          Array.isArray(commands) ? commands.some((cmd: string) => cmd.includes('stts')) : false
+        const hasHooks = Object.values(hooks).some((hookArray: any) =>
+          Array.isArray(hookArray)
+            ? hookArray.some((hook: any) =>
+                hook.hooks?.some((h: any) => h.command?.includes('stts'))
+              )
+            : false
         );
 
         if (hasHooks) {
@@ -113,8 +116,13 @@ Examples:
           console.log(chalk.gray(`\n📁 Settings file: ${settingsPath}`));
 
           console.log(chalk.gray(`\nActive hooks:`));
-          for (const [event, commands] of Object.entries(hooks)) {
-            if (Array.isArray(commands) && commands.some((cmd: string) => cmd.includes('stts'))) {
+          for (const [event, hookArray] of Object.entries(hooks)) {
+            if (
+              Array.isArray(hookArray) &&
+              hookArray.some((hook: any) =>
+                hook.hooks?.some((h: any) => h.command?.includes('stts'))
+              )
+            ) {
               console.log(chalk.gray(`  • ${event}`));
             }
           }

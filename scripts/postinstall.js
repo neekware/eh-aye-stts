@@ -8,6 +8,8 @@
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { spawn } from 'child_process';
+import { promises as fs } from 'fs';
+import { homedir } from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -48,6 +50,28 @@ async function runCommand(command, args = []) {
   });
 }
 
+async function installAudioCommand() {
+  console.log('📝 Installing audio command...');
+
+  const claudeCommandsDir = join(homedir(), '.claude', 'commands');
+  const targetPath = join(claudeCommandsDir, 'audio.md');
+  const templatePath = join(__dirname, 'templates', 'audio-command.md');
+
+  try {
+    // Create commands directory
+    await fs.mkdir(claudeCommandsDir, { recursive: true });
+
+    // Copy the template file
+    await fs.copyFile(templatePath, targetPath);
+
+    console.log('✅ Audio command installed at ~/.claude/commands/audio.md');
+    return true;
+  } catch (error) {
+    console.error('⚠️  Failed to install audio command:', error.message);
+    return false;
+  }
+}
+
 async function detectTools() {
   console.log('🔍 Detecting installed development tools...');
 
@@ -76,11 +100,14 @@ async function enableTool(tool) {
 }
 
 async function main() {
+  // First, install the audio command
+  await installAudioCommand();
+
   // List of tools to try enabling
   const tools = ['claude'];
   let enabledCount = 0;
 
-  // First, detect available tools
+  // Detect available tools
   const detected = await detectTools();
   if (!detected) {
     console.log('\n⚠️  Could not detect tools. You can manually enable STTS later with:');
