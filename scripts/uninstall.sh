@@ -36,7 +36,8 @@ npm uninstall -g @eh-aye/stts
 # Clean up logs but preserve configuration
 echo -e "\n${YELLOW}🧹 Cleaning up logs...${NC}"
 if [ -d ~/.stts/logs ]; then
-    rm -f ~/.stts/logs/*
+    # Remove all files and subdirectories in logs, but keep the logs directory itself
+    find ~/.stts/logs -mindepth 1 -delete 2>/dev/null || true
     echo -e "${GREEN}✓ Logs removed${NC}"
 else
     echo -e "${BLUE}ℹ️  No logs to clean${NC}"
