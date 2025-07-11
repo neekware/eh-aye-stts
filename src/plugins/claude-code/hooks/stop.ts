@@ -53,7 +53,9 @@ export class StopHook extends BaseHook {
         // Add the last assistant message to context
         context.command = lastMessage;
         debugLogger.info('stop', 'assistant_message_extracted', undefined, {
-          preview: lastMessage.substring(0, 100) + '...',
+          messageLength: lastMessage.length,
+          preview: lastMessage.substring(0, 200) + (lastMessage.length > 200 ? '...' : ''),
+          fullMessage: lastMessage, // Log full message in debug mode
         });
       }
 

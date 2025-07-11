@@ -135,7 +135,7 @@ export class LLMFeedbackGenerator {
       // This is likely an assistant message from the transcript
       prompt = `Transform this assistant message into a ${maxWords} word or less ${style} conversational summary.
 
-Assistant's message: "${context.command}"
+Assistant's full message: "${context.command}"
 
 Rules:
 - Capture the essence of what was done
@@ -143,7 +143,11 @@ Rules:
 - No punctuation at the end
 - Be natural and conversational
 - Focus on the key action or outcome
-- Example: If the assistant says "I've updated the documentation with examples...", you might say "Added those docs with examples"`;
+- Extract the most important accomplishment from the message
+- Examples:
+  - "I've updated the CLI documentation and added nested help functionality..." → "Updated CLI docs with help"
+  - "I'll help you fix the TranscriptParser to properly extract natural language..." → "Fixed transcript message extraction"
+  - "I've completed all the requested tasks including parameter validation..." → "Finished all your tasks"`;
     } else {
       // Standard prompt for other contexts
       prompt = `Generate a ${maxWords} word or less ${style} conversational feedback message.
