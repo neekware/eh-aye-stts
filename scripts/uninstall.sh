@@ -27,6 +27,15 @@ for tool in claude; do
     stts disable $tool --workspace 2>/dev/null || true
 done
 
+# Remove audio command BEFORE uninstalling (so this script still exists)
+echo -e "\n${YELLOW}🗑️  Removing audio command...${NC}"
+if [ -f ~/.claude/commands/audio.md ]; then
+    rm -f ~/.claude/commands/audio.md
+    echo -e "${GREEN}✓ Audio command removed${NC}"
+else
+    echo -e "${BLUE}ℹ️  No audio command to remove${NC}"
+fi
+
 # Uninstall the package
 echo -e "\n${YELLOW}📦 Uninstalling package...${NC}"
 npm uninstall -g @eh-aye/stts
