@@ -44,6 +44,8 @@ Supported tools: claude`
         console.log(chalk.green('\n✓ TTS hooks removed successfully'));
 
         console.log(chalk.blue(`\n📁 Settings updated: ${actualSettingsPath}`));
+
+        console.log(chalk.yellow('\n⚠️  Please restart Claude for these changes to take effect.'));
       } catch (error) {
         console.error(
           chalk.red(

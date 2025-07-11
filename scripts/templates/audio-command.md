@@ -28,6 +28,8 @@ To disable audio, run:
 !stts claude disable
 ```
 
+**Note:** After disabling audio, you'll need to restart Claude for the changes to take effect.
+
 ### Option 3: Check Status
 
 To check the current status, run:
