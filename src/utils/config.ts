@@ -1,4 +1,4 @@
-import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'fs';
+import { readFileSync, existsSync, mkdirSync, writeFileSync, renameSync } from 'fs';
 import { join } from 'path';
 import { STTSConfig } from '../types';
 import {
@@ -39,11 +39,8 @@ export function mergeWithDefaults(existingConfig: Partial<STTSConfig>): STTSConf
  * are preserved while new defaults are added.
  */
 function loadAndUpdateConfigFile(configPath: string): STTSConfig | null {
-  if (!existsSync(configPath)) {
-    return null;
-  }
-
   try {
+    // Use atomic read operation to avoid race condition
     const configData = readFileSync(configPath, 'utf-8');
     const existingConfig = JSON.parse(configData) as Partial<STTSConfig>;
 
@@ -58,12 +55,17 @@ function loadAndUpdateConfigFile(configPath: string): STTSConfig | null {
     const hasDeprecatedFields = existingKeys.some((key) => deprecatedFields.includes(key));
 
     if (hasNewDefaults || hasDeprecatedFields) {
-      // Write back the merged config
-      writeFileSync(configPath, JSON.stringify(mergedConfig, null, 2));
+      // Write back the merged config atomically using rename
+      const tempPath = `${configPath}.tmp`;
+      writeFileSync(tempPath, JSON.stringify(mergedConfig, null, 2));
+      renameSync(tempPath, configPath);
     }
 
     return mergedConfig;
   } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return null;
+    }
     console.error(`Failed to parse config from ${configPath}:`, error);
     return null;
   }

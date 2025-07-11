@@ -1,4 +1,4 @@
-import { writeFileSync, mkdirSync, existsSync, appendFileSync } from 'fs';
+import { writeFileSync, mkdirSync, appendFileSync } from 'fs';
 import { join } from 'path';
 import { LOGS_DIR } from '../defaults';
 import { getProjectName } from './project';
@@ -24,12 +24,18 @@ export class DebugLogger {
     mkdirSync(projectLogDir, { recursive: true });
     this.logPath = join(projectLogDir, 'debug.log');
 
-    // Initialize log file with header
-    if (!existsSync(this.logPath)) {
+    // Initialize log file with header using atomic operation
+    try {
       writeFileSync(
         this.logPath,
-        `=== STTS Debug Log ===\nProject: ${this.projectName}\nStarted: ${new Date().toISOString()}\n\n`
+        `=== STTS Debug Log ===\nProject: ${this.projectName}\nStarted: ${new Date().toISOString()}\n\n`,
+        { flag: 'wx' } // 'wx' flag creates file only if it doesn't exist (atomic)
       );
+    } catch (error) {
+      // File already exists, which is fine
+      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
+        throw error;
+      }
     }
   }
 
