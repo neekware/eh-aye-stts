@@ -107,6 +107,7 @@
   },
   "files": [
     "dist/**/*",
+    "scripts/**/*",
     "README.md",
     "LICENSE"
   ]
