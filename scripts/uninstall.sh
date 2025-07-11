@@ -20,13 +20,11 @@ fi
 echo -e "${YELLOW}📌 Current version:${NC}"
 stts --version
 
-# Disable hooks for all detected tools before uninstalling
-echo -e "\n${YELLOW}🔇 Disabling hooks for all tools...${NC}"
-for tool in claude-code claude cursor windsurf zed; do
-    if stts detect $tool 2>/dev/null | grep -q "detected"; then
-        echo -e "${BLUE}  Disabling $tool...${NC}"
-        stts disable $tool 2>/dev/null || true
-    fi
+# Try to disable hooks for all tools before uninstalling
+echo -e "\n${YELLOW}🔇 Attempting to disable hooks...${NC}"
+for tool in claude-code claude; do
+    echo -e "${BLUE}  Trying to disable $tool...${NC}"
+    stts disable $tool --workspace 2>/dev/null || true
 done
 
 # Uninstall the package

@@ -42,13 +42,9 @@ echo -e "\n${BLUE}🧪 Testing STTS commands...${NC}\n"
 echo -e "${YELLOW}📌 Version:${NC}"
 stts --version
 
-# Detect tools
-echo -e "\n${YELLOW}🔍 Detecting tools:${NC}"
-stts detect
-
-# Show status
-echo -e "\n${YELLOW}📊 Status:${NC}"
-stts status
+# Test voice announcement
+echo -e "\n${YELLOW}🔊 Testing voice:${NC}"
+stts test
 
 # Test help
 echo -e "\n${YELLOW}❓ Help:${NC}"
@@ -60,7 +56,8 @@ stts hook --help || true
 
 echo -e "\n${GREEN}✅ Local installation test complete!${NC}"
 echo -e "${BLUE}💡 To test enable/disable, run:${NC}"
-echo -e "  ${YELLOW}stts enable claude-code${NC}"
-echo -e "  ${YELLOW}stts disable claude-code${NC}"
+echo -e "  ${YELLOW}stts enable claude-code --workspace${NC}  (for team settings)"
+echo -e "  ${YELLOW}stts enable claude-code --local${NC}     (for personal settings)"
+echo -e "  ${YELLOW}stts disable claude-code --workspace${NC}"
 echo -e "\n${BLUE}💡 To uninstall:${NC}"
 echo -e "  ${YELLOW}npm uninstall -g @eh-aye/stts${NC}"
