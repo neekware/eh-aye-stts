@@ -1,9 +1,14 @@
 import { promises as fs } from 'fs';
 import { dirname, join, basename } from 'path';
+import { fileURLToPath } from 'url';
 import { ClaudeSettings, HookMatcher } from '../plugins/claude-code/types';
 import { STTS_DIR, HOOKS_DIR, CLAUDE_DIR } from '../defaults';
 import chalk from 'chalk';
 import { platform } from 'os';
+
+// Get the directory of the current module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export class SettingsManager {
   private readonly MAX_BACKUPS = 5;
