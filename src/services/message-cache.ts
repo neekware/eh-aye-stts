@@ -1,7 +1,7 @@
 import { HookContext } from '../plugins/claude-code/hooks/context-builder';
 import { getConfigValue } from '../utils/config';
-import { existsSync, mkdirSync, appendFileSync } from 'fs';
-import { CACHE_DIR, CACHE_LOG_FILE } from '../defaults';
+import { appendFileSync } from 'fs';
+import { SessionManager } from '../utils/session-manager';
 
 interface CacheEntry {
   message: string;
@@ -228,10 +228,11 @@ export class MessageCache {
 
   private static writeToCacheLog(event: CacheEvent): void {
     try {
-      // Ensure cache directory exists
-      if (!existsSync(CACHE_DIR)) {
-        mkdirSync(CACHE_DIR, { recursive: true });
-      }
+      // Ensure session cache directory exists
+      SessionManager.ensureSessionDirectories();
+
+      // Get session-specific cache log file
+      const cacheLogFile = SessionManager.getSessionCacheFile('events.jsonl');
 
       // Append event to cache log
       const logEntry =
@@ -241,7 +242,7 @@ export class MessageCache {
           timestamp: new Date(event.timestamp).toISOString(),
         }) + '\n';
 
-      appendFileSync(CACHE_LOG_FILE, logEntry);
+      appendFileSync(cacheLogFile, logEntry);
     } catch (error) {
       // Silently fail to avoid breaking cache operations
       if (process.env.DEBUG) {

@@ -273,8 +273,9 @@ For JSON context testing:
     .option('-n, --lines <number>', 'Number of recent entries to show initially', '10')
     .action(async (options: { lines: string }) => {
       const { readFileSync, existsSync, watchFile } = await import('fs');
-      const { CACHE_LOG_FILE } = await import('../../defaults');
+      const { SessionManager } = await import('../../utils/session-manager');
       const lines = parseInt(options.lines, 10);
+      const CACHE_LOG_FILE = SessionManager.getSessionCacheFile('events.jsonl');
 
       console.log(chalk.blue('📡 Monitoring cache activity (Ctrl+C to stop)\n'));
 

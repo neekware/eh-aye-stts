@@ -1,16 +1,14 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
-import { LOGS_DIR } from '../../../defaults';
-import { getProjectName } from '../../../utils/project';
 import { HookEvent } from '../../../types';
 import { PostToolUseEvent } from '../types';
 import { SessionSummary } from './context-builder';
+import { SessionManager } from '../../../utils/session-manager';
 
 export class LogReader {
   private static readonly MAX_LOG_LINES = 1000;
 
   static async loadRecentEvents(count = 5): Promise<HookEvent[]> {
-    const projectName = getProjectName();
     const logFiles = [
       'pre-tool-use.json',
       'post-tool-use.json',
@@ -22,7 +20,7 @@ export class LogReader {
     const allEvents: HookEvent[] = [];
 
     for (const logFile of logFiles) {
-      const logPath = join(LOGS_DIR, projectName, logFile);
+      const logPath = SessionManager.getSessionLogFile(logFile);
       try {
         const content = await fs.readFile(logPath, 'utf-8');
         const lines = content.trim().split('\n').filter(Boolean);
@@ -101,8 +99,7 @@ export class LogReader {
   }
 
   static async clearOldLogs(daysToKeep = 7): Promise<void> {
-    const projectName = getProjectName();
-    const logDir = join(LOGS_DIR, projectName);
+    const logDir = SessionManager.getSessionLogDir();
 
     try {
       const files = await fs.readdir(logDir);

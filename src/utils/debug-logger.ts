@@ -1,8 +1,7 @@
-import { writeFileSync, mkdirSync, appendFileSync } from 'fs';
-import { join } from 'path';
-import { LOGS_DIR } from '../defaults';
+import { writeFileSync, appendFileSync } from 'fs';
 import { getProjectName } from './project';
 import { getConfigValue } from './config';
+import { SessionManager } from './session-manager';
 
 export interface DebugLogEntry {
   timestamp: string;
@@ -20,15 +19,15 @@ export class DebugLogger {
 
   private constructor() {
     this.projectName = getProjectName();
-    const projectLogDir = join(LOGS_DIR, this.projectName);
-    mkdirSync(projectLogDir, { recursive: true });
-    this.logPath = join(projectLogDir, 'debug.log');
+    SessionManager.ensureSessionDirectories();
+    this.logPath = SessionManager.getSessionLogFile('debug.log');
 
     // Initialize log file with header using atomic operation
     try {
+      const inClaudeSession = SessionManager.isInClaudeSession();
       writeFileSync(
         this.logPath,
-        `=== STTS Debug Log ===\nProject: ${this.projectName}\nStarted: ${new Date().toISOString()}\n\n`,
+        `=== STTS Debug Log ===\nProject: ${this.projectName}\nIn Claude Session: ${inClaudeSession}\nStarted: ${new Date().toISOString()}\n\n`,
         { flag: 'wx' } // 'wx' flag creates file only if it doesn't exist (atomic)
       );
     } catch (error) {

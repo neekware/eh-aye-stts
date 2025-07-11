@@ -1,13 +1,7 @@
 import { readFileSync, existsSync, mkdirSync, writeFileSync, renameSync } from 'fs';
 import { join } from 'path';
 import { STTSConfig } from '../types';
-import {
-  STTS_DIR,
-  SETTINGS_PATH,
-  PROJECT_CONFIG_FILE,
-  DEFAULT_CONFIG,
-  ENV_VARS,
-} from '../defaults';
+import { STTS_DIR, SETTINGS_PATH, DEFAULT_CONFIG, ENV_VARS } from '../defaults';
 
 function ensureConfigDirExists(): void {
   if (!existsSync(STTS_DIR)) {
@@ -84,7 +78,7 @@ export function loadSTTSConfig(): STTSConfig {
   }
 
   // 2. Load project config from current directory (overrides global)
-  const projectConfigPath = join(process.cwd(), PROJECT_CONFIG_FILE);
+  const projectConfigPath = join(process.cwd(), '.stts.json');
   const projectConfig = loadAndUpdateConfigFile(projectConfigPath);
   if (projectConfig) {
     config = { ...config, ...projectConfig };

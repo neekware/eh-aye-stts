@@ -3,6 +3,7 @@ import { spawn } from 'child_process';
 import { join } from 'path';
 import chalk from 'chalk';
 import { PostToolUseEvent, StopEvent, SubagentStopEvent } from '../src/plugins/claude-code/types';
+import { SESSION_DEPOT_DIR, SESSION_LOGS_SUBDIR } from '../src/defaults';
 
 interface HookSimulation {
   name: string;
@@ -157,7 +158,7 @@ class HookEventSimulator {
     }
 
     console.log(chalk.blue('\n\n📊 Simulation Complete'));
-    console.log(chalk.gray('Check logs at: ~/.stts/logs/<project-name>/'));
+    console.log(chalk.gray(`Check logs at: ${SESSION_DEPOT_DIR}/${SESSION_LOGS_SUBDIR}/`));
   }
 }
 

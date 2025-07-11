@@ -1,9 +1,8 @@
 import { HookEvent } from '../../../types';
 import winston from 'winston';
-import { join } from 'path';
-import { promises as fs, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { LOGS_DIR } from '../../../defaults';
+import { readFileSync, writeFileSync } from 'fs';
 import { getProjectName } from '../../../utils/project';
+import { SessionManager } from '../../../utils/session-manager';
 
 export abstract class BaseHook {
   protected logger: winston.Logger;
@@ -34,9 +33,8 @@ export abstract class BaseHook {
   }
 
   public getLogFileName(customName?: string): string {
-    const projectLogDir = join(LOGS_DIR, this.projectName);
     const logFileName = customName ? `${customName}.json` : `${this.hookName}.json`;
-    return join(projectLogDir, logFileName);
+    return SessionManager.getSessionLogFile(logFileName);
   }
 
   private createJsonLogger(): winston.Logger {
@@ -87,8 +85,7 @@ export abstract class BaseHook {
 
         // Debug logging for stdin data
         try {
-          const projectLogDir = join(LOGS_DIR, this.projectName);
-          const debugLog = join(projectLogDir, 'hook-debug.json');
+          const debugLog = SessionManager.getSessionLogFile('hook-debug.json');
           const timestamp = new Date().toISOString();
           const logEntry = {
             timestamp,
@@ -97,7 +94,7 @@ export abstract class BaseHook {
             data: trimmedData || '(empty)',
           };
 
-          mkdirSync(projectLogDir, { recursive: true });
+          SessionManager.ensureSessionDirectories();
 
           // Read existing logs or create new array
           interface DebugLogEntry {
@@ -147,16 +144,15 @@ export abstract class BaseHook {
     this.jsonLogger.info(eventWithCwd);
   }
 
-  protected async ensureLogDirectory(): Promise<void> {
-    const projectLogDir = join(LOGS_DIR, this.projectName);
-    await fs.mkdir(projectLogDir, { recursive: true });
+  protected ensureLogDirectory(): void {
+    SessionManager.ensureSessionDirectories();
   }
 
   abstract execute(): Promise<void>;
 
   async run(): Promise<void> {
     try {
-      await this.ensureLogDirectory();
+      this.ensureLogDirectory();
       await this.execute();
     } catch (error) {
       this.logger.error(

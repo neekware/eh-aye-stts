@@ -1,8 +1,13 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import { dirname } from 'path';
-import { SETTINGS_PATH, DEFAULT_CONFIG } from '../../defaults';
+import { dirname, join } from 'path';
+import {
+  SETTINGS_PATH,
+  DEFAULT_CONFIG,
+  SESSION_DEPOT_DIR,
+  SESSION_LOGS_SUBDIR,
+} from '../../defaults';
 import { mergeWithDefaults } from '../../utils/config';
 
 interface Config {
@@ -196,7 +201,11 @@ Examples:
       if (options.enable) {
         config.debug = true;
         console.log(chalk.green('✓ Debug mode enabled'));
-        console.log(chalk.gray('Debug logs will be written to ~/.stts/logs/<project>/debug.log'));
+        console.log(
+          chalk.gray(
+            `Debug logs will be written to ${join(SESSION_DEPOT_DIR, SESSION_LOGS_SUBDIR, 'debug.log')}`
+          )
+        );
       } else if (options.disable) {
         config.debug = false;
         console.log(chalk.green('✓ Debug mode disabled'));

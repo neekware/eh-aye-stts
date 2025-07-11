@@ -4,14 +4,10 @@ import { homedir } from 'os';
 // Base directories
 export const HOME_DIR = homedir();
 export const STTS_DIR = join(HOME_DIR, '.stts');
-export const LOGS_DIR = join(STTS_DIR, 'logs');
 export const HOOKS_DIR = join(STTS_DIR, 'hooks');
-export const CACHE_DIR = join(STTS_DIR, 'cache');
 
 // Config files
 export const SETTINGS_PATH = join(STTS_DIR, 'settings.json');
-export const PROJECT_CONFIG_FILE = '.stts.json';
-export const CACHE_LOG_FILE = join(CACHE_DIR, 'events.jsonl');
 
 // Default configuration
 export const DEFAULT_CONFIG = {
@@ -44,6 +40,11 @@ export const SUPPORTED_TOOLS = ['claude', 'cursor', 'windsurf', 'zed'];
 // Claude settings
 export const CLAUDE_DIR = '.claude';
 export const CLAUDE_SETTINGS_FILE = 'settings.json';
+
+// Session directories
+export const SESSION_DEPOT_DIR = '.stts_depot';
+export const SESSION_LOGS_SUBDIR = 'logs';
+export const SESSION_CACHE_SUBDIR = 'cache';
 
 // TTS Environment variables
 export const TTS_ENV_VARS = {

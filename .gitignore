@@ -54,3 +54,11 @@ lerna-debug.log*
 # Testing
 jest-results.json
 test-report.xml
+
+# STTS temporary files
+.tmp/
+
+# STTS depot (logs & cache)
+.stts-depot/
+# STTS depot (logs & cache)
+.stts_depot/
