@@ -85,10 +85,6 @@ export function loadSTTSConfig(): STTSConfig {
   }
 
   // 3. Environment variables override everything
-  if (process.env[ENV_VARS.DANGEROUS_COMMAND_BLOCKING] === 'true') {
-    config.enableDangerousCommandBlocking = true;
-  }
-
   if (process.env[ENV_VARS.AUDIO_ENABLED] === 'false') {
     config.audioEnabled = false;
   }
@@ -99,11 +95,6 @@ export function loadSTTSConfig(): STTSConfig {
     process.env.DEBUG === '1'
   ) {
     config.debug = true;
-  }
-
-  const customCommands = process.env[ENV_VARS.CUSTOM_DANGEROUS_COMMANDS];
-  if (customCommands) {
-    config.customDangerousCommands = customCommands.split(',').map((cmd) => cmd.trim());
   }
 
   return config;

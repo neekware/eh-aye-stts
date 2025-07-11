@@ -1,8 +1,8 @@
 import { promises as fs } from 'fs';
-import { dirname, join, basename } from 'path';
+import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { ClaudeSettings, HookMatcher } from '../plugins/claude-code/types';
-import { STTS_DIR, CLAUDE_DIR } from '../defaults';
+import { CLAUDE_DIR } from '../defaults';
 import chalk from 'chalk';
 import { platform } from 'os';
 
@@ -11,8 +11,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export class SettingsManager {
-  private readonly MAX_BACKUPS = 5;
-
   constructor(
     private settingsPath: string,
     private provider: string
@@ -34,109 +32,7 @@ export class SettingsManager {
     await fs.writeFile(this.settingsPath, JSON.stringify(settings, null, 2));
   }
 
-  async backupSettings(): Promise<string | null> {
-    try {
-      // Check if settings file exists
-      await fs.access(this.settingsPath);
-
-      // Create backup directory in ~/.stts/backups/{provider}/
-      const backupDir = join(STTS_DIR, 'backups', this.provider);
-      await fs.mkdir(backupDir, { recursive: true });
-
-      // Create backup filename with timestamp
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      const settingsName = basename(this.settingsPath).replace('.json', '');
-      const backupPath = join(backupDir, `${settingsName}.${timestamp}.json`);
-
-      // Copy current settings to backup
-      await fs.copyFile(this.settingsPath, backupPath);
-
-      // Clean up old backups
-      await this.cleanupOldBackups();
-
-      return backupPath;
-    } catch (error) {
-      // Settings file doesn't exist, no backup needed
-      return null;
-    }
-  }
-
-  private async cleanupOldBackups(): Promise<void> {
-    const backupDir = join(STTS_DIR, 'backups', this.provider);
-    const settingsName = basename(this.settingsPath).replace('.json', '');
-    // Escape special regex characters in filename and build pattern
-    const escapedName = settingsName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const backupPattern = new RegExp(
-      '^' + escapedName + '\\.\\d{4}-\\d{2}-\\d{2}T\\d{2}-\\d{2}-\\d{2}\\.json$'
-    );
-
-    try {
-      const files = await fs.readdir(backupDir);
-      const backups = files
-        .filter((f) => backupPattern.test(f))
-        .sort()
-        .reverse();
-
-      // Remove old backups, keeping only MAX_BACKUPS
-      for (let i = this.MAX_BACKUPS; i < backups.length; i++) {
-        await fs.unlink(join(backupDir, backups[i]));
-      }
-    } catch (error) {
-      // Directory doesn't exist or can't be read, ignore
-    }
-  }
-
-  async listBackups(): Promise<string[]> {
-    const backupDir = join(STTS_DIR, 'backups', this.provider);
-    const settingsName = basename(this.settingsPath).replace('.json', '');
-    // Escape special regex characters in filename and build pattern
-    const escapedName = settingsName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const backupPattern = new RegExp(
-      '^' + escapedName + '\\.\\d{4}-\\d{2}-\\d{2}T\\d{2}-\\d{2}-\\d{2}\\.json$'
-    );
-
-    try {
-      const files = await fs.readdir(backupDir);
-      return files
-        .filter((f) => backupPattern.test(f))
-        .sort()
-        .reverse()
-        .map((f) => join(backupDir, f));
-    } catch (error) {
-      return [];
-    }
-  }
-
-  async restoreFromBackup(backupPath: string): Promise<void> {
-    // Verify backup file exists
-    await fs.access(backupPath);
-
-    // Create a backup of current settings before restoring
-    const currentBackup = await this.backupSettings();
-
-    try {
-      // Restore from backup
-      await fs.copyFile(backupPath, this.settingsPath);
-      console.log(chalk.green(`✓ Restored settings from: ${backupPath}`));
-    } catch (error) {
-      // If restore fails, try to restore the current backup
-      if (currentBackup) {
-        await fs.copyFile(currentBackup, this.settingsPath);
-      }
-      throw error;
-    }
-  }
-
   async installHooks(wrapperType: 'local' = 'local'): Promise<void> {
-    // Purge any invalid or duplicate STTS hooks first
-    await this.purgeSttsHooks();
-
-    // Create backup before modifying settings
-    const backupPath = await this.backupSettings();
-    if (backupPath) {
-      console.log(chalk.gray(`📁 Created backup: ${basename(backupPath)}`));
-    }
-
     const settings = await this.loadSettings();
 
     // Initialize hooks structure
@@ -177,37 +73,33 @@ export class SettingsManager {
         settings.hooks[hookKey] = [];
       }
 
-      // Check if our STTS hook is already installed
-      // Pattern matches: stts hook command
-      const sttsHookPattern = /stts hook/;
-      const existingIndex = settings.hooks[hookKey].findIndex((h) =>
-        h.hooks.some((hook) => sttsHookPattern.test(hook.command))
+      // Check if STTS hook already exists
+      const existingHooks = settings.hooks[hookKey] || [];
+      const sttsHookExists = existingHooks.some((h) =>
+        h.hooks.some((hook) => hook.command?.includes('stts hook'))
       );
 
-      if (existingIndex === -1) {
-        // No existing STTS hook, add new one
+      if (!sttsHookExists) {
+        // Add new hook
         settings.hooks[hookKey].push(hookEntry);
-        updated = true;
         console.log(chalk.green(`✓ Installed STTS ${name} hook`));
+        updated = true;
       } else {
-        // Check if the existing hook has the correct command for the wrapper type
-        const existingHook = settings.hooks[hookKey][existingIndex];
-        const existingCommand = existingHook.hooks.find((h) =>
-          sttsHookPattern.test(h.command)
-        )?.command;
-
-        if (existingCommand !== command) {
-          // Update the command to match the wrapper type
-          const hookIndex = existingHook.hooks.findIndex((h) => sttsHookPattern.test(h.command));
-          if (hookIndex !== -1) {
-            existingHook.hooks[hookIndex].command = command;
-            updated = true;
+        // Update existing hook if wrapper type changed
+        const existingHook = existingHooks.find((h) =>
+          h.hooks.some((hook) => hook.command?.includes('stts hook'))
+        );
+        if (existingHook) {
+          const existingCommand = existingHook.hooks[0].command;
+          if (existingCommand !== command) {
+            existingHook.hooks[0].command = command;
             console.log(chalk.green(`✓ Updated STTS ${name} hook to use ${wrapperType} wrapper`));
+            updated = true;
+          } else {
+            console.log(
+              chalk.yellow(`⚠ STTS ${name} hook already configured for ${wrapperType} wrapper`)
+            );
           }
-        } else {
-          console.log(
-            chalk.yellow(`⚠ STTS ${name} hook already configured for ${wrapperType} wrapper`)
-          );
         }
       }
     }
@@ -216,43 +108,11 @@ export class SettingsManager {
       await this.saveSettings(settings);
       console.log(chalk.green(`\n✓ Settings updated: ${this.settingsPath}`));
     } else {
-      console.log(chalk.yellow('\n⚠ All hooks already installed'));
-    }
-
-    // Clean up any provider-created backups from the original location
-    await this.cleanupProviderBackups();
-  }
-
-  private async cleanupProviderBackups(): Promise<void> {
-    const originalDir = dirname(this.settingsPath);
-    const settingsName = basename(this.settingsPath);
-    const backupPattern = new RegExp(
-      '^' +
-        settingsName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') +
-        '\\.backup-\\d{4}-\\d{2}-\\d{2}T\\d{2}-\\d{2}-\\d{2}$'
-    );
-
-    try {
-      const files = await fs.readdir(originalDir);
-      const providerBackups = files.filter((f) => backupPattern.test(f));
-
-      for (const backup of providerBackups) {
-        const backupPath = join(originalDir, backup);
-        await fs.unlink(backupPath);
-        console.log(chalk.gray(`🗑️  Removed ${this.provider} backup: ${backup}`));
-      }
-    } catch (error) {
-      // Ignore errors - the directory might not exist or be readable
+      console.log(chalk.yellow('\nNo changes needed - all hooks already configured'));
     }
   }
 
   async removeHooks(): Promise<void> {
-    // Create backup before modifying settings
-    const backupPath = await this.backupSettings();
-    if (backupPath) {
-      console.log(chalk.gray(`📁 Created backup: ${basename(backupPath)}`));
-    }
-
     const settings = await this.loadSettings();
 
     if (!settings.hooks) {
@@ -298,9 +158,6 @@ export class SettingsManager {
     } else {
       console.log(chalk.yellow('No STTS hooks found to remove'));
     }
-
-    // Clean up any provider-created backups from the original location
-    await this.cleanupProviderBackups();
   }
 
   async purgeSttsHooks(): Promise<void> {
@@ -339,46 +196,33 @@ export class SettingsManager {
             return true;
           }
 
-          // It's an STTS hook, validate it
-          const commandKey = hook.command.trim();
+          // It's an STTS hook - check if it's valid and not duplicate
+          const isValidType = validHookTypes.some((type) => hook.command.includes(type));
+          if (!isValidType) {
+            console.log(chalk.yellow(`⚠ Removing invalid STTS hook: ${hook.command}`));
+            purged = true;
+            return false;
+          }
 
           // Check for duplicates
-          if (seenCommands.has(commandKey)) {
-            console.log(
-              chalk.yellow(`⚠ Removing duplicate STTS hook in ${hookType}: ${commandKey}`)
-            );
+          if (seenCommands.has(hook.command)) {
+            console.log(chalk.yellow(`⚠ Removing duplicate STTS hook: ${hook.command}`));
             purged = true;
             return false;
           }
 
-          // Check if it's a valid STTS hook command
-          const isValid = validHookTypes.some((type) => commandKey.includes(`hook ${type}`));
-
-          if (!isValid) {
-            console.log(
-              chalk.yellow(`⚠ Removing invalid STTS hook in ${hookType}: ${commandKey}`)
-            );
-            purged = true;
-            return false;
-          }
-
-          seenCommands.add(commandKey);
+          seenCommands.add(hook.command);
           return true;
         });
 
-        // Only keep the hook matcher if it has valid hooks
         if (validHooks.length > 0) {
           uniqueHooks.push({
             ...hookMatcher,
             hooks: validHooks,
           });
-        } else if (hookMatcher.hooks.some((h) => !sttsHookPattern.test(h.command))) {
-          // Keep non-STTS hooks even if all STTS hooks were removed
-          uniqueHooks.push(hookMatcher);
         }
       }
 
-      // Update or remove the hook type
       if (uniqueHooks.length > 0) {
         settings.hooks[hookType as keyof typeof settings.hooks] = uniqueHooks;
       } else {
@@ -394,59 +238,97 @@ export class SettingsManager {
 
     if (purged) {
       await this.saveSettings(settings);
-      console.log(chalk.green('✓ Purged invalid/duplicate STTS hooks'));
+      console.log(chalk.green('✓ Cleaned up invalid/duplicate STTS hooks'));
     }
   }
 
-  async generateWrapperScript(isUser: boolean): Promise<string> {
+  generateWrapperScript(isGlobal: boolean): string {
     const isWindows = platform() === 'win32';
 
-    // Try multiple potential paths for template files
-    const templateFileName = isWindows ? 'stts-wrapper.bat' : 'stts-wrapper.sh';
-    const possiblePaths = [
-      join(__dirname, '..', '..', 'scripts', 'templates', templateFileName),
-      join(process.cwd(), 'scripts', 'templates', templateFileName),
-      join(__dirname, '..', '..', '..', 'scripts', 'templates', templateFileName),
-    ];
-
-    for (const templatePath of possiblePaths) {
-      try {
-        let content = await fs.readFile(templatePath, 'utf8');
-
-        // Set fallback mode based on context
-        const fallbackMode = isUser ? 'user' : 'workspace';
-
-        // For scripts that need to set environment variables
-        if (isWindows) {
-          // Replace @echo off line with our version
-          content = content.replace(
-            '@echo off',
-            `@echo off\nset STTS_FALLBACK_MODE=${fallbackMode}`
-          );
-        } else {
-          // Replace shebang line with portable shell version
-          content = content.replace(
-            '#!/bin/bash',
-            `#!/bin/sh\nexport STTS_FALLBACK_MODE="${fallbackMode}"`
-          );
-        }
-
-        return content;
-      } catch (error) {
-        // Try next path
-        continue;
-      }
+    if (isWindows) {
+      return this.generateWindowsWrapper(isGlobal);
+    } else {
+      return this.generateUnixWrapper(isGlobal);
     }
-
-    // Template files not found - this is an error
-    throw new Error(`Template files not found. Expected ${templateFileName} in scripts/templates/`);
   }
 
-  // Removed: Global wrappers are no longer supported
-  // Use --workspace or --local flags instead
+  private generateUnixWrapper(isGlobal: boolean): string {
+    const fallbackMode = isGlobal ? 'user' : 'workspace';
+
+    // Try to read from template
+    try {
+      const templatePath = join(__dirname, '..', '..', 'templates', 'wrappers', 'unix', 'stts');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      const template = require('fs').readFileSync(templatePath, 'utf8') as string;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      return template.replace('${FALLBACK_MODE}', fallbackMode);
+    } catch {
+      // Fallback to inline template
+      return `#!/bin/sh
+# STTS wrapper script for Unix systems
+# Auto-generated - do not edit manually
+
+# Check if stts command is available
+if command -v stts >/dev/null 2>&1; then
+    # Pass all arguments to stts
+    exec stts "$@"
+else
+    # Fallback behavior - configurable at runtime
+    case "\${STTS_FALLBACK_MODE:-${fallbackMode}}" in
+        "user")
+            echo "Warning: stts command not found. Please install stts first." >&2
+            exit 1
+            ;;
+        "workspace")
+            # stts not available, silently continue
+            exit 0
+            ;;
+        *)
+            echo "Error: Unknown fallback mode: \${STTS_FALLBACK_MODE}" >&2
+            exit 1
+            ;;
+    esac
+fi`;
+    }
+  }
+
+  private generateWindowsWrapper(_isGlobal: boolean): string {
+    // Try to read from template
+    try {
+      const templatePath = join(
+        __dirname,
+        '..',
+        '..',
+        'templates',
+        'wrappers',
+        'windows',
+        'stts.bat'
+      );
+      // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      const template = require('fs').readFileSync(templatePath, 'utf8') as string;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return template;
+    } catch {
+      // Fallback to inline template
+      return `@echo off
+REM STTS wrapper script for Windows
+REM Auto-generated - do not edit manually
+
+REM Check if stts command is available
+where stts >nul 2>&1
+if %ERRORLEVEL% EQU 0 (
+    REM Pass all arguments to stts
+    stts %*
+) else (
+    REM stts not available, show warning
+    echo Warning: stts command not found. Please install stts first. >&2
+    exit /b 1
+)`;
+    }
+  }
 
   async installLocalWrappers(): Promise<void> {
-    const scriptContent = await this.generateWrapperScript(false);
+    const scriptContent = this.generateWrapperScript(false);
     const isWindows = platform() === 'win32';
     const scriptName = isWindows ? 'stts.bat' : 'stts';
 
@@ -469,14 +351,9 @@ export class SettingsManager {
     console.log(chalk.green(`✓ Installed workspace wrapper: ${scriptPath}`));
   }
 
-  // Removed: Global wrappers are no longer supported
-  // Use --workspace or --local flags instead
-
   async removeLocalWrappers(): Promise<void> {
     const isWindows = platform() === 'win32';
     const scriptName = isWindows ? 'stts.bat' : 'stts';
-
-    // Remove from PROJECT's .claude/hooks directory
     const projectClaudeDir = join(process.cwd(), CLAUDE_DIR);
     const localHooksDir = join(projectClaudeDir, 'hooks');
     const scriptPath = join(localHooksDir, scriptName);
@@ -488,4 +365,10 @@ export class SettingsManager {
       // Script doesn't exist, ignore
     }
   }
+
+  // Removed: Global wrappers are no longer supported
+  // Use --workspace or --local flags instead
+
+  // Removed: Global wrappers are no longer supported
+  // Use --workspace or --local flags instead
 }

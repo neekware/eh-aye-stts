@@ -3,9 +3,6 @@ import { BaseHook } from './base';
 import { PostToolUseEvent } from '../types';
 import { detectEmotion, Emotion } from '../../../tts/index';
 import { announceIfEnabled } from '../../../tts/announce';
-import { ContextBuilder, HookContext } from './context-builder';
-import { LLMFeedbackGenerator } from '../../../services/llm-feedback';
-import { getConfigValue } from '../../../utils/config';
 
 export class PostToolUseHook extends BaseHook {
   constructor() {
@@ -43,15 +40,8 @@ export class PostToolUseHook extends BaseHook {
       return;
     }
 
-    // Build context for LLM
-    const context = await ContextBuilder.buildContext({
-      type: 'post-tool-use',
-      timestamp: new Date().toISOString(),
-      data: event as unknown as Record<string, unknown>,
-    });
-
-    // Generate message using LLM or fallback
-    const message = await this.generateMessage(context, event);
+    // Generate message
+    const message = this.getStaticMessage(event);
     const emotion = this.determineEmotion(event);
 
     // Announce the message
@@ -73,19 +63,6 @@ export class PostToolUseHook extends BaseHook {
     if (importantTools.some((tool) => event.tool.toLowerCase().includes(tool))) return true;
 
     return false;
-  }
-
-  private async generateMessage(context: HookContext, event: PostToolUseEvent): Promise<string> {
-    const llmEnabled = getConfigValue('llmEnabled', true);
-
-    if (!llmEnabled) {
-      return this.getStaticMessage(event);
-    }
-
-    return await LLMFeedbackGenerator.generateFeedback(context, {
-      maxWords: getConfigValue('llmMaxWords', 10),
-      style: getConfigValue('llmStyle', 'casual') as 'casual' | 'professional' | 'encouraging',
-    });
   }
 
   private getStaticMessage(event: PostToolUseEvent): string {

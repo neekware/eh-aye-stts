@@ -2,7 +2,6 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { join } from 'path';
 import { CLAUDE_DIR, CLAUDE_SETTINGS_FILE } from '../../defaults';
-import { ToolDetector } from '../../installer/detector';
 import { SettingsManager } from '../../installer/settings-manager';
 
 export function disableCommand(): Command {
@@ -29,17 +28,6 @@ Supported tools: claude-code, claude`
         console.error(chalk.red(`Error: Unsupported tool '${tool}'`));
         console.error(chalk.yellow(`\nSupported tools: ${supportedTools.join(', ')}`));
         console.error(chalk.gray(`\nUse 'stts disable --help' for more information`));
-        process.exit(1);
-      }
-
-      const detector = new ToolDetector();
-      const settingsPath = await detector.getSettingsPath(tool);
-
-      if (!settingsPath) {
-        console.error(chalk.red(`Could not find settings for '${tool}'`));
-        console.error(
-          chalk.yellow(`\nMake sure ${tool} is installed and has been run at least once.`)
-        );
         process.exit(1);
       }
 

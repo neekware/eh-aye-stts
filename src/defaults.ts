@@ -12,16 +12,12 @@ export const SETTINGS_PATH = join(STTS_DIR, 'settings.json');
 // Default configuration
 export const DEFAULT_CONFIG = {
   audioEnabled: true,
-  enableDangerousCommandBlocking: false,
-  customDangerousCommands: [],
   debug: false,
 };
 
 // Environment variable names
 export const ENV_VARS = {
-  DANGEROUS_COMMAND_BLOCKING: 'STTS_ENABLE_DANGEROUS_COMMAND_BLOCKING',
   AUDIO_ENABLED: 'STTS_AUDIO_ENABLED',
-  CUSTOM_DANGEROUS_COMMANDS: 'STTS_CUSTOM_DANGEROUS_COMMANDS',
   DEBUG: 'STTS_DEBUG',
 };
 

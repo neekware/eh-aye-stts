@@ -1,8 +1,6 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { HookEvent } from '../../../types';
-import { PostToolUseEvent } from '../types';
-import { SessionSummary } from './context-builder';
 import { SessionManager } from '../../../utils/session-manager';
 
 export class LogReader {
@@ -55,47 +53,6 @@ export class LogReader {
     return allEvents
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, count);
-  }
-
-  static async getSessionSummary(): Promise<SessionSummary> {
-    const events = await this.loadRecentEvents(100);
-
-    // Calculate metrics
-    const postToolEvents = events
-      .filter((e) => e.type === 'post-tool-use')
-      .map((e) => e.data as unknown as PostToolUseEvent);
-
-    const totalCommands = postToolEvents.length;
-    const errors = postToolEvents.filter((e) => e.exitCode !== 0).length;
-    const successes = postToolEvents.filter((e) => e.exitCode === 0).length;
-
-    // Calculate duration (from first to last event)
-    let duration = 0;
-    if (events.length > 1) {
-      const firstTime = new Date(events[events.length - 1].timestamp).getTime();
-      const lastTime = new Date(events[0].timestamp).getTime();
-      duration = lastTime - firstTime;
-    }
-
-    // Get most used tools
-    const toolCounts = new Map<string, number>();
-    postToolEvents.forEach((event) => {
-      const tool = event.tool;
-      toolCounts.set(tool, (toolCounts.get(tool) || 0) + 1);
-    });
-
-    const mostUsedTools = Array.from(toolCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([tool]) => tool);
-
-    return {
-      totalCommands,
-      errors,
-      successes,
-      duration,
-      mostUsedTools,
-    };
   }
 
   static async clearOldLogs(daysToKeep = 7): Promise<void> {

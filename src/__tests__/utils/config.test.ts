@@ -1,33 +1,34 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, mkdirSync, writeFileSync, renameSync } from 'fs';
+import { loadSTTSConfig, getConfigValue, mergeWithDefaults } from '../../utils/config';
 import { join } from 'path';
-import { homedir } from 'os';
-import { loadSTTSConfig, getConfigValue, getEnvWithFallback } from '../../utils/config';
 
 // Mock fs module
 vi.mock('fs', () => ({
-  readFileSync: vi.fn(),
   existsSync: vi.fn(),
+  readFileSync: vi.fn(),
   mkdirSync: vi.fn(),
   writeFileSync: vi.fn(),
   renameSync: vi.fn(),
 }));
 
-// Mock os module
-vi.mock('os', () => ({
-  homedir: vi.fn(() => '/home/user'),
+// Mock default config
+vi.mock('../../defaults', () => ({
+  STTS_DIR: '/home/user/.stts',
+  SETTINGS_PATH: '/home/user/.stts/settings.json',
+  DEFAULT_CONFIG: {
+    audioEnabled: true,
+    debug: false,
+  },
+  ENV_VARS: {
+    AUDIO_ENABLED: 'STTS_AUDIO_ENABLED',
+    DEBUG: 'STTS_DEBUG',
+  },
 }));
 
 describe('Config', () => {
-  const originalEnv = process.env;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env = { ...originalEnv };
-  });
-
-  afterEach(() => {
-    process.env = originalEnv;
   });
 
   describe('loadSTTSConfig', () => {
@@ -39,8 +40,6 @@ describe('Config', () => {
 
       expect(config).toEqual({
         audioEnabled: true,
-        enableDangerousCommandBlocking: false,
-        customDangerousCommands: [],
         debug: false,
       });
     });
@@ -54,172 +53,135 @@ describe('Config', () => {
       vi.mocked(readFileSync).mockReturnValue(
         JSON.stringify({
           audioEnabled: false,
-          enableDangerousCommandBlocking: true,
         })
       );
+      vi.mocked(mkdirSync).mockImplementation(() => undefined);
 
-      const config = loadSTTSConfig();
-
-      expect(config).toEqual({
+      expect(loadSTTSConfig()).toEqual({
         audioEnabled: false,
-        enableDangerousCommandBlocking: true,
-        customDangerousCommands: [],
         debug: false,
       });
     });
 
     it('should load project config from current directory', () => {
-      const projectPath = join(process.cwd(), '.stts.json');
       vi.mocked(existsSync).mockImplementation((path) => {
-        return path === projectPath;
+        const pathStr = path as string;
+        if (pathStr === '/home/user/.stts') return true;
+        if (pathStr.endsWith('.stts.json') && pathStr.includes(process.cwd())) return true;
+        return false;
       });
-      vi.mocked(readFileSync).mockReturnValue(
-        JSON.stringify({
-          audioEnabled: false,
-          customDangerousCommands: ['custom-cmd'],
-        })
-      );
+      vi.mocked(readFileSync).mockImplementation((path) => {
+        const pathStr = path as string;
+        if (pathStr.endsWith('.stts.json')) {
+          return JSON.stringify({ audioEnabled: false });
+        }
+        return '{}';
+      });
+      vi.mocked(mkdirSync).mockImplementation(() => undefined);
 
-      const config = loadSTTSConfig();
-
-      expect(config).toEqual({
+      expect(loadSTTSConfig()).toEqual({
         audioEnabled: false,
-        enableDangerousCommandBlocking: false,
-        customDangerousCommands: ['custom-cmd'],
         debug: false,
       });
     });
 
     it('should merge global and project configs with project overriding global', () => {
-      const globalPath = '/home/user/.stts/settings.json';
-      const projectPath = join(process.cwd(), '.stts.json');
-
       vi.mocked(existsSync).mockImplementation((path) => {
-        return path === globalPath || path === projectPath;
+        const pathStr = path as string;
+        if (pathStr === '/home/user/.stts') return true;
+        if (pathStr === '/home/user/.stts/settings.json') return true;
+        if (pathStr.endsWith('.stts.json') && pathStr.includes(process.cwd())) return true;
+        return false;
       });
-
       vi.mocked(readFileSync).mockImplementation((path) => {
-        if (path === globalPath) {
-          return JSON.stringify({
-            audioEnabled: false,
-            enableDangerousCommandBlocking: true,
-            customDangerousCommands: ['global-cmd1', 'global-cmd2'],
-          });
+        const pathStr = path as string;
+        if (pathStr === '/home/user/.stts/settings.json') {
+          return JSON.stringify({ audioEnabled: false, debug: true });
         }
-        if (path === projectPath) {
-          return JSON.stringify({
-            audioEnabled: true,
-            customDangerousCommands: ['project-cmd'],
-          });
+        if (pathStr.endsWith('.stts.json')) {
+          return JSON.stringify({ audioEnabled: true });
         }
-        return '';
+        return '{}';
       });
+      vi.mocked(mkdirSync).mockImplementation(() => undefined);
 
-      const config = loadSTTSConfig();
-
-      expect(config).toEqual({
-        audioEnabled: true, // Project overrides global
-        enableDangerousCommandBlocking: false, // From defaults (project doesn't specify)
-        customDangerousCommands: ['project-cmd'], // Project overrides global
-        debug: false,
+      expect(loadSTTSConfig()).toEqual({
+        audioEnabled: true,
+        debug: false, // Project config doesn't specify debug, so it uses default
       });
     });
 
     it('should handle parse errors gracefully', () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(existsSync).mockImplementation((path) => {
+        if (path === '/home/user/.stts') return true;
+        if (path === '/home/user/.stts/settings.json') return true;
+        return false;
+      });
       vi.mocked(readFileSync).mockReturnValue('invalid json');
+      vi.mocked(mkdirSync).mockImplementation(() => undefined);
 
       const config = loadSTTSConfig();
 
       expect(config).toEqual({
         audioEnabled: true,
-        enableDangerousCommandBlocking: false,
-        customDangerousCommands: [],
         debug: false,
       });
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
     });
 
     it('should override with environment variables', () => {
-      vi.mocked(existsSync).mockImplementation((path) => {
-        return path === '/home/user/.stts/settings.json';
-      });
-      vi.mocked(readFileSync).mockReturnValue(
-        JSON.stringify({
-          audioEnabled: true,
-          enableDangerousCommandBlocking: false,
-        })
-      );
+      vi.mocked(existsSync).mockReturnValue(false);
+      vi.mocked(mkdirSync).mockImplementation(() => undefined);
 
       process.env.STTS_AUDIO_ENABLED = 'false';
-      process.env.STTS_ENABLE_DANGEROUS_COMMAND_BLOCKING = 'true';
-      process.env.STTS_CUSTOM_DANGEROUS_COMMANDS = 'env-cmd1,env-cmd2';
+      process.env.STTS_DEBUG = 'true';
 
-      const config = loadSTTSConfig();
-
-      expect(config).toEqual({
+      expect(loadSTTSConfig()).toEqual({
         audioEnabled: false,
-        enableDangerousCommandBlocking: true,
-        customDangerousCommands: ['env-cmd1', 'env-cmd2'],
-        debug: false,
+        debug: true,
       });
-    });
 
-    it('should handle environment variables with spaces in command list', () => {
-      vi.mocked(existsSync).mockReturnValue(false);
-      process.env.STTS_CUSTOM_DANGEROUS_COMMANDS = ' cmd1 , cmd2 , cmd3 ';
-
-      const config = loadSTTSConfig();
-
-      expect(config.customDangerousCommands).toEqual(['cmd1', 'cmd2', 'cmd3']);
+      // Clean up
+      delete process.env.STTS_AUDIO_ENABLED;
+      delete process.env.STTS_DEBUG;
     });
   });
 
   describe('getConfigValue', () => {
-    it('should return specific config value', () => {
-      vi.mocked(existsSync).mockImplementation((path) => {
-        if (path === '/home/user/.stts') return true;
-        return false;
-      });
-      const value = getConfigValue('audioEnabled');
-      expect(value).toBe(true);
+    it('should return config value', () => {
+      vi.mocked(existsSync).mockReturnValue(false);
+      vi.mocked(mkdirSync).mockImplementation(() => undefined);
+
+      expect(getConfigValue('audioEnabled')).toBe(true);
+      expect(getConfigValue('debug')).toBe(false);
     });
 
-    it('should return provided default value when config value is undefined', () => {
-      vi.mocked(existsSync).mockImplementation((path) => {
-        if (path === '/home/user/.stts') return true;
-        return false;
-      });
-      const value = getConfigValue('audioEnabled', false);
-      expect(value).toBe(true); // Still returns config value, not the provided default
+    it('should return default value when config value is undefined', () => {
+      vi.mocked(existsSync).mockReturnValue(false);
+      vi.mocked(mkdirSync).mockImplementation(() => undefined);
+
+      expect(getConfigValue('nonExistent' as any, 'default')).toBe('default');
     });
   });
 
-  describe('getEnvWithFallback', () => {
-    it('should return primary env value when set', () => {
-      process.env.STTS_OPENAI_API_KEY = 'stts-key';
-      process.env.OPENAI_API_KEY = 'fallback-key';
+  describe('mergeWithDefaults', () => {
+    it('should merge existing config with defaults', () => {
+      const existingConfig = { audioEnabled: false };
+      const merged = mergeWithDefaults(existingConfig);
 
-      const value = getEnvWithFallback('STTS_OPENAI_API_KEY', 'OPENAI_API_KEY');
-      expect(value).toBe('stts-key');
+      expect(merged).toEqual({
+        audioEnabled: false,
+        debug: false,
+      });
     });
 
-    it('should return fallback env value when primary is not set', () => {
-      delete process.env.STTS_OPENAI_API_KEY;
-      process.env.OPENAI_API_KEY = 'fallback-key';
+    it('should add missing defaults', () => {
+      const existingConfig = {};
+      const merged = mergeWithDefaults(existingConfig);
 
-      const value = getEnvWithFallback('STTS_OPENAI_API_KEY', 'OPENAI_API_KEY');
-      expect(value).toBe('fallback-key');
-    });
-
-    it('should return undefined when neither env var is set', () => {
-      delete process.env.STTS_OPENAI_API_KEY;
-      delete process.env.OPENAI_API_KEY;
-
-      const value = getEnvWithFallback('STTS_OPENAI_API_KEY', 'OPENAI_API_KEY');
-      expect(value).toBeUndefined();
+      expect(merged).toEqual({
+        audioEnabled: true,
+        debug: false,
+      });
     });
   });
 });

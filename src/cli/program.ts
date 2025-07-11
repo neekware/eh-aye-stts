@@ -1,15 +1,10 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import { VERSION } from '../utils/version';
-import { detectCommand } from './commands/detect';
 import { enableCommand } from './commands/enable';
 import { disableCommand } from './commands/disable';
-import { statusCommand } from './commands/status';
-import { configCommand } from './commands/config';
 import { testCommand } from './commands/test';
-import { restoreCommand } from './commands/restore';
 import { hookCommand } from './commands/hook';
-import { llmCommand } from './commands/llm';
 
 export function createProgram(): Command {
   const program = new Command();
@@ -22,24 +17,19 @@ export function createProgram(): Command {
       'after',
       `
 Examples:
-  stts enable claude-code     Enable TTS hooks for Claude Code
-  stts disable claude-code    Disable TTS hooks for Claude Code
-  stts status                 Show current status
-  stts test                   Test TTS functionality
+  stts enable claude-code --workspace    Enable TTS hooks for Claude Code
+  stts disable claude-code --workspace   Disable TTS hooks for Claude Code
+  stts test                              Test TTS functionality
+  stts hook <type>                       Run specific hook manually
 
 Use 'stts <command> --help' for detailed command information.`
     );
 
   // Add commands
-  program.addCommand(detectCommand());
   program.addCommand(enableCommand());
   program.addCommand(disableCommand());
-  program.addCommand(statusCommand());
-  program.addCommand(configCommand());
   program.addCommand(testCommand());
-  program.addCommand(restoreCommand());
   program.addCommand(hookCommand());
-  program.addCommand(llmCommand());
 
   // Handle uncaught errors
   process.on('unhandledRejection', (error) => {
