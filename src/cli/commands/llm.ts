@@ -264,29 +264,95 @@ For JSON context testing:
     .command('tail')
     .description('Monitor cache activity in real-time')
     .option('-n, --lines <number>', 'Number of recent entries to show initially', '10')
-    .action((options: { lines: string }) => {
+    .action(async (options: { lines: string }) => {
+      const { readFileSync, existsSync, watchFile } = await import('fs');
+      const { CACHE_LOG_FILE } = await import('../../defaults');
       const lines = parseInt(options.lines, 10);
 
       console.log(chalk.blue('📡 Monitoring cache activity (Ctrl+C to stop)\n'));
 
-      // Show recent entries
-      const entries = MessageCache.getRecentEntries(lines);
-      entries.forEach((entry) => {
-        console.log(
-          chalk.gray(`[${new Date(entry.timestamp).toLocaleTimeString()}]`),
-          chalk.cyan(entry.key)
-        );
-        console.log(chalk.green(`  → ${entry.message}`));
-      });
+      // Show recent entries from cache log if it exists
+      if (existsSync(CACHE_LOG_FILE)) {
+        try {
+          const content = readFileSync(CACHE_LOG_FILE, 'utf-8');
+          const logLines = content
+            .trim()
+            .split('\n')
+            .filter((line) => line);
+          const recentLines = logLines.slice(-lines);
 
-      // Set up monitoring
-      MessageCache.onCacheUpdate((event) => {
-        const time = new Date().toLocaleTimeString();
+          recentLines.forEach((line) => {
+            try {
+              const event = JSON.parse(line);
+              displayCacheEvent(event);
+            } catch (e) {
+              // Skip invalid lines
+            }
+          });
+
+          if (recentLines.length > 0) {
+            console.log(chalk.gray('\n--- Live monitoring started ---\n'));
+          }
+        } catch (error) {
+          console.log(chalk.yellow('No previous cache activity found.\n'));
+        }
+      } else {
+        console.log(chalk.yellow('No cache log found. Waiting for cache activity...\n'));
+      }
+
+      // Monitor cache log file for new entries
+      let fileSize = existsSync(CACHE_LOG_FILE) ? readFileSync(CACHE_LOG_FILE).length : 0;
+
+      const checkForNewEvents = () => {
+        if (!existsSync(CACHE_LOG_FILE)) return;
+
+        const stats = readFileSync(CACHE_LOG_FILE);
+        const newSize = stats.length;
+
+        if (newSize > fileSize) {
+          // Read new content
+          const newContent = stats.toString('utf-8').slice(fileSize);
+          fileSize = newSize;
+
+          // Process new lines
+          const newLines = newContent
+            .trim()
+            .split('\n')
+            .filter((line) => line);
+          newLines.forEach((line) => {
+            try {
+              const event = JSON.parse(line);
+              displayCacheEvent(event);
+            } catch (e) {
+              // Skip invalid lines
+            }
+          });
+        }
+      };
+
+      // Watch for file changes
+      if (existsSync(CACHE_LOG_FILE)) {
+        watchFile(CACHE_LOG_FILE, { interval: 100 }, checkForNewEvents);
+      } else {
+        // If file doesn't exist yet, check periodically until it does
+        const checkInterval = setInterval(() => {
+          if (existsSync(CACHE_LOG_FILE)) {
+            clearInterval(checkInterval);
+            watchFile(CACHE_LOG_FILE, { interval: 100 }, checkForNewEvents);
+          }
+        }, 1000);
+      }
+
+      // Helper function to display cache events
+      function displayCacheEvent(event: any) {
+        const time = new Date(event.timestamp).toLocaleTimeString();
 
         switch (event.type) {
           case 'set':
             console.log(chalk.gray(`[${time}]`), chalk.cyan(event.key), chalk.green('CACHED'));
-            console.log(chalk.green(`  → ${event.message}`));
+            if (event.message) {
+              console.log(chalk.green(`  → ${event.message}`));
+            }
             break;
           case 'hit':
             console.log(chalk.gray(`[${time}]`), chalk.cyan(event.key), chalk.yellow('HIT'));
@@ -298,7 +364,7 @@ For JSON context testing:
             console.log(chalk.gray(`[${time}]`), chalk.cyan(event.key), chalk.red('EVICTED'));
             break;
         }
-      });
+      }
 
       // Keep process running
       process.stdin.resume();

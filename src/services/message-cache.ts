@@ -1,5 +1,7 @@
 import { HookContext } from '../plugins/claude-code/hooks/context-builder';
 import { getConfigValue } from '../utils/config';
+import { existsSync, mkdirSync, appendFileSync } from 'fs';
+import { CACHE_DIR, CACHE_LOG_FILE } from '../defaults';
 
 interface CacheEntry {
   message: string;
@@ -211,6 +213,10 @@ export class MessageCache {
   }
 
   private static notifyListeners(event: CacheEvent): void {
+    // Write to cache log file for cross-process monitoring
+    this.writeToCacheLog(event);
+
+    // Notify in-memory listeners
     this.listeners.forEach((listener) => {
       try {
         listener(event);
@@ -218,6 +224,30 @@ export class MessageCache {
         console.error('Cache listener error:', error);
       }
     });
+  }
+
+  private static writeToCacheLog(event: CacheEvent): void {
+    try {
+      // Ensure cache directory exists
+      if (!existsSync(CACHE_DIR)) {
+        mkdirSync(CACHE_DIR, { recursive: true });
+      }
+
+      // Append event to cache log
+      const logEntry =
+        JSON.stringify({
+          ...event,
+          pid: process.pid,
+          timestamp: new Date(event.timestamp).toISOString(),
+        }) + '\n';
+
+      appendFileSync(CACHE_LOG_FILE, logEntry);
+    } catch (error) {
+      // Silently fail to avoid breaking cache operations
+      if (process.env.DEBUG) {
+        console.error('[Cache] Failed to write to cache log:', error);
+      }
+    }
   }
 
   static setLastPrompt(prompt: string): void {

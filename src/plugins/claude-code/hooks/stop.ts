@@ -93,8 +93,22 @@ export class StopHook extends BaseHook {
       return this.getStaticMessage();
     }
 
-    // Use special session summary method if we have session data
+    // If we have an assistant message (from transcript), prioritize it for LLM processing
+    if (context.command && context.command.length > 50) {
+      debugLogger.info(
+        'stop',
+        'using_assistant_message_for_llm',
+        'Passing assistant message to LLM for shortening'
+      );
+      return await LLMFeedbackGenerator.generateFeedback(context, {
+        maxWords: getConfigValue('llmMaxWords', 10),
+        style: getConfigValue('llmStyle', 'casual') as 'casual' | 'professional' | 'encouraging',
+      });
+    }
+
+    // Otherwise, use session summary if we have session data
     if (context.sessionDuration || context.errorCount !== undefined) {
+      debugLogger.info('stop', 'using_session_summary', 'Using session summary for feedback');
       return await LLMFeedbackGenerator.generateSessionSummary(context);
     }
 

@@ -93,6 +93,14 @@ export class LLMFeedbackGenerator {
     }
 
     const prompt = this.buildPrompt(context, options);
+
+    debugLogger.info('LLMFeedbackGenerator', 'prompt_built', 'Prompt built for LLM', {
+      contextType: context.eventType,
+      hasCommand: !!context.command,
+      commandLength: context.command?.length || 0,
+      promptLength: prompt.length,
+    });
+
     if (process.env.DEBUG) {
       console.debug('[LLM] Generated prompt:');
       console.debug('---PROMPT START---');
@@ -104,12 +112,23 @@ export class LLMFeedbackGenerator {
     MessageCache.setLastPrompt(prompt);
 
     try {
+      debugLogger.info('LLMFeedbackGenerator', 'calling_claude', 'Calling Claude CLI');
       const message = await this.callClaude(prompt);
+
+      debugLogger.info('LLMFeedbackGenerator', 'claude_response', 'Received response from Claude', {
+        messageLength: message?.length || 0,
+        message: message,
+      });
 
       // Cache the result with prompt
       if (cacheEnabled && message) {
         const cacheKey = MessageCache.getCacheKey(context);
         MessageCache.set(cacheKey, message, prompt);
+        debugLogger.info(
+          'LLMFeedbackGenerator',
+          'cached_response',
+          `Cached message with key: ${cacheKey}`
+        );
         if (process.env.DEBUG) {
           console.debug('[LLM] Cached message with key:', cacheKey);
         }
@@ -117,6 +136,7 @@ export class LLMFeedbackGenerator {
 
       return message || this.getFallbackMessage(context);
     } catch (error) {
+      debugLogger.error('LLMFeedbackGenerator', 'claude_error', 'Claude CLI failed', { error });
       if (process.env.DEBUG) {
         console.debug('[LLM] Claude CLI failed:', error);
       }
@@ -133,6 +153,15 @@ export class LLMFeedbackGenerator {
 
     if (context.eventType === 'stop' && context.command && context.command.length > 50) {
       // This is likely an assistant message from the transcript
+      debugLogger.info(
+        'LLMFeedbackGenerator',
+        'using_assistant_message_prompt',
+        'Using special prompt for assistant message',
+        {
+          messageLength: context.command.length,
+          preview: context.command.substring(0, 100) + '...',
+        }
+      );
       prompt = `Transform this assistant message into a ${maxWords} word or less ${style} conversational summary.
 
 Assistant's full message: "${context.command}"
