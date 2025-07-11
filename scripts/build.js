@@ -116,6 +116,12 @@ async function verifyBuild() {
     throw new Error('CLI entry point missing shebang');
   }
 
+  // Set execute permissions on CLI file (Unix-like systems)
+  if (process.platform !== 'win32') {
+    await fs.chmod(cliPath, 0o755);
+    log('✅ Set execute permissions on CLI file', colors.green);
+  }
+
   log('✅ Build verification passed', colors.green);
 }
 

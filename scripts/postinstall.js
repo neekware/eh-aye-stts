@@ -28,6 +28,24 @@ if (isDevelopment) {
 
 console.log('\n🚀 Setting up STTS (Smart Text-to-Speech)...\n');
 
+async function fixCliPermissions() {
+  // Fix execute permissions on the CLI file
+  try {
+    // Find the CLI file relative to this script
+    const cliPath = join(__dirname, '..', 'dist', 'src', 'cli', 'index.js');
+    await fs.access(cliPath, fs.constants.F_OK);
+
+    // Add execute permissions (Unix-like systems only)
+    if (process.platform !== 'win32') {
+      await fs.chmod(cliPath, 0o755);
+      console.log('✅ Fixed CLI permissions');
+    }
+  } catch (error) {
+    // Ignore errors - file might not exist in development
+    console.log('⚠️  Could not fix CLI permissions (this is normal during development)');
+  }
+}
+
 async function runCommand(command, args = []) {
   return new Promise((resolve, reject) => {
     const isWindows = process.platform === 'win32';
@@ -100,6 +118,9 @@ async function enableTool(tool) {
 }
 
 async function main() {
+  // Fix CLI permissions first (npm doesn't preserve them)
+  await fixCliPermissions();
+
   // First, install the audio command
   await installAudioCommand();
 
