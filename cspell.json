@@ -195,6 +195,8 @@
     "devDeps",
     "repo",
     "fmt",
+    "feat",
+    "rel",
 
     // Platform terms
     "darwin",
