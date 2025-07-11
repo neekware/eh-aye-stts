@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import { VERSION } from '../utils/version';
 import { enableCommand } from './commands/enable';
 import { disableCommand } from './commands/disable';
+import { statusCommand } from './commands/status';
 import { testCommand } from './commands/test';
 import { hookCommand } from './commands/hook';
 
@@ -17,8 +18,9 @@ export function createProgram(): Command {
       'after',
       `
 Examples:
-  stts enable claude-code --workspace    Enable TTS hooks for Claude Code
-  stts disable claude-code --workspace   Disable TTS hooks for Claude Code
+  stts enable claude-code                Enable TTS hooks for Claude Code
+  stts disable claude-code               Disable TTS hooks for Claude Code
+  stts status claude-code                Check TTS status for Claude Code
   stts test                              Test TTS functionality
   stts hook <type>                       Run specific hook manually
 
@@ -28,6 +30,7 @@ Use 'stts <command> --help' for detailed command information.`
   // Add commands
   program.addCommand(enableCommand());
   program.addCommand(disableCommand());
+  program.addCommand(statusCommand());
   program.addCommand(testCommand());
   program.addCommand(hookCommand());
 
