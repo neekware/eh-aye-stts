@@ -9,6 +9,7 @@ import { configCommand } from './commands/config';
 import { testCommand } from './commands/test';
 import { restoreCommand } from './commands/restore';
 import { hookCommand } from './commands/hook';
+import { llmCommand } from './commands/llm';
 
 export function createProgram(): Command {
   const program = new Command();
@@ -38,6 +39,7 @@ Use 'stts <command> --help' for detailed command information.`
   program.addCommand(testCommand());
   program.addCommand(restoreCommand());
   program.addCommand(hookCommand());
+  program.addCommand(llmCommand());
 
   // Handle uncaught errors
   process.on('unhandledRejection', (error) => {

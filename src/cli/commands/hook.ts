@@ -7,15 +7,37 @@ import { readFileSync, writeFileSync } from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+interface HookLogEntry {
+  timestamp: string;
+  hook: string;
+  type: string;
+  args: string[];
+}
+
 export function hookCommand(): Command {
   return new Command('hook')
-    .description('Execute TTS hooks (internal use)')
+    .description('Execute TTS hooks (internal use only - called by Claude)')
     .argument('<type>', 'Hook type to execute')
+    .addHelpText(
+      'after',
+      `
+⚠️  This command is for internal use only and is called automatically by Claude
+when TTS hooks are enabled. You should not need to run this command directly.
+
+Supported hook types:
+  - pre-tool-use     Called before Claude executes a tool
+  - post-tool-use    Called after Claude executes a tool
+  - notification     Called for Claude notifications
+  - stop             Called when Claude session ends
+  - subagent-stop    Called when a Claude subagent completes
+
+Debug logs are written to ./hook-debug.json for troubleshooting.`
+    )
     .action((type: string) => {
       // Log hook command execution for debugging
       const debugLog = join(dirname(__dirname), '..', '..', '..', 'hook-debug.json');
       const timestamp = new Date().toISOString();
-      const logEntry = {
+      const logEntry: HookLogEntry = {
         timestamp,
         hook: 'hook-command',
         type,
@@ -24,10 +46,10 @@ export function hookCommand(): Command {
 
       try {
         // Read existing logs or create new array
-        let logs: any[] = [];
+        let logs: HookLogEntry[] = [];
         try {
           const content = readFileSync(debugLog, 'utf-8');
-          logs = JSON.parse(content);
+          logs = JSON.parse(content) as HookLogEntry[];
         } catch {
           // File doesn't exist or is invalid JSON, start with empty array
           logs = [];

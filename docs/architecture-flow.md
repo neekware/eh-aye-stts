@@ -10,6 +10,7 @@ graph TB
     API --> AS[AudioService]
     AS --> ED[Emotion Detector]
     AS --> TL[TTS Loader]
+    AS --> LLM[LLM Service]
 
     %% TTS System
     TL --> TP[TTS Providers]
@@ -40,6 +41,14 @@ graph TB
     ED --> |Emotion Detection| AS
     AS --> |Emotion + Text| TP
 
+    %% LLM Integration
+    LLM --> TC[Transcript Cache]
+    LLM --> TE[Transcript Extractor]
+    LLM --> Claude[Claude API]
+    TE --> |Extract Info| TC
+    Claude --> |Natural Response| LLM
+    LLM --> |Enhanced Text| AS
+
     %% Configuration
     Config[Environment Variables<br/>TTSConfig] --> AS
     Config --> TL
@@ -67,6 +76,10 @@ graph TB
     style Stop fill:#b39ddb,stroke:#4527a0,stroke-width:2px,color:#000
     style Agent fill:#b39ddb,stroke:#4527a0,stroke-width:2px,color:#000
     style SubAgent fill:#b39ddb,stroke:#4527a0,stroke-width:2px,color:#000
+    style LLM fill:#81c784,stroke:#388e3c,stroke-width:2px,color:#000
+    style TC fill:#aed581,stroke:#689f38,stroke-width:2px,color:#000
+    style TE fill:#aed581,stroke:#689f38,stroke-width:2px,color:#000
+    style Claude fill:#4db6ac,stroke:#00796b,stroke-width:2px,color:#000
 ```
 
 ## Component Descriptions
@@ -74,9 +87,10 @@ graph TB
 ### Core Components
 
 1. **Audio API** - Main entry point providing `speak()`, `speakWithEmotion()` functions
-2. **AudioService** - Manages TTS providers and emotion handling
+2. **AudioService** - Manages TTS providers, emotion handling, and LLM integration
 3. **Emotion Detector** - Analyzes text/context to determine appropriate emotion
 4. **TTS Loader** - Loads and manages available TTS providers
+5. **LLM Service** - Provides natural language processing and enhanced feedback generation
 
 ### TTS Providers
 
@@ -91,8 +105,16 @@ graph TB
 3. **Claude Code Plugin** - Handles Claude Code specific events
 4. **Custom Plugins** - User-defined plugins for extending functionality
 
+### LLM Integration
+
+1. **LLM Service** - Manages Claude API integration for natural language responses
+2. **Transcript Cache** - Caches Claude Code transcripts for context
+3. **Transcript Extractor** - Extracts relevant information from transcripts
+4. **Claude API** - Generates natural, contextual responses
+
 ### Event Flow
 
 1. Events flow from external sources (Claude Code, custom apps) to plugins
 2. Plugins process events and trigger appropriate audio responses
-3. Audio responses are routed through the emotion system to TTS providers
+3. For LLM-enabled events, responses are enhanced through Claude API
+4. Audio responses are routed through the emotion system to TTS providers

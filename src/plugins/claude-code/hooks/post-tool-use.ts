@@ -3,6 +3,9 @@ import { BaseHook } from './base';
 import { PostToolUseEvent } from '../types';
 import { detectEmotion, Emotion } from '../../../tts/index';
 import { announceIfEnabled } from '../../../tts/announce';
+import { ContextBuilder, HookContext } from './context-builder';
+import { LLMFeedbackGenerator } from '../../../services/llm-feedback';
+import { getConfigValue } from '../../../utils/config';
 
 export class PostToolUseHook extends BaseHook {
   constructor() {
@@ -35,23 +38,80 @@ export class PostToolUseHook extends BaseHook {
       },
     });
 
-    // Announce completion for long-running tasks
-    if (event.duration && event.duration > 5000) {
-      // 5 seconds
-      const seconds = Math.round(event.duration / 1000);
-      const toolName = this.getToolDisplayName(event.tool);
-
-      if (event.exitCode === 0) {
-        const emotion = 'cheerful';
-        await this.announce(`${toolName} completed in ${seconds} seconds`, emotion);
-      } else {
-        const emotion = 'disappointed';
-        await this.announce(`${toolName} failed with error`, emotion);
-      }
+    // Only announce for significant events
+    if (!this.shouldAnnounce(event)) {
+      return;
     }
+
+    // Build context for LLM
+    const context = await ContextBuilder.buildContext({
+      type: 'post-tool-use',
+      timestamp: new Date().toISOString(),
+      data: event as unknown as Record<string, unknown>,
+    });
+
+    // Generate message using LLM or fallback
+    const message = await this.generateMessage(context, event);
+    const emotion = this.determineEmotion(event);
+
+    // Announce the message
+    await announceIfEnabled(message, emotion);
 
     // Track performance metrics
     this.trackPerformance(event);
+  }
+
+  private shouldAnnounce(event: PostToolUseEvent): boolean {
+    // Announce long-running commands (>5s)
+    if (event.duration && event.duration > 5000) return true;
+
+    // Announce failures
+    if (event.exitCode !== 0) return true;
+
+    // Announce specific important tools
+    const importantTools = ['build', 'test', 'deploy', 'install', 'npm', 'yarn', 'pnpm'];
+    if (importantTools.some((tool) => event.tool.toLowerCase().includes(tool))) return true;
+
+    return false;
+  }
+
+  private async generateMessage(context: HookContext, event: PostToolUseEvent): Promise<string> {
+    const llmEnabled = getConfigValue('llmEnabled', true);
+
+    if (!llmEnabled) {
+      return this.getStaticMessage(event);
+    }
+
+    return await LLMFeedbackGenerator.generateFeedback(context, {
+      maxWords: getConfigValue('llmMaxWords', 10),
+      style: getConfigValue('llmStyle', 'casual') as 'casual' | 'professional' | 'encouraging',
+    });
+  }
+
+  private getStaticMessage(event: PostToolUseEvent): string {
+    const seconds = Math.round((event.duration || 0) / 1000);
+    const toolName = this.getToolDisplayName(event.tool);
+
+    if (event.exitCode === 0) {
+      if (seconds > 0) {
+        return `${toolName} completed in ${seconds} seconds`;
+      }
+      return `${toolName} completed`;
+    } else {
+      return `${toolName} failed with error`;
+    }
+  }
+
+  private determineEmotion(event: PostToolUseEvent): Emotion {
+    if (event.exitCode === 0) {
+      // Long tasks get calm emotion
+      if (event.duration && event.duration > 10000) {
+        return 'calm';
+      }
+      return 'cheerful';
+    } else {
+      return 'concerned';
+    }
   }
 
   private getToolDisplayName(tool: string): string {

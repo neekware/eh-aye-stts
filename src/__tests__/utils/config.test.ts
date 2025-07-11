@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { readFileSync, existsSync, mkdirSync } from 'fs';
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { loadSTTSConfig, getConfigValue, getEnvWithFallback } from '../../utils/config';
@@ -9,6 +9,8 @@ vi.mock('fs', () => ({
   readFileSync: vi.fn(),
   existsSync: vi.fn(),
   mkdirSync: vi.fn(),
+  writeFileSync: vi.fn(),
+  renameSync: vi.fn(),
 }));
 
 // Mock os module
@@ -39,6 +41,7 @@ describe('Config', () => {
         audioEnabled: true,
         enableDangerousCommandBlocking: false,
         customDangerousCommands: [],
+        debug: false,
       });
     });
 
@@ -61,6 +64,7 @@ describe('Config', () => {
         audioEnabled: false,
         enableDangerousCommandBlocking: true,
         customDangerousCommands: [],
+        debug: false,
       });
     });
 
@@ -82,6 +86,7 @@ describe('Config', () => {
         audioEnabled: false,
         enableDangerousCommandBlocking: false,
         customDangerousCommands: ['custom-cmd'],
+        debug: false,
       });
     });
 
@@ -114,8 +119,9 @@ describe('Config', () => {
 
       expect(config).toEqual({
         audioEnabled: true, // Project overrides global
-        enableDangerousCommandBlocking: true, // From global
+        enableDangerousCommandBlocking: false, // From defaults (project doesn't specify)
         customDangerousCommands: ['project-cmd'], // Project overrides global
+        debug: false,
       });
     });
 
@@ -130,6 +136,7 @@ describe('Config', () => {
         audioEnabled: true,
         enableDangerousCommandBlocking: false,
         customDangerousCommands: [],
+        debug: false,
       });
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -156,6 +163,7 @@ describe('Config', () => {
         audioEnabled: false,
         enableDangerousCommandBlocking: true,
         customDangerousCommands: ['env-cmd1', 'env-cmd2'],
+        debug: false,
       });
     });
 

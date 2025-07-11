@@ -24,11 +24,23 @@ Supported tools: claude-code, claude`
     )
     .showHelpAfterError()
     .action(async (tool: string, options: { user?: boolean; workspace?: boolean }) => {
+      // Validate tool parameter
+      const supportedTools = ['claude', 'claude-code'];
+      if (!supportedTools.includes(tool.toLowerCase())) {
+        console.error(chalk.red(`Error: Unsupported tool '${tool}'`));
+        console.error(chalk.yellow(`\nSupported tools: ${supportedTools.join(', ')}`));
+        console.error(chalk.gray(`\nUse 'stts disable --help' for more information`));
+        process.exit(1);
+      }
+
       const detector = new ToolDetector();
       const settingsPath = await detector.getSettingsPath(tool);
 
       if (!settingsPath) {
-        console.error(chalk.red('Could not find settings file'));
+        console.error(chalk.red(`Could not find settings for '${tool}'`));
+        console.error(
+          chalk.yellow(`\nMake sure ${tool} is installed and has been run at least once.`)
+        );
         process.exit(1);
       }
 

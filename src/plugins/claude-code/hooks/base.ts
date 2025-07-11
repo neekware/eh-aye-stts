@@ -100,10 +100,16 @@ export abstract class BaseHook {
           mkdirSync(projectLogDir, { recursive: true });
 
           // Read existing logs or create new array
-          let logs: any[] = [];
+          interface DebugLogEntry {
+            timestamp: string;
+            hook: string;
+            event: string;
+            data: string;
+          }
+          let logs: DebugLogEntry[] = [];
           try {
             const content = readFileSync(debugLog, 'utf-8');
-            logs = JSON.parse(content);
+            logs = JSON.parse(content) as DebugLogEntry[];
           } catch {
             // File doesn't exist or is invalid JSON, start with empty array
             logs = [];

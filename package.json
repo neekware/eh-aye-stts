@@ -9,7 +9,10 @@
     "stts": "dist/src/cli/index.js"
   },
   "scripts": {
-    "build": "tsc && tsc-alias",
+    "postinstall": "node scripts/postinstall.js",
+    "preuninstall": "node scripts/preuninstall.js",
+    "build": "node scripts/build.js",
+    "build:tsc": "tsc && tsc-alias",
     "dev": "node dev.js",
     "dev:build": "tsc --watch",
     "prepublishOnly": "npm run build && node scripts/prepublish.js",
@@ -31,7 +34,9 @@
     "spell": "cspell \"src/**/*.ts\" \"*.md\" \"*.json\"",
     "spell:check": "cspell \"src/**/*.ts\" \"*.md\" \"*.json\" --no-progress",
     "prepare": "husky",
-    "clean": "rm -rf dist",
+    "clean": "node scripts/clean.js",
+    "clean:all": "node scripts/clean.js",
+    "clean:dist": "node scripts/clean.js dist",
     "prepack": "npm run clean && npm run build",
     "loc": "tsx tools/utils/loc.ts",
     "update:readme": "npm run loc",

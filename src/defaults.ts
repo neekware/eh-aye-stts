@@ -6,16 +6,19 @@ export const HOME_DIR = homedir();
 export const STTS_DIR = join(HOME_DIR, '.stts');
 export const LOGS_DIR = join(STTS_DIR, 'logs');
 export const HOOKS_DIR = join(STTS_DIR, 'hooks');
+export const CACHE_DIR = join(STTS_DIR, 'cache');
 
 // Config files
 export const SETTINGS_PATH = join(STTS_DIR, 'settings.json');
 export const PROJECT_CONFIG_FILE = '.stts.json';
+export const CACHE_LOG_FILE = join(CACHE_DIR, 'events.jsonl');
 
 // Default configuration
 export const DEFAULT_CONFIG = {
   audioEnabled: true,
   enableDangerousCommandBlocking: false,
   customDangerousCommands: [],
+  debug: false,
 };
 
 // Environment variable names
@@ -23,6 +26,7 @@ export const ENV_VARS = {
   DANGEROUS_COMMAND_BLOCKING: 'STTS_ENABLE_DANGEROUS_COMMAND_BLOCKING',
   AUDIO_ENABLED: 'STTS_AUDIO_ENABLED',
   CUSTOM_DANGEROUS_COMMANDS: 'STTS_CUSTOM_DANGEROUS_COMMANDS',
+  DEBUG: 'STTS_DEBUG',
 };
 
 // Hook names

@@ -12,10 +12,16 @@ vi.mock('fs', () => ({
 }));
 vi.mock('os', () => ({
   homedir: vi.fn(() => '/home/test'),
+  platform: vi.fn(() => 'linux'),
 }));
 vi.mock('../../utils/claude-settings', () => ({
   getClaudeSettingsPath: vi.fn(() => '/home/test/.claude/settings.json'),
   getClaudeSettingsDir: vi.fn(() => '/home/test/.claude'),
+}));
+vi.mock('../../utils/platform', () => ({
+  isWindows: vi.fn(() => false),
+  normalizePath: vi.fn((path) => path),
+  execCommand: vi.fn(),
 }));
 
 // Now import the mocked modules
