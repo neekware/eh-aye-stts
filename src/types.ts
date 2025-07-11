@@ -15,6 +15,7 @@ export interface STTSConfig {
   enableDangerousCommandBlocking?: boolean;
   customDangerousCommands?: string[];
   audioEnabled?: boolean;
+  debug?: boolean;
 
   // LLM Configuration
   llmEnabled?: boolean;

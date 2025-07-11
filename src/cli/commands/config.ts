@@ -8,6 +8,7 @@ interface Config {
   audioEnabled: boolean;
   enableDangerousCommandBlocking: boolean;
   customDangerousCommands: string[];
+  debug?: boolean;
   llmEnabled?: boolean;
   llmModel?: string;
   llmStyle?: 'casual' | 'professional' | 'encouraging';
@@ -24,6 +25,7 @@ Commands:
   show                Show current configuration
   audio               Configure audio announcements
   dangerous-commands  Configure dangerous command blocking
+  debug               Configure debug mode
   llm                 Configure LLM feedback settings
   set <key> <value>   Set a configuration value
 
@@ -33,6 +35,7 @@ Examples:
   stts config audio --disable
   stts config dangerous-commands --enable
   stts config dangerous-commands --add "sudo rm -rf"
+  stts config debug --enable
   stts config llm --enable
   stts config llm --style casual
   stts config set llmMaxWords 8`
@@ -68,6 +71,13 @@ Examples:
           }
         } else {
           console.log(chalk.gray('✓ Dangerous command blocking: DISABLED'));
+        }
+
+        // Debug mode
+        if (config.debug) {
+          console.log(chalk.blue('🐛 Debug mode: ENABLED'));
+        } else {
+          console.log(chalk.gray('✓ Debug mode: DISABLED'));
         }
 
         // LLM settings
@@ -134,6 +144,60 @@ Examples:
       } else if (options.disable) {
         config.audioEnabled = false;
         console.log(chalk.green('✓ Audio announcements disabled'));
+      }
+
+      // Save config
+      // Ensure directory exists
+      const configDir = dirname(configPath);
+      if (!existsSync(configDir)) {
+        mkdirSync(configDir, { recursive: true });
+      }
+      writeFileSync(configPath, JSON.stringify(config, null, 2));
+      console.log(chalk.gray(`\nConfiguration saved to: ${configPath}`));
+    });
+
+  // Add debug command
+  config
+    .command('debug')
+    .description('Configure debug mode')
+    .option('--enable', 'Enable debug mode')
+    .option('--disable', 'Disable debug mode')
+    .action((options: { enable?: boolean; disable?: boolean }) => {
+      const configPath = SETTINGS_PATH;
+
+      // Show current status if no options provided
+      if (!options.enable && !options.disable) {
+        try {
+          const config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
+          if (config.debug) {
+            console.log(chalk.blue('🐛 Debug mode is currently ENABLED'));
+          } else {
+            console.log(chalk.gray('✓ Debug mode is currently DISABLED'));
+          }
+        } catch (error) {
+          console.log(chalk.gray('✓ Debug mode is DISABLED (default)'));
+        }
+        console.log(chalk.gray('\nTo change: stts config debug --enable or --disable'));
+        return;
+      }
+
+      // Load existing config or create new one
+      let config: Config = { ...DEFAULT_CONFIG };
+
+      try {
+        config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
+      } catch (error) {
+        // Use default config if file doesn't exist
+      }
+
+      // Update config
+      if (options.enable) {
+        config.debug = true;
+        console.log(chalk.green('✓ Debug mode enabled'));
+        console.log(chalk.gray('Debug logs will be written to ~/.stts/logs/<project>/debug.log'));
+      } else if (options.disable) {
+        config.debug = false;
+        console.log(chalk.green('✓ Debug mode disabled'));
       }
 
       // Save config

@@ -200,29 +200,133 @@ STTS can be configured via:
 }
 ```
 
-#### Managing Configuration
+#### CLI Commands Reference
+
+##### `stts detect`
+
+Detect installed development tools.
 
 ```bash
-# Show current configuration
-stts config --show
-
-# Enable/disable dangerous command blocking
-stts config --enable-dangerous-commands
-stts config --disable-dangerous-commands
-
-# Enable/disable audio
-stts config --enable-audio
-stts config --disable-audio
-
-# Add custom dangerous command patterns
-stts config --add-dangerous-command "sudo rm"
-stts config --add-dangerous-command "DROP TABLE"
-
-# Backup and restore settings
-stts status --backups      # List available backups
-stts restore               # Restore from backup (interactive)
-stts restore 1             # Restore backup #1 directly
+stts detect               # Detect all installed tools
+stts detect claude        # Check if Claude Code is installed
+stts detect --json        # Output results as JSON
 ```
+
+Supported tools: `claude`, `claude-code`, `cursor`, `windsurf`, `zed`
+
+##### `stts enable`
+
+Enable TTS hooks for a development tool.
+
+```bash
+stts enable claude-code                # Enable with user-level wrapper (default)
+stts enable claude-code --workspace    # Enable with workspace-level wrapper
+stts enable claude-code --no-audio     # Enable without audio announcements
+stts enable claude-code --dangerous-commands  # Enable with dangerous command blocking
+```
+
+##### `stts disable`
+
+Disable TTS hooks for a development tool.
+
+```bash
+stts disable claude-code             # Remove hooks and user wrapper
+stts disable claude-code --workspace # Remove hooks and workspace wrapper
+```
+
+##### `stts status`
+
+Show TTS status for all tools.
+
+```bash
+stts status               # Show TTS status for all tools
+stts status --backups     # List available settings backups
+stts status --json        # Output status in JSON format
+```
+
+##### `stts config`
+
+Manage STTS configuration.
+
+```bash
+# Show configuration
+stts config show
+
+# Audio settings
+stts config audio --enable
+stts config audio --disable
+
+# Debug mode
+stts config debug --enable   # Enable debug logging
+stts config debug --disable  # Disable debug logging
+
+# Dangerous command blocking
+stts config dangerous-commands --enable
+stts config dangerous-commands --disable
+stts config dangerous-commands --add "sudo rm -rf"
+
+# LLM settings
+stts config llm --enable
+stts config llm --disable
+stts config llm --style casual      # Options: casual, professional, encouraging
+stts config llm --max-words 10      # Limit response length
+stts config llm --model claude-3-5-sonnet-20241022
+
+# Generic configuration
+stts config set <key> <value>        # Set any configuration value
+```
+
+##### `stts test`
+
+Test TTS functionality.
+
+```bash
+stts test                           # Test with default message
+stts test -m "Hello world"         # Test with custom message
+stts test --list-providers          # List available TTS providers
+```
+
+##### `stts restore`
+
+Restore settings from a backup.
+
+```bash
+stts restore claude-code            # Interactive restore selection
+stts restore claude-code 2          # Restore backup #2
+stts restore claude-code 1 --force  # Restore without confirmation
+```
+
+##### `stts llm`
+
+Manage LLM feedback and caching.
+
+```bash
+# Test LLM feedback
+stts llm test -s                    # Run test scenarios
+stts llm test -p "Testing prompt"  # Test with custom prompt
+stts llm test -c '{"eventType":"stop"}'  # Test with JSON context
+
+# Manage cache
+stts llm cache show                 # Show cache statistics
+stts llm cache clear                # Clear all cache entries
+stts llm cache tail                 # Monitor cache in real-time
+stts llm cache export               # Export cache to JSON
+
+# Enable/disable
+stts llm enable                     # Enable LLM feedback
+stts llm disable                    # Disable LLM feedback
+stts llm status                     # Show LLM configuration
+```
+
+##### `stts hook` (Internal Use)
+
+Execute TTS hooks - called automatically by Claude.
+
+```bash
+stts hook <type>                    # Internal use only
+```
+
+Supported hook types: `pre-tool-use`, `post-tool-use`, `notification`, `stop`, `subagent-stop`
 
 Configuration is loaded in this order (later sources override earlier ones):
 
@@ -380,14 +484,14 @@ graph TB
 | ----------- | ------- | --------- | --------- | -------- | -------- |
 | Environment | 2       | 21        | 4         | 14       | 3        |
 | Git         | 2       | 59        | 30        | 17       | 12       |
-| JSON        | 145     | 772       | 243       | 507      | 22       |
+| JSON        | 145     | 773       | 243       | 507      | 23       |
 | JavaScript  | 2       | 111       | 84        | 9        | 18       |
 | License     | 1       | 21        | 17        | 0        | 4        |
-| Markdown    | 20      | 3267      | 1868      | 500      | 899      |
+| Markdown    | 20      | 3362      | 1928      | 513      | 921      |
 | Shell       | 12      | 697       | 431       | 126      | 140      |
-| TypeScript  | 77      | 9537      | 7397      | 649      | 1491     |
+| TypeScript  | 77      | 9766      | 7591      | 662      | 1513     |
 | YAML        | 5       | 216       | 180       | 4        | 32       |
-| **Total**   | **266** | **14701** | **10254** | **1826** | **2621** |
+| **Total**   | **266** | **15026** | **10508** | **1852** | **2666** |
 
 _Last updated: 2025-07-11_
 

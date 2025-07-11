@@ -9,9 +9,34 @@ interface DetectOptions {
 export function detectCommand(): Command {
   return new Command('detect')
     .description('Detect installed development tools')
-    .argument('[tool]', 'Specific tool to detect')
+    .argument('[tool]', 'Specific tool to detect (claude, cursor, windsurf, zed)')
     .option('--json', 'Output in JSON format')
+    .addHelpText(
+      'after',
+      `
+Supported tools:
+  - claude      Claude Code
+  - cursor      Cursor IDE
+  - windsurf    Windsurf IDE
+  - zed         Zed editor
+
+Examples:
+  stts detect               # Detect all installed tools
+  stts detect claude        # Check if Claude Code is installed
+  stts detect --json        # Output results as JSON`
+    )
     .action(async (tool: string | undefined, options: DetectOptions) => {
+      // Validate tool parameter if provided
+      if (tool) {
+        const supportedTools = ['claude', 'claude-code', 'cursor', 'windsurf', 'zed'];
+        if (!supportedTools.includes(tool.toLowerCase())) {
+          console.error(chalk.red(`Error: Unknown tool '${tool}'`));
+          console.error(chalk.yellow(`\nSupported tools: ${supportedTools.join(', ')}`));
+          console.error(chalk.gray(`\nUse 'stts detect --help' for more information`));
+          process.exit(1);
+        }
+      }
+
       const detector = new ToolDetector();
       const results = await detector.detect(tool);
 

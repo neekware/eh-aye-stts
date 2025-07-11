@@ -9,7 +9,30 @@ import { dirname } from 'path';
 import { SETTINGS_PATH, DEFAULT_CONFIG } from '../../defaults';
 
 export function llmCommand(): Command {
-  const llm = new Command('llm').description('Manage LLM feedback and caching features');
+  const llm = new Command('llm')
+    .description('Manage LLM feedback and caching features')
+    .addHelpText(
+      'after',
+      `
+Commands:
+  test          Test LLM feedback generation
+  cache         Manage the LLM response cache
+  enable        Enable LLM-powered feedback
+  disable       Disable LLM-powered feedback
+  status        Show current LLM configuration
+
+Examples:
+  stts llm test -s                         # Run test scenarios
+  stts llm test -p "Testing LLM"          # Test with custom prompt
+  stts llm cache show                      # Show cache statistics
+  stts llm cache clear                     # Clear all cache entries
+  stts llm cache tail                      # Monitor cache in real-time
+  stts llm enable                          # Enable LLM feedback
+  stts llm disable                         # Disable LLM feedback
+
+For JSON context testing:
+  stts llm test -c '{"eventType":"stop","tool":"Bash","exitCode":0}'`
+    );
 
   // Test subcommand
   llm

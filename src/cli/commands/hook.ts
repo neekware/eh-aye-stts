@@ -16,8 +16,23 @@ interface HookLogEntry {
 
 export function hookCommand(): Command {
   return new Command('hook')
-    .description('Execute TTS hooks (internal use)')
+    .description('Execute TTS hooks (internal use only - called by Claude)')
     .argument('<type>', 'Hook type to execute')
+    .addHelpText(
+      'after',
+      `
+⚠️  This command is for internal use only and is called automatically by Claude
+when TTS hooks are enabled. You should not need to run this command directly.
+
+Supported hook types:
+  - pre-tool-use     Called before Claude executes a tool
+  - post-tool-use    Called after Claude executes a tool
+  - notification     Called for Claude notifications
+  - stop             Called when Claude session ends
+  - subagent-stop    Called when a Claude subagent completes
+
+Debug logs are written to ./hook-debug.json for troubleshooting.`
+    )
     .action((type: string) => {
       // Log hook command execution for debugging
       const debugLog = join(dirname(__dirname), '..', '..', '..', 'hook-debug.json');

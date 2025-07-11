@@ -43,11 +43,21 @@ Supported tools: claude-code, claude`
           workspace?: boolean;
         }
       ) => {
+        // Validate tool parameter
+        const supportedTools = ['claude', 'claude-code'];
+        if (!supportedTools.includes(tool.toLowerCase())) {
+          console.error(chalk.red(`Error: Unsupported tool '${tool}'`));
+          console.error(chalk.yellow(`\nSupported tools: ${supportedTools.join(', ')}`));
+          console.error(chalk.gray(`\nUse 'stts enable --help' for more information`));
+          process.exit(1);
+        }
+
         const detector = new ToolDetector();
         const results = await detector.detect(tool);
 
         if (results.length === 0 || !results[0].detected) {
           console.error(chalk.red(`Tool '${tool}' not found`));
+          console.error(chalk.yellow(`\nMake sure ${tool} is installed and try again.`));
           process.exit(1);
         }
 

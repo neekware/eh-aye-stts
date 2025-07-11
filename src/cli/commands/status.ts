@@ -21,7 +21,18 @@ export function statusCommand(): Command {
   return new Command('status')
     .description('Show TTS status for all tools')
     .option('--backups', 'List available settings backups')
-    .action(async (options: { backups?: boolean }) => {
+    .option('--json', 'Output in JSON format')
+    .addHelpText(
+      'after',
+      `
+Shows the current TTS installation status for each detected development tool.
+
+Examples:
+  stts status               # Show TTS status for all tools
+  stts status --backups     # List available settings backups
+  stts status --json        # Output status in JSON format`
+    )
+    .action(async (options: { backups?: boolean; json?: boolean }) => {
       if (options.backups) {
         await showBackups();
         return;

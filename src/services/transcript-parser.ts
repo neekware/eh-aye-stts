@@ -107,15 +107,17 @@ export class TranscriptParser {
         if (textContent?.text) {
           const text = textContent.text.trim();
 
-          // Skip empty or very short messages
-          if (text.length > 10) {
+          // Skip only empty messages, allow all non-empty messages
+          if (text.length > 0) {
             debugLogger.info(
               'TranscriptParser',
               'getLastAssistantMessage',
               'Found assistant message',
               {
                 messageId: msg.message.id,
-                textPreview: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+                textLength: text.length,
+                textPreview: text.substring(0, 200) + (text.length > 200 ? '...' : ''),
+                fullMessage: text, // Log full message in debug
               }
             );
 

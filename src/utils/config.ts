@@ -53,6 +53,14 @@ export function loadSTTSConfig(): STTSConfig {
     config.audioEnabled = false;
   }
 
+  if (
+    process.env[ENV_VARS.DEBUG] === 'true' ||
+    process.env.DEBUG === 'true' ||
+    process.env.DEBUG === '1'
+  ) {
+    config.debug = true;
+  }
+
   const customCommands = process.env[ENV_VARS.CUSTOM_DANGEROUS_COMMANDS];
   if (customCommands) {
     config.customDangerousCommands = customCommands.split(',').map((cmd) => cmd.trim());

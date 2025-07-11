@@ -2,6 +2,7 @@ import { writeFileSync, mkdirSync, existsSync, appendFileSync } from 'fs';
 import { join } from 'path';
 import { LOGS_DIR } from '../defaults';
 import { getProjectName } from './project';
+import { getConfigValue } from './config';
 
 export interface DebugLogEntry {
   timestamp: string;
@@ -55,7 +56,10 @@ export class DebugLogger {
   }
 
   log(entry: Omit<DebugLogEntry, 'timestamp'>): void {
-    if (!process.env.DEBUG) return;
+    // Check both config and environment variable
+    const debugEnabled =
+      getConfigValue('debug', false) || process.env.DEBUG === 'true' || process.env.DEBUG === '1';
+    if (!debugEnabled) return;
 
     const fullEntry: DebugLogEntry = {
       ...entry,

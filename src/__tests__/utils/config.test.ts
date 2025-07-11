@@ -39,6 +39,7 @@ describe('Config', () => {
         audioEnabled: true,
         enableDangerousCommandBlocking: false,
         customDangerousCommands: [],
+        debug: false,
       });
     });
 
@@ -61,6 +62,7 @@ describe('Config', () => {
         audioEnabled: false,
         enableDangerousCommandBlocking: true,
         customDangerousCommands: [],
+        debug: false,
       });
     });
 
@@ -82,6 +84,7 @@ describe('Config', () => {
         audioEnabled: false,
         enableDangerousCommandBlocking: false,
         customDangerousCommands: ['custom-cmd'],
+        debug: false,
       });
     });
 
@@ -116,6 +119,7 @@ describe('Config', () => {
         audioEnabled: true, // Project overrides global
         enableDangerousCommandBlocking: true, // From global
         customDangerousCommands: ['project-cmd'], // Project overrides global
+        debug: false,
       });
     });
 
@@ -130,6 +134,7 @@ describe('Config', () => {
         audioEnabled: true,
         enableDangerousCommandBlocking: false,
         customDangerousCommands: [],
+        debug: false,
       });
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -156,6 +161,7 @@ describe('Config', () => {
         audioEnabled: false,
         enableDangerousCommandBlocking: true,
         customDangerousCommands: ['env-cmd1', 'env-cmd2'],
+        debug: false,
       });
     });
 

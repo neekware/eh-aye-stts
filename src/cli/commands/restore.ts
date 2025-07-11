@@ -10,12 +10,38 @@ export function restoreCommand(): Command {
     .description('Restore settings from a backup')
     .argument('<tool>', 'Tool to restore settings for (e.g., claude-code)')
     .argument('[backup-number]', 'Backup number to restore (from status --backups)')
-    .action(async (tool: string, backupNumber?: string) => {
+    .option('--force', 'Skip confirmation prompt')
+    .addHelpText(
+      'after',
+      `
+Restores a tool's settings from a previous backup. Backups are created automatically
+when enabling/disabling TTS hooks.
+
+Examples:
+  stts restore claude-code             # Interactive restore selection
+  stts restore claude-code 2           # Restore backup #2
+  stts restore claude-code 1 --force   # Restore backup #1 without confirmation
+
+First run 'stts status --backups' to see available backups with numbers.`
+    )
+    .action(async (tool: string, backupNumber?: string, _options?: { force?: boolean }) => {
+      // Validate tool parameter
+      const supportedTools = ['claude', 'claude-code'];
+      if (!supportedTools.includes(tool.toLowerCase())) {
+        console.error(chalk.red(`Error: Unsupported tool '${tool}'`));
+        console.error(chalk.yellow(`\nSupported tools: ${supportedTools.join(', ')}`));
+        console.error(chalk.gray(`\nUse 'stts restore --help' for more information`));
+        process.exit(1);
+      }
+
       const detector = new ToolDetector();
       const settingsPath = await detector.getSettingsPath(tool);
 
       if (!settingsPath) {
         console.error(chalk.red(`No ${tool} settings found`));
+        console.error(
+          chalk.yellow(`\nMake sure ${tool} is installed and has been run at least once.`)
+        );
         process.exit(1);
       }
 
