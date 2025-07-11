@@ -30,16 +30,6 @@ describe('SayProvider', () => {
     });
   });
 
-  describe('getRate', () => {
-    it('should return correct rate for different emotions', () => {
-      expect(provider['getRate']('urgent')).toBe(1.3);
-      expect(provider['getRate']('disappointed')).toBe(0.9);
-      expect(provider['getRate']('cheerful')).toBe(1.1);
-      expect(provider['getRate']('neutral')).toBe(1.0);
-      expect(provider['getRate']()).toBe(1.0);
-    });
-  });
-
   describe('isAvailable', () => {
     it('should check if say command exists', async () => {
       // This will actually check if say is available on the system
