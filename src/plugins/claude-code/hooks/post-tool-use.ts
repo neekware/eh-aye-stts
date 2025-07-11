@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import { BaseHook } from './base';
 import { PostToolUseEvent } from '../types';
-import { detectEmotion, Emotion } from '../../../tts/index';
 import { announceIfEnabled } from '../../../tts/announce';
 
 export class PostToolUseHook extends BaseHook {
@@ -42,10 +41,9 @@ export class PostToolUseHook extends BaseHook {
 
     // Generate message
     const message = this.getStaticMessage(event);
-    const emotion = this.determineEmotion(event);
 
     // Announce the message
-    await announceIfEnabled(message, emotion);
+    await announceIfEnabled(message);
 
     // Track performance metrics
     this.trackPerformance(event);
@@ -79,18 +77,6 @@ export class PostToolUseHook extends BaseHook {
     }
   }
 
-  private determineEmotion(event: PostToolUseEvent): Emotion {
-    if (event.exitCode === 0) {
-      // Long tasks get calm emotion
-      if (event.duration && event.duration > 10000) {
-        return 'calm';
-      }
-      return 'cheerful';
-    } else {
-      return 'concerned';
-    }
-  }
-
   private getToolDisplayName(tool: string): string {
     const displayNames: Record<string, string> = {
       bash: 'Command',
@@ -103,17 +89,6 @@ export class PostToolUseHook extends BaseHook {
     };
 
     return displayNames[tool.toLowerCase()] || tool;
-  }
-
-  private async announce(message: string, emotion?: string): Promise<void> {
-    try {
-      // Use detected emotion if not provided
-      const finalEmotion =
-        emotion || detectEmotion(message, { success: message.includes('completed') });
-      await announceIfEnabled(message, finalEmotion as Emotion);
-    } catch (error) {
-      this.logger.error(`TTS error: ${error instanceof Error ? error.message : String(error)}`);
-    }
   }
 
   private trackPerformance(event: PostToolUseEvent): void {

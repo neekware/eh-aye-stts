@@ -16,45 +16,37 @@ describe('TTSLoader', () => {
 
   describe('constructor', () => {
     it('should initialize with default config', () => {
-      expect(loader['config']).toEqual({
-        priority: ['system', 'elevenlabs', 'openai'],
-        voiceType: 'female',
-      });
+      expect(loader['config']).toEqual({});
     });
 
     it('should accept custom config', () => {
-      const config: TTSConfig = { voiceType: 'male' };
+      const config: TTSConfig = {};
       const customLoader = new TTSLoader(config);
-      expect(customLoader['config']).toEqual({
-        priority: ['system', 'elevenlabs', 'openai'],
-        voiceType: 'male',
-      });
+      expect(customLoader['config']).toEqual({});
     });
 
-    it('should have providers map', () => {
-      expect(loader['providers']).toBeDefined();
-      expect(loader['providers'] instanceof Map).toBe(true);
-      expect(loader['providers'].size).toBeGreaterThan(0);
+    it('should have system provider', () => {
+      expect(loader['provider']).toBeDefined();
+      expect(loader['provider'].name).toBe('system');
     });
   });
 
   describe('listAvailable', () => {
     it('should return array of available provider names', async () => {
-      // Mock isAvailable for providers to avoid actual system checks
-      const mockProviders = new Map();
-      mockProviders.set('say', { isAvailable: vi.fn().mockResolvedValue(true) });
-      mockProviders.set('elevenlabs', { isAvailable: vi.fn().mockResolvedValue(false) });
-      mockProviders.set('openai', { isAvailable: vi.fn().mockResolvedValue(false) });
+      // Mock isAvailable for the system provider
+      const mockProvider = {
+        name: 'system',
+        isAvailable: vi.fn().mockResolvedValue(true),
+      };
 
-      // Replace the providers map
-      (loader as any).providers = mockProviders;
+      // Replace the provider
+      (loader as any).provider = mockProvider;
 
       const available = await loader.listAvailable();
 
       expect(Array.isArray(available)).toBe(true);
-      expect(available).toContain('say');
-      expect(available).not.toContain('elevenlabs');
-      expect(available).not.toContain('openai');
-    }, 10000); // Increase timeout to 10 seconds
+      expect(available).toEqual(['system']);
+      expect(mockProvider.isAvailable).toHaveBeenCalled();
+    });
   });
 });

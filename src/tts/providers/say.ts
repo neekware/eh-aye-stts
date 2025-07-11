@@ -24,8 +24,6 @@ export class SayProvider extends BaseTTSProvider {
 
   async speak(text: string, _emotion?: Emotion): Promise<boolean> {
     try {
-      const voice = this.getVoice();
-
       // Escape single quotes in text
       const escapedText = text.replace(/'/g, "'\"'\"'");
 
@@ -38,7 +36,7 @@ export class SayProvider extends BaseTTSProvider {
         command += ` -a "${audioDevice}"`;
       }
 
-      command += ` -v "${voice}" '${escapedText}'`;
+      command += ` '${escapedText}'`;
 
       await execAsync(command);
       return true;
@@ -88,22 +86,6 @@ export class SayProvider extends BaseTTSProvider {
     } catch {
       // If we can't get device list, just use system default
       return null;
-    }
-  }
-
-  private getVoice(): string | undefined {
-    const platform = process.platform;
-    const voiceType = this.config.voiceType || 'female';
-
-    if (platform === 'darwin') {
-      // macOS
-      return voiceType === 'male' ? 'Alex' : 'Samantha';
-    } else if (platform === 'win32') {
-      // Windows
-      return voiceType === 'male' ? 'David' : 'Zira';
-    } else {
-      // Linux
-      return voiceType === 'male' ? 'male' : 'female';
     }
   }
 }

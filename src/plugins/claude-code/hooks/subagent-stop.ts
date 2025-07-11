@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import { BaseHook } from './base';
 import { SubagentStopEvent } from '../types';
-import { detectEmotion, Emotion } from '../../../tts/index';
 import { announceIfEnabled } from '../../../tts/announce';
 
 interface PendingSubagent {
@@ -65,10 +64,9 @@ export class SubagentStopHook extends BaseHook {
     if (pending.length === 1) {
       const { event } = pending[0];
       const message = this.getStaticMessage(event);
-      const emotion = this.determineEmotion(event);
 
       try {
-        await announceIfEnabled(message, emotion);
+        await announceIfEnabled(message);
       } catch (error) {
         this.logger.error(`TTS error: ${error instanceof Error ? error.message : String(error)}`);
       }
@@ -81,21 +79,17 @@ export class SubagentStopHook extends BaseHook {
 
     // Create aggregated announcement
     let message: string;
-    let emotion: Emotion;
 
     if (failureCount === 0) {
       message = `${successCount} subagents completed successfully`;
-      emotion = 'cheerful';
     } else if (successCount === 0) {
       message = `${failureCount} subagents failed`;
-      emotion = 'disappointed';
     } else {
       message = `${successCount} subagents succeeded, ${failureCount} failed`;
-      emotion = 'neutral';
     }
 
     try {
-      await announceIfEnabled(message, emotion);
+      await announceIfEnabled(message);
     } catch (error) {
       this.logger.error(`TTS error: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -111,33 +105,6 @@ export class SubagentStopHook extends BaseHook {
       return 'Agent task encountered an issue';
     }
     return 'Agent task completed';
-  }
-
-  private determineEmotion(event: SubagentStopEvent | null): Emotion {
-    if (!event) {
-      return 'neutral';
-    }
-
-    // Check success flag first
-    if (event.success === false) {
-      return 'disappointed';
-    }
-
-    // Check the reason for more context
-    if (event.reason) {
-      const reason = event.reason.toLowerCase();
-      if (reason.includes('success') || reason.includes('complete')) {
-        return 'cheerful';
-      } else if (reason.includes('error') || reason.includes('fail')) {
-        return 'disappointed';
-      }
-
-      // Use emotion detection as fallback
-      return detectEmotion(event.reason);
-    }
-
-    // Default to cheerful for completed tasks
-    return 'cheerful';
   }
 }
 

@@ -39,23 +39,18 @@ describe('AudioService', () => {
       expect(mockTTSLoader.speak).toHaveBeenCalledWith('Great job!', 'cheerful');
     });
 
-    it('should speak with specific provider', async () => {
-      const result = await audioService.speak('Test', { provider: 'openai' });
+    it('should speak with emotion options', async () => {
+      const result = await audioService.speak('Test', { emotion: 'urgent' });
 
       expect(result).toBe(true);
-      expect(mockTTSLoader.speak).toHaveBeenCalledWith('Test', 'openai', undefined);
+      expect(mockTTSLoader.speak).toHaveBeenCalledWith('Test', 'urgent');
     });
 
-    it('should auto-detect emotion when enabled', async () => {
-      const result = await audioService.speak('Oh no! Something went wrong!', {
-        autoDetectEmotion: true,
-      });
+    it('should speak without emotion options', async () => {
+      const result = await audioService.speak('Oh no! Something went wrong!');
 
       expect(result).toBe(true);
-      expect(mockTTSLoader.speak).toHaveBeenCalledWith(
-        'Oh no! Something went wrong!',
-        'disappointed' // detectEmotion will return this for error text
-      );
+      expect(mockTTSLoader.speak).toHaveBeenCalledWith('Oh no! Something went wrong!', undefined);
     });
 
     it('should handle speak failure', async () => {
@@ -89,11 +84,11 @@ describe('AudioService', () => {
       expect(mockTTSLoader.speak).toHaveBeenCalledWith('Task failed', 'disappointed');
     });
 
-    it('should detect emotion from text when no context provided', async () => {
+    it('should use neutral emotion when no context provided', async () => {
       const result = await audioService.speakWithEmotion('This is amazing!');
 
       expect(result).toBe(true);
-      expect(mockTTSLoader.speak).toHaveBeenCalledWith('This is amazing!', 'excited');
+      expect(mockTTSLoader.speak).toHaveBeenCalledWith('This is amazing!', 'neutral');
     });
   });
 
@@ -108,11 +103,11 @@ describe('AudioService', () => {
 
   describe('getConfig', () => {
     it('should return TTS configuration', () => {
-      mockTTSLoader.config = { voiceType: 'female' };
+      mockTTSLoader.config = {};
 
       const config = audioService.getConfig();
 
-      expect(config).toEqual({ voiceType: 'female' });
+      expect(config).toEqual({});
     });
   });
 });

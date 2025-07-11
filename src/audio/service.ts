@@ -1,11 +1,8 @@
 import { TTSLoader } from '../tts/loader';
 import { TTSConfig, Emotion } from '../tts/types';
-import { detectEmotion } from '../tts/emotion-detector';
 
 export interface AudioOptions {
   emotion?: Emotion;
-  provider?: string;
-  autoDetectEmotion?: boolean;
 }
 
 export class AudioService {
@@ -16,27 +13,29 @@ export class AudioService {
   }
 
   /**
-   * Speak text with optional emotion and provider
+   * Speak text with optional emotion
    */
   async speak(text: string, options?: AudioOptions): Promise<boolean> {
-    const emotion =
-      options?.emotion || (options?.autoDetectEmotion ? detectEmotion(text) : undefined);
-
-    if (options?.provider) {
-      return this.tts.speak(text, options.provider, emotion);
-    }
-
-    return this.tts.speak(text, emotion);
+    return this.tts.speak(text, options?.emotion);
   }
 
   /**
-   * Speak with automatic emotion detection
+   * Speak text with emotion based on context
    */
   async speakWithEmotion(
     text: string,
     context?: { success?: boolean; error?: boolean }
   ): Promise<boolean> {
-    const emotion = detectEmotion(text, context);
+    let emotion: Emotion | undefined;
+
+    if (context?.success) {
+      emotion = 'cheerful';
+    } else if (context?.error) {
+      emotion = 'disappointed';
+    } else {
+      emotion = 'neutral';
+    }
+
     return this.tts.speak(text, emotion);
   }
 

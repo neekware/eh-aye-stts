@@ -1,5 +1,5 @@
 import { BasePlugin, PluginContext, PluginEvent } from '../base';
-import { detectEmotion, Emotion } from '../../tts/emotion-detector';
+import { Emotion } from '../../tts/types';
 import {
   PreToolUseEvent,
   PostToolUseEvent,
@@ -65,8 +65,7 @@ export class ClaudeCodePlugin extends BasePlugin {
   }
 
   private async handleNotification(event: NotificationEvent): Promise<void> {
-    const emotion = this.detectNotificationEmotion(event);
-    await this.audio.speak(event.message, { emotion });
+    await this.audio.speak(event.message);
   }
 
   private async handleStop(event: StopEvent): Promise<void> {
@@ -107,7 +106,6 @@ export class ClaudeCodePlugin extends BasePlugin {
           : 'Agent task encountered an issue';
       }
     } else if (event?.reason) {
-      emotion = detectEmotion(event.reason);
       if (event.reason.toLowerCase().includes('success')) {
         emotion = 'cheerful';
       } else if (
@@ -116,6 +114,8 @@ export class ClaudeCodePlugin extends BasePlugin {
       ) {
         emotion = 'disappointed';
         message = 'Agent task encountered an issue';
+      } else {
+        emotion = 'neutral';
       }
     } else {
       emotion = 'cheerful';
@@ -136,33 +136,6 @@ export class ClaudeCodePlugin extends BasePlugin {
     };
 
     return displayNames[tool.toLowerCase()] || tool;
-  }
-
-  private detectNotificationEmotion(event: NotificationEvent): Emotion {
-    // Check metadata first
-    if (event.metadata?.emotion) {
-      return event.metadata.emotion as Emotion;
-    }
-
-    // Check event type
-    if (event.type) {
-      switch (event.type) {
-        case 'success':
-        case 'complete':
-          return 'cheerful';
-        case 'error':
-        case 'failure':
-          return 'disappointed';
-        case 'warning':
-        case 'blocked':
-          return 'urgent';
-        case 'info':
-          return 'neutral';
-      }
-    }
-
-    // Fall back to content detection
-    return detectEmotion(event.message);
   }
 
   isAvailable(): boolean {

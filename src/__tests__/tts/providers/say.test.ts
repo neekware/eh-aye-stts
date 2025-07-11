@@ -14,22 +14,6 @@ describe('SayProvider', () => {
     });
   });
 
-  describe('getVoice', () => {
-    it('should return appropriate voice for female config on macOS', () => {
-      if (process.platform === 'darwin') {
-        const femaleProvider = new SayProvider({ voiceType: 'female' });
-        expect(femaleProvider['getVoice']()).toBe('Samantha');
-      }
-    });
-
-    it('should return appropriate voice for male config on macOS', () => {
-      if (process.platform === 'darwin') {
-        const maleProvider = new SayProvider({ voiceType: 'male' });
-        expect(maleProvider['getVoice']()).toBe('Alex');
-      }
-    });
-  });
-
   describe('isAvailable', () => {
     it('should check if say command exists', async () => {
       // This will actually check if say is available on the system

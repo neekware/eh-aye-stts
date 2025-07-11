@@ -1,5 +1,3 @@
-export type VoiceType = 'male' | 'female';
-
 export type Emotion =
   | 'cheerful'
   | 'neutral'
@@ -17,15 +15,7 @@ export type Emotion =
   | 'melancholic'
   | 'curious';
 
-export interface TTSConfig {
-  priority?: string[];
-  voiceType?: VoiceType;
-  elevenLabsApiKey?: string;
-  openaiApiKey?: string;
-  elevenLabsVoiceId?: string;
-  openaiModel?: string;
-  defaultEmotion?: Emotion;
-}
+export interface TTSConfig {}
 
 export interface TTSProvider {
   readonly name: string;
