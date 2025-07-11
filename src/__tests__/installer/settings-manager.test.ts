@@ -143,9 +143,11 @@ fi` as any
       mockReadFile.mockResolvedValue(JSON.stringify(existingSettings) as any);
 
       const consoleSpy = vi.spyOn(console, 'log');
-      await manager.installHooks('direct');
+      await manager.installHooks('local');
 
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('already configured'));
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Updated STTS Notification hook')
+      );
     });
 
     it('should preserve non-STTS hooks', async () => {
@@ -251,27 +253,6 @@ fi` as any
   });
 
   describe('wrapper scripts', () => {
-    it('should generate global wrapper script with correct fallback', async () => {
-      const script = await manager.generateWrapperScript(true);
-
-      // Test should work with either new templates or fallback to old templates
-      expect(script).toContain('if command -v stts >/dev/null 2>&1; then');
-      expect(script).toContain('exec stts "$@"');
-
-      // New template format
-      if (script.includes('export STTS_FALLBACK_MODE="user"')) {
-        expect(script).toContain('export STTS_FALLBACK_MODE="user"');
-        expect(script).toContain('STTS_FALLBACK_MODE:-user');
-      } else {
-        // New template format with generic provider
-        expect(script).toContain('# STTS wrapper script for Unix systems');
-        expect(script).toContain(
-          'echo "Warning: stts command not found. Please install stts first." >&2'
-        );
-        expect(script).toContain('exit 1');
-      }
-    });
-
     it('should generate local wrapper script with silent fallback', async () => {
       const script = await manager.generateWrapperScript(false);
 

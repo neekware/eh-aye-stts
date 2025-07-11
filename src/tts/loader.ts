@@ -14,7 +14,7 @@ export class TTSLoader {
 
   constructor(config: TTSConfig = {}) {
     this.config = {
-      priority: ['say', 'elevenlabs', 'openai'],
+      priority: ['system', 'elevenlabs', 'openai'],
       voiceType: 'female',
       ...config,
     };
@@ -23,7 +23,7 @@ export class TTSLoader {
   }
 
   private initializeProviders(): void {
-    this.providers.set('say', new SayProvider(this.config));
+    this.providers.set('system', new SayProvider(this.config));
     this.providers.set('elevenlabs', new ElevenLabsProvider(this.config));
     this.providers.set('openai', new OpenAIProvider(this.config));
   }
@@ -114,9 +114,8 @@ export function loadTTS(userConfig: TTSConfig = {}): TTSLoader {
   if (priority) {
     envConfig.priority = priority.split(',').map((s) => s.trim());
   }
-  if (process.env[TTS_ENV_VARS.VOICE_TYPE] || process.env[TTS_ENV_VARS.VOICE_GENDER]) {
-    envConfig.voiceType = (process.env[TTS_ENV_VARS.VOICE_TYPE] ||
-      process.env[TTS_ENV_VARS.VOICE_GENDER]) as 'male' | 'female';
+  if (process.env[TTS_ENV_VARS.VOICE_TYPE]) {
+    envConfig.voiceType = process.env[TTS_ENV_VARS.VOICE_TYPE] as 'male' | 'female';
   }
   const elevenLabsKey = getEnvWithFallback(TTS_ENV_VARS.ELEVENLABS_API_KEY, 'ELEVENLABS_API_KEY');
   if (elevenLabsKey) {

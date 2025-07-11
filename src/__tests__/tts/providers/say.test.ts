@@ -10,7 +10,7 @@ describe('SayProvider', () => {
 
   describe('name', () => {
     it('should have the correct name', () => {
-      expect(provider.name).toBe('say');
+      expect(provider.name).toBe('system');
     });
   });
 

@@ -17,7 +17,7 @@ describe('TTSLoader', () => {
   describe('constructor', () => {
     it('should initialize with default config', () => {
       expect(loader['config']).toEqual({
-        priority: ['say', 'elevenlabs', 'openai'],
+        priority: ['system', 'elevenlabs', 'openai'],
         voiceType: 'female',
       });
     });
@@ -26,7 +26,7 @@ describe('TTSLoader', () => {
       const config: TTSConfig = { voiceType: 'male' };
       const customLoader = new TTSLoader(config);
       expect(customLoader['config']).toEqual({
-        priority: ['say', 'elevenlabs', 'openai'],
+        priority: ['system', 'elevenlabs', 'openai'],
         voiceType: 'male',
       });
     });

@@ -2,7 +2,7 @@ import { promises as fs } from 'fs';
 import { dirname, join, basename } from 'path';
 import { fileURLToPath } from 'url';
 import { ClaudeSettings, HookMatcher } from '../plugins/claude-code/types';
-import { STTS_DIR, HOOKS_DIR, CLAUDE_DIR } from '../defaults';
+import { STTS_DIR, CLAUDE_DIR } from '../defaults';
 import chalk from 'chalk';
 import { platform } from 'os';
 
@@ -127,7 +127,7 @@ export class SettingsManager {
     }
   }
 
-  async installHooks(wrapperType: 'global' | 'local' | 'direct' = 'direct'): Promise<void> {
+  async installHooks(wrapperType: 'local' = 'local'): Promise<void> {
     // Purge any invalid or duplicate STTS hooks first
     await this.purgeSttsHooks();
 
@@ -158,18 +158,8 @@ export class SettingsManager {
     for (const { name, script } of hookTypes) {
       const hookType = script.replace('.js', '');
 
-      // Determine the command based on wrapper type
-      let command: string;
-      if (wrapperType === 'global') {
-        // Use the global wrapper path
-        command = `~/.stts/hooks/stts hook ${hookType}`;
-      } else if (wrapperType === 'local') {
-        // Use the local wrapper path
-        command = `.claude/hooks/stts hook ${hookType}`;
-      } else {
-        // Direct stts command (for backward compatibility)
-        command = `stts hook ${hookType}`;
-      }
+      // Always use local wrapper path
+      const command = `.claude/hooks/stts hook ${hookType}`;
 
       const hookEntry: HookMatcher = {
         matcher: '',
@@ -452,25 +442,8 @@ export class SettingsManager {
     throw new Error(`Template files not found. Expected ${templateFileName} in scripts/templates/`);
   }
 
-  async installGlobalWrappers(): Promise<void> {
-    const scriptContent = await this.generateWrapperScript(true);
-    const isWindows = platform() === 'win32';
-    const scriptName = isWindows ? 'stts.bat' : 'stts';
-    const scriptPath = join(HOOKS_DIR, scriptName);
-
-    // Create hooks directory
-    await fs.mkdir(HOOKS_DIR, { recursive: true });
-
-    // Write wrapper script
-    await fs.writeFile(scriptPath, scriptContent);
-
-    // Make executable on Unix systems
-    if (!isWindows) {
-      await fs.chmod(scriptPath, 0o755);
-    }
-
-    console.log(chalk.green(`✓ Installed user-level wrapper: ${scriptPath}`));
-  }
+  // Removed: Global wrappers are no longer supported
+  // Use --workspace or --local flags instead
 
   async installLocalWrappers(): Promise<void> {
     const scriptContent = await this.generateWrapperScript(false);
@@ -496,18 +469,8 @@ export class SettingsManager {
     console.log(chalk.green(`✓ Installed workspace wrapper: ${scriptPath}`));
   }
 
-  async removeGlobalWrappers(): Promise<void> {
-    const isWindows = platform() === 'win32';
-    const scriptName = isWindows ? 'stts.bat' : 'stts';
-    const scriptPath = join(HOOKS_DIR, scriptName);
-
-    try {
-      await fs.unlink(scriptPath);
-      console.log(chalk.green(`✓ Removed user-level wrapper: ${scriptPath}`));
-    } catch (error) {
-      // Script doesn't exist, ignore
-    }
-  }
+  // Removed: Global wrappers are no longer supported
+  // Use --workspace or --local flags instead
 
   async removeLocalWrappers(): Promise<void> {
     const isWindows = platform() === 'win32';

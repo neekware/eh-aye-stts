@@ -13,23 +13,19 @@ export function enableCommand(): Command {
     .option('--dangerous-commands', 'Enable dangerous command blocking')
     .option('--no-audio', 'Disable audio announcements')
     .option(
-      '--user',
-      'Install wrapper scripts at user level in ~/.stts/hooks/ (warns if stts missing)'
-    )
-    .option(
       '--workspace',
       'Install wrapper scripts in workspace in .claude/hooks/ (silent if stts missing)'
     )
+    .option('--local', 'Install settings in local .claude/settings.local.json (not tracked by git)')
     .addHelpText(
       'after',
       `
 Examples:
-  stts enable claude-code                Enable TTS hooks + user wrapper (default)
-  stts enable claude-code --user         Same as above (explicit user wrapper)
-  stts enable claude-code --workspace    Enable TTS hooks + workspace wrapper
-  stts enable claude-code --no-audio     Enable without audio announcements
+  stts enable claude-code --workspace    Enable TTS hooks with workspace wrapper
+  stts enable claude-code --local        Enable TTS hooks with local settings (not in git)
+  stts enable claude-code --workspace --no-audio    Enable without audio announcements
 
-Note: By default, wrapper scripts are installed at user level in ~/.stts/hooks/
+Note: You must specify either --workspace or --local
 Supported tools: claude-code, claude`
     )
     .showHelpAfterError()
@@ -39,8 +35,8 @@ Supported tools: claude-code, claude`
         options: {
           dangerousCommands?: boolean;
           audio?: boolean;
-          user?: boolean;
           workspace?: boolean;
+          local?: boolean;
         }
       ) => {
         // Validate tool parameter
@@ -70,35 +66,38 @@ Supported tools: claude-code, claude`
           process.exit(1);
         }
 
-        // Determine wrapper type first
-        if (options.user && options.workspace) {
-          console.error(chalk.red('Cannot specify both --user and --workspace flags'));
+        // Require either --workspace or --local
+        if (!options.workspace && !options.local) {
+          console.error(chalk.red('Error: You must specify either --workspace or --local'));
+          console.error(chalk.yellow('\nUse --workspace for team settings (tracked in git)'));
+          console.error(chalk.yellow('Use --local for personal settings (not tracked in git)'));
           process.exit(1);
         }
 
-        let wrapperType: 'global' | 'local';
-        let actualSettingsPath = settingsPath;
+        if (options.workspace && options.local) {
+          console.error(chalk.red('Cannot specify both --workspace and --local flags'));
+          process.exit(1);
+        }
+
+        let wrapperType: 'local';
+        let actualSettingsPath: string;
 
         if (options.workspace) {
-          // If --workspace is explicitly specified, use workspace settings
+          // Use workspace settings (tracked in git)
           wrapperType = 'local';
-          const workspaceSettingsPath = join(process.cwd(), CLAUDE_DIR, CLAUDE_SETTINGS_FILE);
-          actualSettingsPath = workspaceSettingsPath;
+          actualSettingsPath = join(process.cwd(), CLAUDE_DIR, CLAUDE_SETTINGS_FILE);
         } else {
-          // Default behavior (no flag or --user): use global settings
-          wrapperType = 'global';
+          // Use local settings (not tracked in git)
+          wrapperType = 'local';
+          actualSettingsPath = join(process.cwd(), CLAUDE_DIR, 'settings.local.json');
         }
 
         // Create manager with appropriate settings path
         const manager = new SettingsManager(actualSettingsPath, tool);
 
         try {
-          // Install wrapper scripts
-          if (options.workspace) {
-            await manager.installLocalWrappers();
-          } else {
-            await manager.installGlobalWrappers();
-          }
+          // Always install local wrappers (no global installation)
+          await manager.installLocalWrappers();
 
           // Install hooks with appropriate wrapper type
           await manager.installHooks(wrapperType);

@@ -9,21 +9,20 @@ export function disableCommand(): Command {
   return new Command('disable')
     .description('Disable TTS hooks for a development tool')
     .argument('<tool>', 'Tool to disable TTS for (currently supports: claude-code, claude)')
-    .option('--user', 'Remove wrapper scripts from ~/.stts/hooks/')
     .option('--workspace', 'Remove wrapper scripts from .claude/hooks/')
+    .option('--local', 'Remove local settings from .claude/settings.local.json')
     .addHelpText(
       'after',
       `
 Examples:
-  stts disable claude-code           Remove TTS hooks + user wrapper (default)
-  stts disable claude-code --user    Same as above (explicit user wrapper)
   stts disable claude-code --workspace  Remove TTS hooks + workspace wrapper
+  stts disable claude-code --local      Remove TTS hooks + local settings
 
-Note: By default, removes wrapper scripts from ~/.stts/hooks/
+Note: You must specify either --workspace or --local
 Supported tools: claude-code, claude`
     )
     .showHelpAfterError()
-    .action(async (tool: string, options: { user?: boolean; workspace?: boolean }) => {
+    .action(async (tool: string, options: { workspace?: boolean; local?: boolean }) => {
       // Validate tool parameter
       const supportedTools = ['claude', 'claude-code'];
       if (!supportedTools.includes(tool.toLowerCase())) {
@@ -46,17 +45,26 @@ Supported tools: claude-code, claude`
 
       console.log(chalk.blue(`🔇 Disabling TTS for ${tool}...\n`));
 
-      // Determine which settings file to use
-      if (options.user && options.workspace) {
-        console.error(chalk.red('Cannot specify both --user and --workspace flags'));
+      // Require either --workspace or --local
+      if (!options.workspace && !options.local) {
+        console.error(chalk.red('Error: You must specify either --workspace or --local'));
+        console.error(chalk.yellow('\nUse --workspace for team settings (tracked in git)'));
+        console.error(chalk.yellow('Use --local for personal settings (not tracked in git)'));
         process.exit(1);
       }
 
-      let actualSettingsPath = settingsPath;
+      if (options.workspace && options.local) {
+        console.error(chalk.red('Cannot specify both --workspace and --local flags'));
+        process.exit(1);
+      }
+
+      let actualSettingsPath: string;
       if (options.workspace) {
-        // If --workspace is explicitly specified, use workspace settings
-        const workspaceSettingsPath = join(process.cwd(), CLAUDE_DIR, CLAUDE_SETTINGS_FILE);
-        actualSettingsPath = workspaceSettingsPath;
+        // Use workspace settings (tracked in git)
+        actualSettingsPath = join(process.cwd(), CLAUDE_DIR, CLAUDE_SETTINGS_FILE);
+      } else {
+        // Use local settings (not tracked in git)
+        actualSettingsPath = join(process.cwd(), CLAUDE_DIR, 'settings.local.json');
       }
 
       const manager = new SettingsManager(actualSettingsPath, tool);
@@ -64,22 +72,12 @@ Supported tools: claude-code, claude`
       try {
         await manager.removeHooks();
 
-        // Remove wrapper scripts
-        if (options.workspace) {
-          // If --workspace is explicitly specified, remove local wrapper
-          await manager.removeLocalWrappers();
-        } else {
-          // Default behavior (no flag or --user): remove global wrapper
-          await manager.removeGlobalWrappers();
-        }
+        // Always remove local wrappers (no global removal)
+        await manager.removeLocalWrappers();
 
         console.log(chalk.green('\n✓ TTS hooks removed successfully'));
 
-        if (options.workspace) {
-          console.log(chalk.blue(`\n📁 Workspace settings updated: ${actualSettingsPath}`));
-        } else {
-          console.log(chalk.blue(`\n📁 User settings updated: ${actualSettingsPath}`));
-        }
+        console.log(chalk.blue(`\n📁 Settings updated: ${actualSettingsPath}`));
       } catch (error) {
         console.error(
           chalk.red(

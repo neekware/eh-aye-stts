@@ -22,9 +22,8 @@ function getDefaultService(): AudioService {
     if (priority) {
       envConfig.priority = priority.split(',').map((s) => s.trim());
     }
-    if (process.env[TTS_ENV_VARS.VOICE_TYPE] || process.env[TTS_ENV_VARS.VOICE_GENDER]) {
-      envConfig.voiceType = (process.env[TTS_ENV_VARS.VOICE_TYPE] ||
-        process.env[TTS_ENV_VARS.VOICE_GENDER]) as 'male' | 'female';
+    if (process.env[TTS_ENV_VARS.VOICE_TYPE]) {
+      envConfig.voiceType = process.env[TTS_ENV_VARS.VOICE_TYPE] as 'male' | 'female';
     }
     const elevenLabsKey = getEnvWithFallback(TTS_ENV_VARS.ELEVENLABS_API_KEY, 'ELEVENLABS_API_KEY');
     if (elevenLabsKey) {

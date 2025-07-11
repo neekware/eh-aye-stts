@@ -1,30 +1,38 @@
 import { BaseTTSProvider } from './base';
 import { Emotion } from '../types';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 export class SayProvider extends BaseTTSProvider {
-  readonly name = 'say';
+  readonly name = 'system';
 
   async isAvailable(): Promise<boolean> {
     try {
-      const say = await import('say');
-      return !!say.default;
+      // Check if 'say' command exists on macOS
+      if (process.platform === 'darwin') {
+        await execAsync('which say');
+        return true;
+      }
+      return false;
     } catch {
       return false;
     }
   }
 
-  async speak(text: string, emotion?: Emotion): Promise<boolean> {
+  async speak(text: string, _emotion?: Emotion): Promise<boolean> {
     try {
-      const say = await import('say');
       const voice = this.getVoice();
-      const rate = this.getRate(emotion);
-      const emotionalText = this.addEmotionalContext(text, emotion);
 
-      return new Promise((resolve) => {
-        say.default.speak(emotionalText, voice, rate, (err?: string) => {
-          resolve(!err);
-        });
-      });
+      // Escape single quotes in text
+      const escapedText = text.replace(/'/g, "'\"'\"'");
+
+      // Build the say command
+      const command = `say -v "${voice}" '${escapedText}'`;
+
+      await execAsync(command);
+      return true;
     } catch (error) {
       console.error('Say provider error:', error);
       return false;
