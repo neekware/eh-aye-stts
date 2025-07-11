@@ -18,9 +18,8 @@ echo
 # Find Claude settings file
 CLAUDE_SETTINGS=""
 POSSIBLE_PATHS=(
-    "$HOME/Library/Application Support/Claude/claude_code_settings.json"
-    "$HOME/.config/Claude/claude_code_settings.json"
-    "$HOME/.claude/claude_code_settings.json"
+    "$HOME/Library/Application Support/Claude/settings.json"
+    "$HOME/.config/Claude/settings.json"
     "$HOME/.claude/settings.json"
 )
 

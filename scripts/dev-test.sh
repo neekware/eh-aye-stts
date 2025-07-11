@@ -39,5 +39,5 @@ node dist/src/cli/program.js hook --help || true
 
 echo -e "\n${GREEN}✅ Development test complete!${NC}"
 echo -e "${BLUE}💡 To test enable/disable locally:${NC}"
-echo -e "  ${YELLOW}node dist/src/cli/program.js enable claude-code${NC}"
-echo -e "  ${YELLOW}node dist/src/cli/program.js disable claude-code${NC}"
+echo -e "  ${YELLOW}node dist/src/cli/program.js enable claude${NC}"
+echo -e "  ${YELLOW}node dist/src/cli/program.js disable claude${NC}"

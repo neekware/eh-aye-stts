@@ -8,20 +8,20 @@ import { existsSync } from 'fs';
 export function statusCommand(): Command {
   return new Command('status')
     .description('Check TTS hooks status for a development tool')
-    .argument('<tool>', 'Tool to check status for (currently supports: claude-code, claude)')
+    .argument('<tool>', 'Tool to check status for (currently supports: claude)')
     .addHelpText(
       'after',
       `
 Examples:
-  stts status claude-code                Check TTS status
+  stts status claude     #Check TTS status
 
 Note: Checks hooks in .claude/settings.local.json
-Supported tools: claude-code, claude`
+Supported tools: claude`
     )
     .showHelpAfterError()
     .action(async (tool: string) => {
       // Validate tool parameter
-      const supportedTools = ['claude', 'claude-code'];
+      const supportedTools = ['claude'];
       if (!supportedTools.includes(tool.toLowerCase())) {
         console.error(chalk.red(`Error: Unsupported tool '${tool}'`));
         console.error(chalk.yellow(`\nSupported tools: ${supportedTools.join(', ')}`));
@@ -37,7 +37,7 @@ Supported tools: claude-code, claude`
       if (!existsSync(actualSettingsPath)) {
         console.log(chalk.yellow('🔇 TTS is NOT enabled for this project'));
         console.log(chalk.gray('   No .claude/settings.local.json file found'));
-        console.log(chalk.gray('\nTo enable TTS, run: stts enable claude-code'));
+        console.log(chalk.gray('\nTo enable TTS, run: stts enable claude'));
         return;
       }
 
@@ -83,11 +83,11 @@ Supported tools: claude-code, claude`
             });
           }
 
-          console.log(chalk.gray('\nTo disable TTS, run: stts disable claude-code'));
+          console.log(chalk.gray('\nTo disable TTS, run: stts disable claude'));
         } else {
           console.log(chalk.yellow('🔇 TTS is NOT enabled for this project'));
           console.log(chalk.gray('   Settings file exists but no STTS hooks found'));
-          console.log(chalk.gray('\nTo enable TTS, run: stts enable claude-code'));
+          console.log(chalk.gray('\nTo enable TTS, run: stts enable claude'));
         }
       } catch (error) {
         console.error(

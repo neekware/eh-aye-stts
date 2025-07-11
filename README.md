@@ -10,8 +10,7 @@ A simple text-to-speech library using system voice with a flexible plugin system
 
 - 🔊 **System Voice** - Uses your system's built-in text-to-speech
 - 🔌 **Plugin System** - Extend functionality with custom plugins
-- 🤖 **Claude Code Integration** - Optional voice notifications for Claude Code
-- 🧠 **LLM-Powered Feedback** - Dynamic, context-aware messages using Claude CLI
+- 🤖 **Claude Code Integration** - Optional voice notifications for Claude Code (Claude)
 - 🎯 **Simple API** - Just `speak("Hello")` to get started
 
 ## When Your Code Finds Its Voice 🗣️💻
@@ -84,28 +83,25 @@ const registry = getRegistry();
 await registry.register(new MyPlugin());
 ```
 
-## Claude Code Integration (Optional)
+## Claude Integration (Optional)
 
-If you're using Claude Code, you can enable voice notifications:
+If you're using Claude Code (referred to as "Claude" throughout this documentation), you can enable voice notifications:
 
 ```bash
 # Install STTS globally
 npm install -g @eh-aye/stts
 
-# Enable Claude Code integration
-stts enable claude-code
+# Enable Claude integration
+stts claude enable
 
-# Enable without audio (silent mode)
-stts enable claude-code --no-audio
-
-# After enabling, you can use these commands in Claude Code:
+# After enabling, you can use these commands in Claude:
 audio enable    # Enable audio notifications
 audio disable   # Disable audio notifications
 
 # Test it works
 stts test
 
-# Or from within Claude Code:
+# Or from within Claude:
 audio enable   # Enable audio notifications
 audio disable  # Disable audio notifications
 ```
@@ -116,17 +112,17 @@ STTS installs three components:
 
 1. **Global wrapper** at `~/.stts/hooks/stts` - Handles the actual TTS execution
 2. **Local settings** in `.claude/settings.local.json` - Your personal hooks configuration (not tracked by git)
-3. **Audio command** at `~/.claude/commands/audio` - Quick enable/disable from within Claude Code
+3. **Audio command** at `~/.claude/commands/audio` - Quick enable/disable from within Claude
 
 This setup ensures:
 
 - Your TTS preferences don't affect other team members
-- You can quickly toggle audio on/off without leaving Claude Code
+- You can quickly toggle audio on/off without leaving Claude
 - The wrapper is available globally for all your projects
 
 ```bash
-# Disable Claude Code integration
-stts disable claude-code
+# Disable Claude integration
+stts claude disable
 ```
 
 ### Configuration
@@ -135,91 +131,25 @@ STTS can be configured via:
 
 - Configuration files: `~/.stts.json` (user-level) and `./.stts.json` (workspace-specific)
 - Environment variables (override config files)
-- CLI commands
 
 #### Configuration Options
 
 ```json
 {
-  "enableDangerousCommandBlocking": false,
-  "customDangerousCommands": []
+  "audioEnabled": true
 }
 ```
 
 #### CLI Commands Reference
 
-##### `stts detect`
+##### `stts claude`
 
-Detect installed development tools.
-
-```bash
-stts detect               # Detect all installed tools
-stts detect claude        # Check if Claude Code is installed
-stts detect --json        # Output results as JSON
-```
-
-Supported tools: `claude`, `claude-code`, `cursor`, `windsurf`, `zed`
-
-##### `stts enable`
-
-Enable TTS hooks for a development tool.
+Manage TTS for Claude tools.
 
 ```bash
-stts enable claude-code                # Enable with user-level wrapper (default)
-stts enable claude-code --workspace    # Enable with workspace-level wrapper
-stts enable claude-code --no-audio     # Enable without audio announcements
-stts enable claude-code --dangerous-commands  # Enable with dangerous command blocking
-```
-
-##### `stts disable`
-
-Disable TTS hooks for a development tool.
-
-```bash
-stts disable claude-code             # Remove hooks and user wrapper
-stts disable claude-code --workspace # Remove hooks and workspace wrapper
-```
-
-##### `stts status`
-
-Show TTS status for all tools.
-
-```bash
-stts status               # Show TTS status for all tools
-stts status --backups     # List available settings backups
-stts status --json        # Output status in JSON format
-```
-
-##### `stts config`
-
-Manage STTS configuration.
-
-```bash
-# Show configuration
-stts config show
-
-# Audio settings
-stts config audio --enable
-stts config audio --disable
-
-# Debug mode
-stts config debug --enable   # Enable debug logging
-stts config debug --disable  # Disable debug logging
-
-# Dangerous command blocking
-stts config dangerous-commands --enable
-stts config dangerous-commands --disable
-stts config dangerous-commands --add "sudo rm -rf"
-
-# LLM settings
-stts config llm --enable
-stts config llm --disable
-stts config llm --style casual      # Options: casual, professional, encouraging
-stts config llm --max-words 10      # Limit response length
-stts config llm --model claude-3-5-sonnet-20241022
-
-# Generic configuration
-stts config set <key> <value>        # Set any configuration value
+stts claude enable                     # Enable TTS hooks for Claude
+stts claude disable                    # Disable TTS hooks for Claude
+stts claude status                     # Check TTS status for Claude
 ```
 
 ##### `stts test`
@@ -230,38 +160,6 @@ Test TTS functionality.
 stts test                           # Test with default message
 stts test -m "Hello world"         # Test with custom message
 stts test --list-providers          # List available TTS providers
-```
-
-##### `stts restore`
-
-Restore settings from a backup.
-
-```bash
-stts restore claude-code            # Interactive restore selection
-stts restore claude-code 2          # Restore backup #2
-stts restore claude-code 1 --force  # Restore without confirmation
-```
-
-##### `stts llm`
-
-Manage LLM feedback and caching.
-
-```bash
-# Test LLM feedback
-stts llm test -s                    # Run test scenarios
-stts llm test -p "Testing prompt"  # Test with custom prompt
-stts llm test -c '{"eventType":"stop"}'  # Test with JSON context
-
-# Manage cache
-stts llm cache show                 # Show cache statistics
-stts llm cache clear                # Clear all cache entries
-stts llm cache tail                 # Monitor cache in real-time
-stts llm cache export               # Export cache to JSON
-
-# Enable/disable
-stts llm enable                     # Enable LLM feedback
-stts llm disable                    # Disable LLM feedback
-stts llm status                     # Show LLM configuration
 ```
 
 ##### `stts hook` (Internal Use)
@@ -283,36 +181,12 @@ Configuration is loaded in this order (later sources override earlier ones):
 #### Environment Variables
 
 ```bash
-# Configuration
-export STTS_ENABLE_DANGEROUS_COMMAND_BLOCKING=true
+# Audio enabled (default: true)
 export STTS_AUDIO_ENABLED=false
-export STTS_CUSTOM_DANGEROUS_COMMANDS="sudo rm,DROP TABLE,DELETE FROM"
 
 # Claude settings path (default: ~/.claude/settings.json)
 export STTS_CLAUDE_SETTINGS_PATH="/custom/path/to/settings.json"
 ```
-
-### Dangerous Command Blocking
-
-When enabled, STTS will block potentially destructive commands:
-
-- File system: `rm -rf`, `dd if=`, `mkfs`, `format`
-- System: `chmod -R 777 /`, `chown -R`, `:(){:|:&};:`
-- Git: `git push --force`, `git reset --hard`, `git clean -fdx`
-- Custom patterns you define
-
-To enable:
-
-```bash
-stts config --enable-dangerous-commands
-```
-
-This adds voice notifications for:
-
-- Task completions
-- Long-running commands
-- Error notifications
-- Session end alerts
 
 ## Configuration
 
@@ -322,47 +196,6 @@ Configure via environment variables:
 # Claude integration settings
 export STTS_CLAUDE_SETTINGS_PATH="/path/to/claude/settings.json"
 ```
-
-### LLM-Powered Feedback (Claude Code Integration)
-
-STTS can generate dynamic, context-aware messages using Claude CLI instead of static notifications:
-
-```bash
-# Enable/disable LLM feedback
-stts llm enable              # Enable LLM-powered feedback
-stts llm disable             # Disable LLM feedback
-stts llm status              # Show current LLM configuration
-
-# Configure LLM settings
-stts config llm --style casual      # Options: casual, professional, encouraging
-stts config llm --max-words 10      # Limit response length
-stts config llm --model claude-3-5-sonnet-20241022  # Claude model to use
-
-# Or use the generic config command
-stts config set llmEnabled true
-stts config set llmStyle casual
-stts config set llmMaxWords 8
-
-# Manage LLM response cache
-stts llm cache show          # View cache statistics and entries
-stts llm cache clear         # Clear all cached responses
-stts llm cache export        # Export cache to JSON file
-```
-
-**Features:**
-
-- **Context-aware messages**: Generates feedback based on command type, duration, and outcome
-- **Session summaries**: Provides intelligent summaries when sessions end
-- **Automatic fallbacks**: Uses static messages when Claude CLI is unavailable
-- **Response caching**: Caches similar responses to minimize LLM calls
-- **Zero configuration**: Works out-of-the-box with Claude Code
-
-**Examples:**
-
-- Build success: "Nice! Build crushed it" instead of "Build completed in 45 seconds"
-- Test failure: "Tests need some love" instead of "Test failed with error"
-- Long task: "Finally done, great patience" instead of "Command completed in 120 seconds"
-- Session end: "Productive session, nice work" instead of "Session completed"
 
 ## Architecture
 
@@ -383,10 +216,10 @@ graph TB
     API --> PR[Plugin Registry]
     PR --> BP[Base Plugin]
     BP --> CP[Custom Plugins]
-    BP --> CCP[Claude Code Plugin]
+    BP --> CCP[Claude Plugin]
 
     %% Event Flow
-    CC[Claude Code] -.->|Events| CCP
+    CC[Claude] -.->|Events| CCP
     CP -.->|Custom Events| PR
 
     %% Audio Flow
@@ -412,14 +245,14 @@ graph TB
 | Batch       | 1       | 20        | 12       | 7        | 1        |
 | Environment | 2       | 21        | 4        | 14       | 3        |
 | Git         | 2       | 71        | 35       | 20       | 16       |
-| JSON        | 151     | 4763      | 1754     | 2982     | 27       |
+| JSON        | 151     | 7242      | 2813     | 4402     | 27       |
 | JavaScript  | 7       | 741       | 531      | 77       | 133      |
 | License     | 1       | 21        | 17       | 0        | 4        |
-| Markdown    | 12      | 1282      | 696      | 188      | 398      |
-| Shell       | 13      | 716       | 437      | 138      | 141      |
-| TypeScript  | 58      | 5508      | 4082     | 498      | 928      |
+| Markdown    | 12      | 1121      | 596      | 165      | 360      |
+| Shell       | 13      | 714       | 436      | 137      | 141      |
+| TypeScript  | 59      | 5670      | 4221     | 501      | 948      |
 | YAML        | 5       | 216       | 180      | 4        | 32       |
-| **Total**   | **252** | **13359** | **7748** | **3928** | **1683** |
+| **Total**   | **253** | **15837** | **8845** | **5327** | **1665** |
 
 _Last updated: 2025-07-11_
 
@@ -457,8 +290,8 @@ Contributions welcome! Please read our [contributing guidelines](./CONTRIBUTING.
 
 ## Support
 
-- 🐛 [Report bugs](https://github.com/anthropics/claude-code/issues)
-- 💡 [Request features](https://github.com/anthropics/claude-code/issues)
+- 🐛 [Report bugs](https://github.com/neekware/eh-aye-stts/issues)
+- 💡 [Request features](https://github.com/neekware/eh-aye-stts/issues)
 - 📖 [Read the docs](./docs)
 
 ## Sponsors

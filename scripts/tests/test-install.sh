@@ -32,9 +32,9 @@ echo ""
 echo "🪝 Testing notification hook..."
 echo '{"message": "This is a test notification"}' | npx stts hook
 
-# 6. Check Claude Code integration
+# 6. Check Claude integration
 echo ""
-echo "⚙️  Checking Claude Code integration..."
+echo "⚙️  Checking Claude integration..."
 if [ -f "$HOME/.claude/settings.json" ]; then
     echo "✓ Claude settings file exists"
     if grep -q "stts hook" "$HOME/.claude/settings.json"; then

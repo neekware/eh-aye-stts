@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Test LLM Integration Script
-# This script helps debug and test the LLM integration with Claude Code hooks
+# This script helps debug and test the LLM integration with Claude hooks
 
 set -e
 
-echo "🧪 Testing LLM Integration with Claude Code Hooks"
+echo "🧪 Testing LLM Integration with Claude Hooks"
 echo "================================================"
 
 # Colors for output
@@ -67,7 +67,7 @@ echo -e "${BLUE}=== Testing Individual Hooks ===${NC}"
 # Test post-tool-use hook
 echo -e "${YELLOW}Testing post-tool-use hook...${NC}"
 test_event='{"tool":"Bash","args":{"command":"npm test"},"result":"All tests passed","exitCode":0,"duration":3000}'
-echo "$test_event" | DEBUG=1 tsx src/plugins/claude-code/hooks/post-tool-use.ts
+echo "$test_event" | DEBUG=1 tsx src/plugins/claude/hooks/post-tool-use.ts
 
 # 6. Show logs
 echo -e "${BLUE}=== Log Files ===${NC}"

@@ -10,17 +10,17 @@ import {
 import { VERSION } from '../../utils/version';
 
 export class ClaudeCodePlugin extends BasePlugin {
-  name = 'claude-code';
-  description = 'Provides audio notifications for Claude Code events';
+  name = 'claude';
+  description = 'Provides audio notifications for Claude events';
   version = VERSION;
 
   init(context: PluginContext): void {
     super.init(context);
-    this.logger.info('Claude Code plugin initialized');
+    this.logger.info('Claude plugin initialized');
   }
 
   async handleEvent(event: PluginEvent): Promise<void> {
-    if (event.source !== 'claude-code') return;
+    if (event.source !== 'claude') return;
 
     switch (event.type) {
       case 'pre-tool-use':
@@ -139,7 +139,7 @@ export class ClaudeCodePlugin extends BasePlugin {
   }
 
   isAvailable(): boolean {
-    // Check if we're in a Claude Code environment
+    // Check if we're in a Claude environment
     // This could check for specific env vars or config files
     return true;
   }

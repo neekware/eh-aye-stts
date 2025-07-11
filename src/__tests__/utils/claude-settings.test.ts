@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { getClaudeSettingsPath, getClaudeSettingsDir } from '../../plugins/claude-code/settings';
+import { getClaudeSettingsPath, getClaudeSettingsDir } from '../../plugins/claude/settings';
 import { join } from 'path';
 import { homedir } from 'os';
 

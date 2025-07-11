@@ -7,20 +7,20 @@ import { SettingsManager } from '../../installer/settings-manager';
 export function disableCommand(): Command {
   return new Command('disable')
     .description('Disable TTS hooks for a development tool')
-    .argument('<tool>', 'Tool to disable TTS for (currently supports: claude-code, claude)')
+    .argument('<tool>', 'Tool to disable TTS for (currently supports: claude)')
     .addHelpText(
       'after',
       `
 Examples:
-  stts disable claude-code              Remove TTS hooks from local settings
+  stts disable claude              Remove TTS hooks from local settings
 
 Note: Removes hooks from .claude/settings.local.json
-Supported tools: claude-code, claude`
+Supported tools: claude`
     )
     .showHelpAfterError()
     .action(async (tool: string) => {
       // Validate tool parameter
-      const supportedTools = ['claude', 'claude-code'];
+      const supportedTools = ['claude'];
       if (!supportedTools.includes(tool.toLowerCase())) {
         console.error(chalk.red(`Error: Unsupported tool '${tool}'`));
         console.error(chalk.yellow(`\nSupported tools: ${supportedTools.join(', ')}`));

@@ -22,7 +22,7 @@ stts --version
 
 # Try to disable hooks for all tools before uninstalling
 echo -e "\n${YELLOW}🔇 Attempting to disable hooks...${NC}"
-for tool in claude-code claude; do
+for tool in claude; do
     echo -e "${BLUE}  Trying to disable $tool...${NC}"
     stts disable $tool --workspace 2>/dev/null || true
 done

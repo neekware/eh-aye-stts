@@ -2,7 +2,7 @@
 import { spawn } from 'child_process';
 import { join } from 'path';
 import chalk from 'chalk';
-import { PostToolUseEvent, StopEvent, SubagentStopEvent } from '../src/plugins/claude-code/types';
+import { PostToolUseEvent, StopEvent, SubagentStopEvent } from '../src/plugins/claude/types';
 import { SESSION_DEPOT_DIR, SESSION_LOGS_SUBDIR } from '../src/defaults';
 
 interface HookSimulation {
@@ -12,7 +12,7 @@ interface HookSimulation {
 }
 
 class HookEventSimulator {
-  private hookDir = join(process.cwd(), 'src/plugins/claude-code/hooks');
+  private hookDir = join(process.cwd(), 'src/plugins/claude/hooks');
 
   async simulateEvent(hookPath: string, eventData: any): Promise<void> {
     console.log(chalk.yellow(`Simulating event for ${hookPath}...`));

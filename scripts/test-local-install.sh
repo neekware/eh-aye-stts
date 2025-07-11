@@ -56,8 +56,7 @@ stts hook --help || true
 
 echo -e "\n${GREEN}✅ Local installation test complete!${NC}"
 echo -e "${BLUE}💡 To test enable/disable, run:${NC}"
-echo -e "  ${YELLOW}stts enable claude-code --workspace${NC}  (for team settings)"
-echo -e "  ${YELLOW}stts enable claude-code --local${NC}     (for personal settings)"
-echo -e "  ${YELLOW}stts disable claude-code --workspace${NC}"
+echo -e "  ${YELLOW}stts claude enable${NC}"
+echo -e "  ${YELLOW}stts claude disable${NC}"
 echo -e "\n${BLUE}💡 To uninstall:${NC}"
 echo -e "  ${YELLOW}npm uninstall -g @eh-aye/stts${NC}"

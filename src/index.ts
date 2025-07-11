@@ -22,5 +22,5 @@ export {
   getRegistry,
 } from './plugins';
 
-// Claude Code plugin (separate export for optional use)
-export { ClaudeCodePlugin } from './plugins/claude-code';
+// Claude plugin (separate export for optional use)
+export { ClaudeCodePlugin } from './plugins/claude';

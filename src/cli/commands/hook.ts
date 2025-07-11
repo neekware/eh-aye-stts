@@ -77,7 +77,7 @@ Debug logs are written to ./hook-debug.json for troubleshooting.`
       }
 
       // Path to the hook script in dist
-      const hookPath = join(__dirname, '..', '..', 'plugins', 'claude-code', 'hooks', scriptFile);
+      const hookPath = join(__dirname, '..', '..', 'plugins', 'claude', 'hooks', scriptFile);
 
       // Spawn the hook script, passing stdin through
       const child = spawn('node', [hookPath], {

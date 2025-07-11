@@ -91,7 +91,7 @@ async function cleanupLogs() {
 
 async function main() {
   // List of tools to try disabling
-  const tools = ['claude-code', 'claude', 'cursor', 'windsurf', 'zed'];
+  const tools = ['claude', 'cursor', 'windsurf', 'zed'];
   let disabledCount = 0;
 
   // Check if stts command is available

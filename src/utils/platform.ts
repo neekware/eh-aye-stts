@@ -220,7 +220,7 @@ export async function makeExecutable(filePath: string): Promise<void> {
 }
 
 /**
- * Get Claude Code settings path for the current platform
+ * Get Claude settings path for the current platform
  */
 export function getClaudeSettingsPath(): string {
   const home = getHomeDir();

@@ -77,14 +77,14 @@ async function enableTool(tool) {
 
 async function main() {
   // List of tools to try enabling
-  const tools = ['claude-code', 'claude'];
+  const tools = ['claude'];
   let enabledCount = 0;
 
   // First, detect available tools
   const detected = await detectTools();
   if (!detected) {
     console.log('\n⚠️  Could not detect tools. You can manually enable STTS later with:');
-    console.log('  stts enable claude-code');
+    console.log('  stts claude enable');
     return;
   }
 
@@ -99,7 +99,7 @@ async function main() {
 
   if (enabledCount === 0) {
     console.log('\n📝 No tools were auto-enabled. You can manually enable STTS with:');
-    console.log('  stts enable claude-code');
+    console.log('  stts claude enable');
   } else {
     console.log('\n✨ STTS setup complete! Your development tools now have TTS support.');
     console.log('\n💡 Quick commands:');
@@ -116,7 +116,7 @@ async function main() {
 main().catch((error) => {
   console.error('\n❌ Post-install setup failed:', error.message);
   console.log('\nYou can manually set up STTS later with:');
-  console.log('  stts enable claude-code');
+  console.log('  stts claude enable');
   // Don't exit with error code to not break npm install
   process.exit(0);
 });

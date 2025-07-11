@@ -7,20 +7,20 @@ import { SettingsManager } from '../../installer/settings-manager';
 export function enableCommand(): Command {
   const cmd = new Command('enable')
     .description('Enable TTS hooks for a development tool')
-    .argument('<tool>', 'Tool to enable TTS for (currently supports: claude-code, claude)')
+    .argument('<tool>', 'Tool to enable TTS for (currently supports: claude)')
     .addHelpText(
       'after',
       `
 Examples:
-  stts enable claude-code                Enable TTS hooks
+  stts enable claude                Enable TTS hooks
 
 Note: Hooks are installed in .claude/settings.local.json (not tracked by git)
-Supported tools: claude-code, claude`
+Supported tools: claude`
     )
     .showHelpAfterError()
     .action(async (tool: string, _options: Record<string, any>) => {
       // Validate tool parameter
-      const supportedTools = ['claude', 'claude-code'];
+      const supportedTools = ['claude'];
       if (!supportedTools.includes(tool.toLowerCase())) {
         console.error(chalk.red(`Error: Unsupported tool '${tool}'`));
         console.error(chalk.yellow(`\nSupported tools: ${supportedTools.join(', ')}`));

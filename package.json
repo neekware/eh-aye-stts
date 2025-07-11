@@ -1,7 +1,7 @@
 {
   "name": "@eh-aye/stts",
   "version": "0.1.0",
-  "description": "Simple Text-to-Speech (TTS) integration for Claude Code and other development tools. Hear notifications and tool executions using system voice.",
+  "description": "Simple Text-to-Speech (TTS) integration for Claude and other development tools. Hear notifications and tool executions using system voice.",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "type": "module",
@@ -48,7 +48,7 @@
   "keywords": [
     "tts",
     "text-to-speech",
-    "claude-code",
+    "claude",
     "developer-tools",
     "hooks",
     "voice",

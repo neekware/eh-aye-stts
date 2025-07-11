@@ -1,25 +1,25 @@
 # Audio Command
 
-Simple command to control stts for Claude Code.
+Simple command to control stts for Claude.
 
 ## Commands
 
 ### Enable Audio
 
 ```bash
-stts enable claude-code
+stts claude enable
 ```
 
 ### Disable Audio
 
 ```bash
-stts disable claude-code
+stts claude disable
 ```
 
 ### Check Status
 
 ```bash
-stts status claude-code
+stts claude status
 ```
 
 ## Usage

@@ -1,6 +1,6 @@
 # LLM Integration Debugging Guide
 
-This directory contains scripts and tools to debug and test the LLM integration with Claude Code hooks.
+This directory contains scripts and tools to debug and test the LLM integration with Claude hooks.
 
 ## Overview
 
@@ -68,7 +68,7 @@ The `ContextBuilder` extracts relevant information from hook events:
 - Exit codes, duration, results
 - Session statistics for stop events
 
-**Location:** `src/plugins/claude-code/hooks/context-builder.ts`
+**Location:** `src/plugins/claude/hooks/context-builder.ts`
 
 ### 2. Prompt Generation
 
@@ -187,8 +187,8 @@ All debug information is logged to:
    cat ~/.stts/logs/$(basename $(pwd))/llm-debug.json | jq '.'
    ```
 
-6. **Test with Claude Code:**
-   Actually use Claude Code to trigger real events and observe the messages.
+6. **Test with Claude:**
+   Actually use Claude to trigger real events and observe the messages.
 
 ## Improving Message Quality
 
