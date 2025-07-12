@@ -18,7 +18,7 @@ Note: Hooks are installed in .claude/settings.local.json (not tracked by git)
 Supported tools: claude`
     )
     .showHelpAfterError()
-    .action(async (tool: string, _options: Record<string, any>) => {
+    .action(async (tool: string, _options: Record<string, unknown>) => {
       // Validate tool parameter
       const supportedTools = ['claude'];
       if (!supportedTools.includes(tool.toLowerCase())) {

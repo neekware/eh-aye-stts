@@ -6,6 +6,18 @@ import { SettingsManager } from '../../installer/settings-manager';
 import { execCommand } from '../../utils/platform';
 import { existsSync, readFileSync } from 'fs';
 
+interface Hook {
+  command?: string;
+}
+
+interface HookConfig {
+  hooks?: Hook[];
+}
+
+interface Settings {
+  hooks?: Record<string, HookConfig[]>;
+}
+
 export function claudeCommand(): Command {
   const cmd = new Command('claude').description('Manage TTS for Claude tools').addHelpText(
     'after',
@@ -100,13 +112,13 @@ Examples:
         }
 
         const content = readFileSync(settingsPath, 'utf-8');
-        const settings = JSON.parse(content);
+        const settings = JSON.parse(content) as Settings;
         const hooks = settings.hooks || {};
 
-        const hasHooks = Object.values(hooks).some((hookArray: any) =>
+        const hasHooks = Object.values(hooks).some((hookArray) =>
           Array.isArray(hookArray)
-            ? hookArray.some((hook: any) =>
-                hook.hooks?.some((h: any) => h.command?.includes('stts'))
+            ? hookArray.some((hook: HookConfig) =>
+                hook.hooks?.some((h) => h.command?.includes('stts'))
               )
             : false
         );
@@ -119,8 +131,8 @@ Examples:
           for (const [event, hookArray] of Object.entries(hooks)) {
             if (
               Array.isArray(hookArray) &&
-              hookArray.some((hook: any) =>
-                hook.hooks?.some((h: any) => h.command?.includes('stts'))
+              hookArray.some((hook: HookConfig) =>
+                hook.hooks?.some((h) => h.command?.includes('stts'))
               )
             ) {
               console.log(chalk.gray(`  • ${event}`));
