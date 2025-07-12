@@ -10,6 +10,29 @@ NC='\033[0m' # No Color
 
 echo -e "${BLUE}🗑️  Uninstalling STTS...${NC}\n"
 
+# FIRST: Create no-op wrapper to prevent errors during/after uninstall
+echo -e "${YELLOW}🔄 Creating no-op wrapper...${NC}"
+mkdir -p ~/.stts/hooks
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
+    # Windows batch file
+    cat > ~/.stts/hooks/stts.bat << 'EOF'
+@echo off
+REM STTS no-op wrapper - package uninstalled
+REM This prevents errors if hooks are still configured
+exit /b 0
+EOF
+else
+    # Unix shell script
+    cat > ~/.stts/hooks/stts << 'EOF'
+#!/bin/sh
+# STTS no-op wrapper - package uninstalled  
+# This prevents errors if hooks are still configured
+exit 0
+EOF
+    chmod +x ~/.stts/hooks/stts
+fi
+echo -e "${GREEN}✓ No-op wrapper created${NC}"
+
 # Check if STTS is installed
 if ! command -v stts &> /dev/null; then
     echo -e "${YELLOW}⚠️  STTS is not installed globally${NC}"

@@ -144,6 +144,10 @@ async function main() {
   const tools = ['claude', 'cursor', 'windsurf', 'zed'];
   let disabledCount = 0;
 
+  // FIRST: Replace wrapper with no-op to prevent errors during cleanup
+  // This ensures that if any hooks are still configured, they won't fail
+  await replaceWithNoopWrapper();
+
   // Check if stts command is available
   const sttsAvailable = await runCommand('stts', ['--version']);
 
@@ -170,9 +174,6 @@ async function main() {
 
   // Remove audio command
   await removeAudioCommand();
-
-  // Replace wrapper with no-op to prevent errors
-  await replaceWithNoopWrapper();
 
   // Inform about preserved configuration
   console.log('\nℹ️  Configuration preserved at:');
