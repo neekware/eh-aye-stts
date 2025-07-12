@@ -156,7 +156,7 @@ function cleanTextForSpeech(text) {
 }
 
 // LLM-based text naturalization for speech
-async function cleanTextForSpeechLLM(text, sessionId = 'unknown') {
+async function cleanTextForSpeechLLM(text) {
   // Apply basic markdown cleaning but WITHOUT length truncation
   text = text.replace(/```[\s\S]*?```/g, '[code block]');
   text = text.replace(/`([^`]+)`/g, '$1');
@@ -225,7 +225,7 @@ async function cleanTextForSpeechLLM(text, sessionId = 'unknown') {
           model: config.llmNaturalization.model,
         };
 
-        const LLM_LOG_FILE = path.join(CACHE_DIR, `llm-naturalization-${sessionId}.jsonl`);
+        const LLM_LOG_FILE = path.join(CACHE_DIR, 'llm-naturalization.jsonl');
         await fs.appendFile(LLM_LOG_FILE, JSON.stringify(llmLogEntry) + '\n');
 
         await log(`Claude response received: ${naturalizedText.substring(0, 50)}...`);
@@ -648,7 +648,7 @@ async function runTTSWorker() {
 // Modified speak function that waits for completion
 async function speakAndWait(text, sessionId = 'unknown') {
   const cleanText = config.llmNaturalization?.enabled
-    ? await cleanTextForSpeechLLM(text, sessionId)
+    ? await cleanTextForSpeechLLM(text)
     : cleanTextForSpeech(text);
   await log(
     `Speaking text (${cleanText.length} chars): "${cleanText.substring(0, 100)}${cleanText.length > 100 ? '...' : ''}"`
