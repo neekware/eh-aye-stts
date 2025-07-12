@@ -1,51 +1,43 @@
-# Audio Command [enable, disable, status]
+# Audio Command
 
 Control STTS (Smart Text-to-Speech) for Claude.
 
-## What would you like to do?
-
-Choose one of the following options by typing the number:
-
-1. **Enable Audio** - Turn on text-to-speech announcements
-2. **Disable Audio** - Turn off text-to-speech announcements
-3. **Check Status** - See if audio is currently enabled
-
----
-
-### Option 1: Enable Audio
-
-To enable audio, run:
-
-```bash
-!stts claude enable
-```
-
-### Option 2: Disable Audio
-
-To disable audio, run:
-
-```bash
-!stts claude disable
-```
-
-**Note:** After disabling audio, you'll need to restart Claude for the changes to take effect.
-
-### Option 3: Check Status
-
-To check the current status, run:
-
-```bash
-!stts claude status
-```
-
----
-
 ## Quick Usage
 
-You can also use these commands directly:
+- `/audio enable` - Turn on text-to-speech announcements
+- `/audio disable` - Turn off text-to-speech announcements
+- `/audio status` - Check if audio is currently enabled
 
-- `/audio 1` or `/audio enable` - Enable audio
-- `/audio 2` or `/audio disable` - Disable audio
-- `/audio 3` or `/audio status` - Check status
+## Detailed Instructions
 
-When you use `/audio $ARGUMENTS`, I'll execute the appropriate command based on your choice.
+### Enable Audio
+
+```bash
+stts claude enable
+```
+
+Turns on voice announcements for tool usage, notifications, and session events.
+
+### Disable Audio
+
+```bash
+stts claude disable
+```
+
+Turns off all voice announcements. Restart Claude for changes to take full effect.
+
+### Check Status
+
+```bash
+stts claude status
+```
+
+Shows whether audio is currently enabled and which hooks are active.
+
+### Test Audio
+
+```bash
+stts test
+```
+
+Tests the text-to-speech functionality with a sample announcement.

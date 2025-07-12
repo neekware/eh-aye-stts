@@ -39,7 +39,7 @@ Examples:
         console.log(chalk.gray('  • Notifications'));
         console.log(chalk.gray('  • Session completion'));
         console.log(chalk.blue('\n💡 Next steps:'));
-        console.log(chalk.gray('  • Test TTS: stts test'));
+        // console.log(chalk.gray('  • Test TTS: stts test'));
         console.log(chalk.gray('  • Run your Claude tool and listen for announcements'));
       } catch (error) {
         console.error(
@@ -69,7 +69,7 @@ Examples:
         console.log(chalk.gray('   (These settings are not tracked by git)'));
 
         console.log(chalk.blue('\n💡 To re-enable:'));
-        console.log(chalk.gray('  stts claude enable'));
+        console.log(chalk.gray('  claude: /audio enable, shell: stts claude enable'));
       } catch (error) {
         console.error(
           chalk.red(
@@ -95,7 +95,7 @@ Examples:
           console.log(chalk.yellow(`⚠️  No local settings file found`));
           console.log(chalk.gray(`   Expected at: ${settingsPath}`));
           console.log(chalk.blue('\n💡 To enable TTS:'));
-          console.log(chalk.gray('  stts claude enable'));
+          console.log(chalk.gray('  claude: /audio enable, shell: stts claude enable'));
           return;
         }
 
@@ -129,7 +129,7 @@ Examples:
         } else {
           console.log(chalk.yellow('⚠️  TTS hooks are DISABLED'));
           console.log(chalk.blue('\n💡 To enable:'));
-          console.log(chalk.gray('  stts claude enable'));
+          console.log(chalk.gray('  claude: /audio enable, shell: stts claude enable'));
         }
 
         console.log(chalk.gray(`\n🔍 Checking Claude tool installation...`));
