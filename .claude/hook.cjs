@@ -10,7 +10,8 @@ const execAsync = promisify(exec);
 
 // Get the directory where this script is located
 const SCRIPT_DIR = __dirname;
-const LOG_DIR = path.join(SCRIPT_DIR, '.log-depot');
+const PROJECT_ROOT = path.dirname(SCRIPT_DIR);
+const LOG_DIR = path.join(PROJECT_ROOT, '.log-depot');
 const LOG_FILE = path.join(LOG_DIR, 'tts-hook.log');
 const CACHE_DIR = path.join(LOG_DIR, 'cache');
 const CONFIG_FILE = path.join(SCRIPT_DIR, '.tts-config.json');
