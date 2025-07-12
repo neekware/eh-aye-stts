@@ -3,7 +3,7 @@ import { BaseHook } from './base';
 import { StopEvent } from '../types';
 import { Emotion } from '../../../tts/index';
 import { announceIfEnabled } from '../../../tts/announce';
-import { debugLogger } from '../../../utils/debug-logger';
+import { debugLogger } from '../../../utils/logger';
 
 export class StopHook extends BaseHook {
   constructor() {

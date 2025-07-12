@@ -2,7 +2,7 @@ import { HookEvent } from '../../../types';
 import winston from 'winston';
 import { readFileSync, writeFileSync } from 'fs';
 import { getProjectName } from '../../../utils/project';
-import { SessionManager } from '../../../utils/session-manager';
+import { SessionManager } from '../../../utils/session';
 
 export abstract class BaseHook {
   protected logger: winston.Logger;

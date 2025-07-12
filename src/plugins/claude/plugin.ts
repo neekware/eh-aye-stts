@@ -8,6 +8,7 @@ import {
   SubagentStopEvent,
 } from './types';
 import { VERSION } from '../../utils/version';
+import { extractAndSaveChat } from '../../utils/chat';
 
 export class ClaudeCodePlugin extends BasePlugin {
   name = 'claude';
@@ -69,6 +70,32 @@ export class ClaudeCodePlugin extends BasePlugin {
   }
 
   private async handleStop(event: StopEvent): Promise<void> {
+    // Log the stop event
+    this.logger.info(
+      `Stop event received - session: ${event.session_id}, exitCode: ${event.exitCode}, transcript: ${event.transcript_path ? 'yes' : 'no'}`
+    );
+
+    // Extract chat if transcript path is provided
+    if (event.transcript_path) {
+      try {
+        const chatData = extractAndSaveChat(event.transcript_path);
+        if (chatData && chatData.length > 0) {
+          this.logger.info(`Chat extracted successfully: ${chatData.length} messages`);
+
+          // Log a sample of the chat content (first and last messages)
+          const firstMsg = chatData[0];
+          const lastMsg = chatData[chatData.length - 1];
+          this.logger.debug(
+            `Chat sample - first: "${firstMsg?.content ? firstMsg.content.toString().substring(0, 50) + '...' : 'No content'}", last: "${lastMsg?.content ? lastMsg.content.toString().substring(0, 50) + '...' : 'No content'}"`
+          );
+        }
+      } catch (error) {
+        this.logger.debug(
+          `Failed to extract chat: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
+      }
+    }
+
     const messages = ['Session completed', 'Task finished', 'Work complete', 'All done'];
     const message = messages[Math.floor(Math.random() * messages.length)];
 
@@ -83,6 +110,37 @@ export class ClaudeCodePlugin extends BasePlugin {
   }
 
   private async handleSubagentStop(event: SubagentStopEvent): Promise<void> {
+    // Log the subagent stop event
+    this.logger.info(
+      `SubagentStop event - agent: ${event.agentId}, task: ${event.taskDescription || 'none'}, success: ${event.success}, duration: ${event.duration}ms`
+    );
+
+    // Extract chat if transcript path is provided
+    if (event.transcript_path) {
+      try {
+        const chatData = extractAndSaveChat(event.transcript_path);
+        if (chatData && chatData.length > 0) {
+          this.logger.info(`Subagent chat extracted: ${chatData.length} messages`);
+
+          // Log task-specific chat content
+          const taskRelatedMessages = chatData.filter(
+            (msg) =>
+              msg.content &&
+              event.taskDescription &&
+              msg.content.toString().toLowerCase().includes(event.taskDescription.toLowerCase())
+          );
+
+          this.logger.debug(
+            `Subagent chat - task: "${event.taskDescription || 'none'}", task-related: ${taskRelatedMessages.length}/${chatData.length} messages`
+          );
+        }
+      } catch (error) {
+        this.logger.debug(
+          `Failed to extract chat: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
+      }
+    }
+
     let emotion: Emotion;
     let message = 'Agent task completed';
 

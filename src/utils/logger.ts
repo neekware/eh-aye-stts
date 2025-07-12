@@ -1,7 +1,7 @@
 import { writeFileSync, appendFileSync } from 'fs';
 import { getProjectName } from './project';
 import { getConfigValue } from './config';
-import { SessionManager } from './session-manager';
+import { SessionManager } from './session';
 
 export interface DebugLogEntry {
   timestamp: string;

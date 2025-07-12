@@ -57,4 +57,8 @@ export interface SubagentStopEvent {
   taskDescription?: string;
   duration?: number;
   success?: boolean;
+  session_id?: string;
+  transcript_path?: string;
+  hook_event_name?: string;
+  stop_hook_active?: boolean;
 }

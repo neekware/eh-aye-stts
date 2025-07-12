@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { HookEvent } from '../../../types';
-import { SessionManager } from '../../../utils/session-manager';
+import { SessionManager } from '../../../utils/session';
 
 export class LogReader {
   private static readonly MAX_LOG_LINES = 1000;

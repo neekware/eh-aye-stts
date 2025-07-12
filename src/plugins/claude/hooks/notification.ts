@@ -3,7 +3,7 @@ import { BaseHook } from './base';
 import { NotificationEvent } from '../types';
 import { announceIfEnabled } from '../../../tts/announce';
 import chalk from 'chalk';
-import { debugLogger } from '../../../utils/debug-logger';
+import { debugLogger } from '../../../utils/logger';
 
 export class NotificationHook extends BaseHook {
   constructor() {
