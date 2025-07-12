@@ -3,6 +3,7 @@ import { spawn } from 'child_process';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { readFileSync, writeFileSync } from 'fs';
+import { SessionManager } from '../../utils/session';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -31,11 +32,14 @@ Supported hook types:
   - stop             Called when Claude session ends
   - subagent-stop    Called when a Claude subagent completes
 
-Debug logs are written to ./hook-debug.json for troubleshooting.`
+Debug logs are written to .stts_depot/logs/hook-debug.json for troubleshooting.`
     )
     .action((type: string) => {
+      // Ensure session directories exist
+      SessionManager.ensureSessionDirectories();
+
       // Log hook command execution for debugging
-      const debugLog = join(dirname(__dirname), '..', '..', '..', 'hook-debug.json');
+      const debugLog = SessionManager.getSessionLogFile('hook-debug.json');
       const timestamp = new Date().toISOString();
       const logEntry: HookLogEntry = {
         timestamp,

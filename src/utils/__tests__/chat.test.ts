@@ -83,10 +83,16 @@ invalid json line
   });
 
   describe('saveChatToFile', () => {
-    it('should throw for non-array input', () => {
-      expect(() => saveChatToFile(null as any)).toThrow('chatData must be an array');
-      expect(() => saveChatToFile('string' as any)).toThrow('chatData must be an array');
-      expect(() => saveChatToFile({} as any)).toThrow('chatData must be an array');
+    it('should exit gracefully for non-array input', () => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
+        throw new Error('process.exit called');
+      });
+
+      expect(() => saveChatToFile(null as any)).toThrow('process.exit called');
+      expect(() => saveChatToFile('string' as any)).toThrow('process.exit called');
+      expect(() => saveChatToFile({} as any)).toThrow('process.exit called');
+
+      mockExit.mockRestore();
     });
 
     it('should save chat data to file', () => {

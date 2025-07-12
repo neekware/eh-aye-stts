@@ -1,6 +1,7 @@
 import { STTSPlugin, PluginContext, PluginEvent, PluginLogger } from './base';
 import { AudioService } from '../audio/service';
 import { TTSConfig } from '../tts/types';
+import { debugLogger } from '../utils/logger';
 
 export interface RegistryConfig {
   audioConfig?: TTSConfig;
@@ -52,14 +53,30 @@ export class PluginRegistry {
    */
   async register(plugin: STTSPlugin, config?: Record<string, unknown>): Promise<void> {
     if (this.plugins.has(plugin.name)) {
-      throw new Error(`Plugin ${plugin.name} is already registered`);
+      debugLogger.error(
+        'plugin-registry',
+        'register_duplicate',
+        `Plugin ${plugin.name} is already registered`,
+        {
+          pluginName: plugin.name,
+        }
+      );
+      process.exit(0);
     }
 
     // Check if plugin is available
     if (plugin.isAvailable) {
       const available = await plugin.isAvailable();
       if (!available) {
-        throw new Error(`Plugin ${plugin.name} is not available in this environment`);
+        debugLogger.error(
+          'plugin-registry',
+          'register_unavailable',
+          `Plugin ${plugin.name} is not available in this environment`,
+          {
+            pluginName: plugin.name,
+          }
+        );
+        process.exit(0);
       }
     }
 
@@ -85,7 +102,15 @@ export class PluginRegistry {
   async unregister(pluginName: string): Promise<void> {
     const plugin = this.plugins.get(pluginName);
     if (!plugin) {
-      throw new Error(`Plugin ${pluginName} not found`);
+      debugLogger.error(
+        'plugin-registry',
+        'unregister_not_found',
+        `Plugin ${pluginName} not found`,
+        {
+          pluginName,
+        }
+      );
+      process.exit(0);
     }
 
     // Call destroy if available

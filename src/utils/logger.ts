@@ -33,7 +33,10 @@ export class DebugLogger {
     } catch (error) {
       // File already exists, which is fine
       if ((error as NodeJS.ErrnoException).code !== 'EEXIST') {
-        throw error;
+        // Log initialization error but continue gracefully
+        console.error('Failed to initialize debug log:', error);
+        // Set a fallback path or disable logging
+        this.logPath = '';
       }
     }
   }
@@ -65,6 +68,9 @@ export class DebugLogger {
     const debugEnabled =
       getConfigValue('debug', false) || process.env.DEBUG === 'true' || process.env.DEBUG === '1';
     if (!debugEnabled) return;
+
+    // Skip logging if initialization failed
+    if (!this.logPath) return;
 
     const fullEntry: DebugLogEntry = {
       ...entry,

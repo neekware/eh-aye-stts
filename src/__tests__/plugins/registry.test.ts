@@ -76,22 +76,29 @@ describe('PluginRegistry', () => {
       );
     });
 
-    it('should throw error if plugin already registered', async () => {
-      const plugin = new TestPlugin();
+    it('should exit gracefully if plugin already registered', async () => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
+        throw new Error('process.exit called');
+      });
 
+      const plugin = new TestPlugin();
       await registry.register(plugin);
 
-      await expect(registry.register(plugin)).rejects.toThrow(
-        'Plugin test-plugin is already registered'
-      );
+      await expect(registry.register(plugin)).rejects.toThrow('process.exit called');
+
+      mockExit.mockRestore();
     });
 
-    it('should throw error if plugin is not available', async () => {
+    it('should exit gracefully if plugin is not available', async () => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
+        throw new Error('process.exit called');
+      });
+
       const plugin = new UnavailablePlugin();
 
-      await expect(registry.register(plugin)).rejects.toThrow(
-        'Plugin unavailable-plugin is not available in this environment'
-      );
+      await expect(registry.register(plugin)).rejects.toThrow('process.exit called');
+
+      mockExit.mockRestore();
     });
 
     it('should work with plugins without isAvailable method', async () => {
@@ -121,10 +128,14 @@ describe('PluginRegistry', () => {
       expect(plugin.destroy).toHaveBeenCalled();
     });
 
-    it('should throw error if plugin not found', async () => {
-      await expect(registry.unregister('non-existent')).rejects.toThrow(
-        'Plugin non-existent not found'
-      );
+    it('should exit gracefully if plugin not found', async () => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
+        throw new Error('process.exit called');
+      });
+
+      await expect(registry.unregister('non-existent')).rejects.toThrow('process.exit called');
+
+      mockExit.mockRestore();
     });
 
     it('should work with plugins without destroy method', async () => {

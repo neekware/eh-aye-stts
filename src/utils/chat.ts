@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, isAbsolute } from 'path';
 import { SESSION_DEPOT_DIR, SESSION_LOGS_SUBDIR } from '../defaults';
+import { debugLogger } from './logger';
 
 interface ChatMessage {
   role?: string;
@@ -49,7 +50,11 @@ export function extractChatFromTranscript(transcriptPath: string): ChatMessage[]
 
 export function saveChatToFile(chatData: ChatMessage[], outputPath?: string): void {
   if (!Array.isArray(chatData)) {
-    throw new Error('chatData must be an array');
+    debugLogger.error('chat', 'save_chat_validation_failed', 'chatData must be an array', {
+      chatDataType: typeof chatData,
+      chatData,
+    });
+    process.exit(0);
   }
 
   // Use .stts_depot/logs/chat.json as default
@@ -69,9 +74,16 @@ export function saveChatToFile(chatData: ChatMessage[], outputPath?: string): vo
 
     writeFileSync(basePath, JSON.stringify(chatData, null, 2), 'utf-8');
   } catch (error) {
-    throw new Error(
-      `Failed to save chat: ${error instanceof Error ? error.message : 'Unknown error'}`
+    debugLogger.error(
+      'chat',
+      'save_chat_failed',
+      `Failed to save chat: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      {
+        outputPath: basePath,
+        error: error instanceof Error ? error.message : error,
+      }
     );
+    process.exit(0);
   }
 }
 
