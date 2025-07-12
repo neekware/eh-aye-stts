@@ -11,7 +11,7 @@ const execAsync = promisify(exec);
 // Get the directory where this script is located
 const SCRIPT_DIR = __dirname;
 const LOG_FILE = path.join(SCRIPT_DIR, 'tts-hook.log');
-const CACHE_DIR = path.join(SCRIPT_DIR, '.tts-cache');
+const CACHE_DIR = path.join(SCRIPT_DIR, '.log-depot', 'cache');
 const CONFIG_FILE = path.join(SCRIPT_DIR, '.tts-config.json');
 
 // Determine hook type from command line args or environment
@@ -153,8 +153,19 @@ function cleanTextForSpeech(text) {
 
 // LLM-based text naturalization for speech
 async function cleanTextForSpeechLLM(text) {
-  // First apply basic cleaning
-  text = cleanTextForSpeech(text);
+  // Apply basic markdown cleaning but WITHOUT length truncation
+  text = text.replace(/```[\s\S]*?```/g, '[code block]');
+  text = text.replace(/`([^`]+)`/g, '$1');
+  text = text.replace(/\*\*([^*]+)\*\*/g, '$1');
+  text = text.replace(/\*([^*]+)\*/g, '$1');
+  text = text.replace(/__([^_]+)__/g, '$1');
+  text = text.replace(/_([^_]+)_/g, '$1');
+  text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+  text = text.replace(/^#+\s+(.+)$/gm, '$1');
+  text = text.replace(/^[\*\-\+]\s+/gm, '');
+  text = text.replace(/^\d+\.\s+/gm, '');
+  text = text.replace(/^>\s+/gm, '');
+  text = text.replace(/\s+/g, ' ').trim();
   
   // Count words to decide if we need to naturalize
   const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
@@ -219,6 +230,11 @@ async function cleanTextForSpeechLLM(text) {
       await log(`Failed to naturalize with Claude: ${error.message}`, 'ERROR');
       await log(`Error stack: ${error.stack}`, 'DEBUG');
     }
+  }
+  
+  // Apply length limit only if LLM didn't process it or as fallback
+  if (text.length > config.textLengthLimit) {
+    text = text.substring(0, config.textLengthLimit) + '... response truncated for speech';
   }
   
   return text;

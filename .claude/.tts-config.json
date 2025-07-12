@@ -4,7 +4,6 @@
   "logMaxFiles": 5,
   "cacheMaxAge": 30,
   "macos": {
-    "voice": "Samantha",
     "rate": 180
   },
   "windows": {

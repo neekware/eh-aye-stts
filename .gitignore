@@ -61,6 +61,7 @@ test-report.xml
 # STTS depot (logs & cache)
 .stts-depot/
 .stts_depot/
+.log-depot/
 
 # Debug files
 hook-debug.json
