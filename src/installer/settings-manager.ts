@@ -1,14 +1,7 @@
 import { promises as fs } from 'fs';
 import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
-import { ClaudeSettings, HookMatcher } from '../plugins/claude/types';
-import { CLAUDE_DIR } from '../defaults';
+import { ClaudeSettings, HookMatcher } from '../types';
 import chalk from 'chalk';
-import { platform, homedir } from 'os';
-
-// Get the directory of the current module
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 export class SettingsManager {
   constructor(
@@ -32,7 +25,7 @@ export class SettingsManager {
     await fs.writeFile(this.settingsPath, JSON.stringify(settings, null, 2));
   }
 
-  async installHooks(wrapperType: 'local' = 'local'): Promise<void> {
+  async installHooks(): Promise<void> {
     const settings = await this.loadSettings();
 
     // Initialize hooks structure
@@ -40,22 +33,22 @@ export class SettingsManager {
       settings.hooks = {};
     }
 
-    // Define all hook types and their corresponding scripts
+    // Define all hook types and their corresponding Python scripts
     const hookTypes = [
-      { name: 'PreToolUse', script: 'pre-tool-use.js' },
-      { name: 'PostToolUse', script: 'post-tool-use.js' },
-      { name: 'Notification', script: 'notification.js' },
-      { name: 'Stop', script: 'stop.js' },
-      { name: 'SubagentStop', script: 'subagent-stop.js' },
+      { name: 'PreToolUse', script: 'pre_tool_use.py' },
+      { name: 'PostToolUse', script: 'post_tool_use.py' },
+      { name: 'Notification', script: 'notification.py' },
+      { name: 'Stop', script: 'stop.py' },
+      { name: 'SubagentStop', script: 'subagent_stop.py' },
     ];
 
+    // Get the project root directory
+    const projectRoot = process.cwd();
     let updated = false;
 
     for (const { name, script } of hookTypes) {
-      const hookType = script.replace('.js', '');
-
-      // Use global wrapper path
-      const command = `~/.stts/hooks/stts hook ${hookType}`;
+      // Use direct Python script path
+      const command = join(projectRoot, '.claude', 'hooks', script);
 
       const hookEntry: HookMatcher = {
         matcher: '',
@@ -76,31 +69,27 @@ export class SettingsManager {
       // Check if STTS hook already exists
       const existingHooks = settings.hooks[hookKey] || [];
       const sttsHookExists = existingHooks.some((h) =>
-        h.hooks.some((hook) => hook.command?.includes('stts hook'))
+        h.hooks.some(
+          (hook) => hook.command?.includes('.claude/hooks/') || hook.command?.includes(script)
+        )
       );
 
       if (!sttsHookExists) {
+        // Remove any old-style hooks first
+        settings.hooks[hookKey] = existingHooks.filter(
+          (h) =>
+            !h.hooks.some(
+              (hook) =>
+                hook.command?.includes('~/.stts/hooks/') || hook.command?.includes('stts hook')
+            )
+        );
+
         // Add new hook
         settings.hooks[hookKey].push(hookEntry);
         console.log(chalk.green(`✓ Installed STTS ${name} hook`));
         updated = true;
       } else {
-        // Update existing hook if wrapper type changed
-        const existingHook = existingHooks.find((h) =>
-          h.hooks.some((hook) => hook.command?.includes('stts hook'))
-        );
-        if (existingHook) {
-          const existingCommand = existingHook.hooks[0].command;
-          if (existingCommand !== command) {
-            existingHook.hooks[0].command = command;
-            console.log(chalk.green(`✓ Updated STTS ${name} hook to use ${wrapperType} wrapper`));
-            updated = true;
-          } else {
-            console.log(
-              chalk.yellow(`⚠ STTS ${name} hook already configured for ${wrapperType} wrapper`)
-            );
-          }
-        }
+        console.log(chalk.yellow(`⚠ STTS ${name} hook already configured`));
       }
     }
 
@@ -121,8 +110,8 @@ export class SettingsManager {
     }
 
     let removed = false;
-    // Updated pattern to match stts hook command
-    const sttsHookPattern = /stts hook/;
+    // Pattern to match STTS hooks
+    const sttsHookPattern = /\.claude\/hooks\/.*\.py|~\/\.stts\/hooks\/|stts hook/;
 
     // Remove only STTS-specific hooks from each hook type
     for (const hookType of Object.keys(settings.hooks)) {
@@ -135,11 +124,9 @@ export class SettingsManager {
       );
 
       if (filtered.length < originalLength) {
-        // Only update if we actually removed something
         if (filtered.length > 0) {
           settings.hooks[hookType as keyof typeof settings.hooks] = filtered;
         } else {
-          // Only delete the hook type if it's now empty AND we removed something
           delete settings.hooks[hookType as keyof typeof settings.hooks];
         }
         removed = true;
@@ -160,232 +147,30 @@ export class SettingsManager {
     }
   }
 
-  async purgeSttsHooks(): Promise<void> {
-    const settings = await this.loadSettings();
+  async ensurePythonHooks(): Promise<void> {
+    const projectRoot = process.cwd();
+    const hooksDir = join(projectRoot, '.claude', 'hooks');
 
-    if (!settings.hooks) {
-      return;
-    }
+    // Create hooks directory if it doesn't exist
+    await fs.mkdir(hooksDir, { recursive: true });
 
-    let purged = false;
-    // Pattern to match any STTS hook command variations
-    const sttsHookPattern = /stts\s+hook/;
-    const validHookTypes = [
-      'pre-tool-use',
-      'post-tool-use',
-      'notification',
-      'stop',
-      'subagent-stop',
+    // Check if Python hooks exist
+    const hookFiles = [
+      'pre_tool_use.py',
+      'post_tool_use.py',
+      'notification.py',
+      'stop.py',
+      'subagent_stop.py',
     ];
 
-    // Process each hook type
-    for (const hookType of Object.keys(settings.hooks)) {
-      const hooks = settings.hooks[hookType as keyof typeof settings.hooks];
-      if (!hooks || !Array.isArray(hooks)) continue;
-
-      const uniqueHooks: HookMatcher[] = [];
-      const seenCommands = new Set<string>();
-
-      for (const hookMatcher of hooks) {
-        if (!hookMatcher.hooks || !Array.isArray(hookMatcher.hooks)) continue;
-
-        // Filter out invalid and duplicate STTS hooks
-        const validHooks = hookMatcher.hooks.filter((hook) => {
-          if (!sttsHookPattern.test(hook.command)) {
-            // Not an STTS hook, keep it
-            return true;
-          }
-
-          // It's an STTS hook - check if it's valid and not duplicate
-          const isValidType = validHookTypes.some((type) => hook.command.includes(type));
-          if (!isValidType) {
-            console.log(chalk.yellow(`⚠ Removing invalid STTS hook: ${hook.command}`));
-            purged = true;
-            return false;
-          }
-
-          // Check for duplicates
-          if (seenCommands.has(hook.command)) {
-            console.log(chalk.yellow(`⚠ Removing duplicate STTS hook: ${hook.command}`));
-            purged = true;
-            return false;
-          }
-
-          seenCommands.add(hook.command);
-          return true;
-        });
-
-        if (validHooks.length > 0) {
-          uniqueHooks.push({
-            ...hookMatcher,
-            hooks: validHooks,
-          });
-        }
-      }
-
-      if (uniqueHooks.length > 0) {
-        settings.hooks[hookType as keyof typeof settings.hooks] = uniqueHooks;
-      } else {
-        delete settings.hooks[hookType as keyof typeof settings.hooks];
-        purged = true;
+    for (const hookFile of hookFiles) {
+      const hookPath = join(hooksDir, hookFile);
+      try {
+        await fs.access(hookPath);
+      } catch {
+        console.log(chalk.yellow(`⚠ Missing hook file: ${hookFile}`));
+        console.log(chalk.yellow(`  Please ensure Python hook scripts are in: ${hooksDir}`));
       }
     }
-
-    // Clean up empty hooks object
-    if (settings.hooks && Object.keys(settings.hooks).length === 0) {
-      delete settings.hooks;
-    }
-
-    if (purged) {
-      await this.saveSettings(settings);
-      console.log(chalk.green('✓ Cleaned up invalid/duplicate STTS hooks'));
-    }
-  }
-
-  generateWrapperScript(isGlobal: boolean): string {
-    const isWindows = platform() === 'win32';
-
-    if (isWindows) {
-      return this.generateWindowsWrapper(isGlobal);
-    } else {
-      return this.generateUnixWrapper(isGlobal);
-    }
-  }
-
-  private generateUnixWrapper(isGlobal: boolean): string {
-    const fallbackMode = isGlobal ? 'user' : 'workspace';
-
-    // Try to read from template
-    try {
-      const templatePath = join(__dirname, '..', '..', 'templates', 'wrappers', 'unix', 'stts');
-      // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-      const template = require('fs').readFileSync(templatePath, 'utf8') as string;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-      return template.replace('${FALLBACK_MODE}', fallbackMode);
-    } catch {
-      // Fallback to inline template
-      return `#!/bin/sh
-# STTS wrapper script for Unix systems
-# Auto-generated - do not edit manually
-
-# Check if stts command is available
-if command -v stts >/dev/null 2>&1; then
-    # Pass all arguments to stts
-    exec stts "$@"
-else
-    # Fallback behavior - configurable at runtime
-    case "\${STTS_FALLBACK_MODE:-${fallbackMode}}" in
-        "user")
-            echo "Warning: stts command not found. Please install stts first." >&2
-            exit 1
-            ;;
-        "workspace")
-            # stts not available, silently continue
-            exit 0
-            ;;
-        *)
-            echo "Error: Unknown fallback mode: \${STTS_FALLBACK_MODE}" >&2
-            exit 1
-            ;;
-    esac
-fi`;
-    }
-  }
-
-  private generateWindowsWrapper(_isGlobal: boolean): string {
-    // Try to read from template
-    try {
-      const templatePath = join(
-        __dirname,
-        '..',
-        '..',
-        'templates',
-        'wrappers',
-        'windows',
-        'stts.bat'
-      );
-      // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-      const template = require('fs').readFileSync(templatePath, 'utf8') as string;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return template;
-    } catch {
-      // Fallback to inline template
-      return `@echo off
-REM STTS wrapper script for Windows
-REM Auto-generated - do not edit manually
-
-REM Check if stts command is available
-where stts >nul 2>&1
-if %ERRORLEVEL% EQU 0 (
-    REM Pass all arguments to stts
-    stts %*
-) else (
-    REM stts not available, show warning
-    echo Warning: stts command not found. Please install stts first. >&2
-    exit /b 1
-)`;
-    }
-  }
-
-  async installLocalWrappers(): Promise<void> {
-    const scriptContent = this.generateWrapperScript(false);
-    const isWindows = platform() === 'win32';
-    const scriptName = isWindows ? 'stts.bat' : 'stts';
-
-    // Local hooks go in PROJECT's .claude/hooks directory
-    const projectClaudeDir = join(process.cwd(), CLAUDE_DIR);
-    const localHooksDir = join(projectClaudeDir, 'hooks');
-    const scriptPath = join(localHooksDir, scriptName);
-
-    // Create local hooks directory
-    await fs.mkdir(localHooksDir, { recursive: true });
-
-    // Write wrapper script
-    await fs.writeFile(scriptPath, scriptContent);
-
-    // Make executable on Unix systems
-    if (!isWindows) {
-      await fs.chmod(scriptPath, 0o755);
-    }
-
-    console.log(chalk.green(`✓ Installed workspace wrapper: ${scriptPath}`));
-  }
-
-  async removeLocalWrappers(): Promise<void> {
-    const isWindows = platform() === 'win32';
-    const scriptName = isWindows ? 'stts.bat' : 'stts';
-    const projectClaudeDir = join(process.cwd(), CLAUDE_DIR);
-    const localHooksDir = join(projectClaudeDir, 'hooks');
-    const scriptPath = join(localHooksDir, scriptName);
-
-    try {
-      await fs.unlink(scriptPath);
-      console.log(chalk.green(`✓ Removed workspace wrapper: ${scriptPath}`));
-    } catch (error) {
-      // Script doesn't exist, ignore
-    }
-  }
-
-  async installGlobalWrapper(): Promise<void> {
-    const scriptContent = this.generateWrapperScript(true);
-    const isWindows = platform() === 'win32';
-    const scriptName = isWindows ? 'stts.bat' : 'stts';
-
-    // Global hooks go in ~/.stts/hooks directory
-    const globalHooksDir = join(homedir(), '.stts', 'hooks');
-    const scriptPath = join(globalHooksDir, scriptName);
-
-    // Create global hooks directory
-    await fs.mkdir(globalHooksDir, { recursive: true });
-
-    // Write wrapper script
-    await fs.writeFile(scriptPath, scriptContent);
-
-    // Make executable on Unix systems
-    if (!isWindows) {
-      await fs.chmod(scriptPath, 0o755);
-    }
-
-    console.log(chalk.green(`✓ Installed global wrapper: ${scriptPath}`));
   }
 }

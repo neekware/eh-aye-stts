@@ -22,5 +22,5 @@ export {
   getRegistry,
 } from './plugins';
 
-// Claude plugin (separate export for optional use)
-export { ClaudeCodePlugin } from './plugins/claude';
+// Claude types
+export { ClaudeSettings, HookMatcher } from './types';

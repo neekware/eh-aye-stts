@@ -223,6 +223,12 @@ export async function makeExecutable(filePath: string): Promise<void> {
  * Get Claude settings path for the current platform
  */
 export function getClaudeSettingsPath(): string {
+  const customPath = process.env.STTS_CLAUDE_SETTINGS_PATH;
+
+  if (customPath) {
+    return customPath;
+  }
+
   const home = getHomeDir();
   const platform = getPlatform();
 
@@ -235,6 +241,21 @@ export function getClaudeSettingsPath(): string {
       // Unix-like: ~/.claude/settings.json
       return join(home, '.claude', 'settings.json');
   }
+}
+
+/**
+ * Get Claude settings directory for the current platform
+ */
+export function getClaudeSettingsDir(): string {
+  const customPath = process.env.STTS_CLAUDE_SETTINGS_PATH;
+
+  if (customPath && customPath.trim()) {
+    // Extract directory from custom path
+    const lastSep = Math.max(customPath.lastIndexOf('/'), customPath.lastIndexOf('\\'));
+    return lastSep === -1 ? '.' : customPath.substring(0, lastSep);
+  }
+
+  return join(getHomeDir(), '.claude');
 }
 
 /**

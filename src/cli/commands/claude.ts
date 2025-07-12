@@ -40,8 +40,11 @@ Examples:
       const manager = new SettingsManager(actualSettingsPath, tool);
 
       try {
-        await manager.installGlobalWrapper();
-        await manager.installHooks('local');
+        // Ensure Python hooks exist
+        await manager.ensurePythonHooks();
+
+        // Install hooks
+        await manager.installHooks();
 
         console.log(chalk.green('\n✨ TTS hooks installed successfully!'));
         console.log(chalk.blue(`\n📁 Local settings updated: ${actualSettingsPath}`));
@@ -118,7 +121,7 @@ Examples:
         const hasHooks = Object.values(hooks).some((hookArray) =>
           Array.isArray(hookArray)
             ? hookArray.some((hook: HookConfig) =>
-                hook.hooks?.some((h) => h.command?.includes('stts'))
+                hook.hooks?.some((h) => h.command?.includes('.claude/hooks/'))
               )
             : false
         );
@@ -132,7 +135,7 @@ Examples:
             if (
               Array.isArray(hookArray) &&
               hookArray.some((hook: HookConfig) =>
-                hook.hooks?.some((h) => h.command?.includes('stts'))
+                hook.hooks?.some((h) => h.command?.includes('.claude/hooks/'))
               )
             ) {
               console.log(chalk.gray(`  • ${event}`));

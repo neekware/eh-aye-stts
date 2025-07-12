@@ -5,8 +5,8 @@ import { enableCommand } from './commands/enable';
 import { disableCommand } from './commands/disable';
 import { statusCommand } from './commands/status';
 import { testCommand } from './commands/test';
-import { hookCommand } from './commands/hook';
 import { claudeCommand } from './commands/claude';
+import { sayCommand } from './commands/say';
 
 export function createProgram(): Command {
   const program = new Command();
@@ -17,15 +17,13 @@ export function createProgram(): Command {
     .version(VERSION)
     .addHelpText(
       'after',
-      `
-Examples:
-  stts claude enable                     Enable TTS hooks for Claude
-  stts claude disable                    Disable TTS hooks for Claude
-  stts claude status                     Check TTS status for Claude
-  stts test                              Test TTS functionality
-  stts hook <type>                       Run specific hook manually
-
-Use 'stts <command> --help' for detailed command information.`
+      `Examples:
+          stts claude enable    Enable TTS hooks for Claude
+          stts claude disable   Disable TTS hooks for Claude
+          stts claude status    Check TTS status for Claude
+          stts test             Test TTS functionality
+          
+       Use 'stts <command> --help' for detailed command information.`
     );
 
   // Add commands
@@ -34,7 +32,7 @@ Use 'stts <command> --help' for detailed command information.`
   program.addCommand(disableCommand());
   program.addCommand(statusCommand());
   program.addCommand(testCommand());
-  program.addCommand(hookCommand());
+  program.addCommand(sayCommand());
 
   // Handle uncaught errors
   process.on('unhandledRejection', (error) => {

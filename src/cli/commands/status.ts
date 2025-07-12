@@ -11,12 +11,11 @@ export function statusCommand(): Command {
     .argument('<tool>', 'Tool to check status for (currently supports: claude)')
     .addHelpText(
       'after',
-      `
-Examples:
-  stts status claude     #Check TTS status
+      `Examples:
+       stts status claude     #Check TTS status
 
-Note: Checks hooks in .claude/settings.local.json
-Supported tools: claude`
+       Note: Checks hooks in .claude/settings.local.json
+       Supported tools: claude`
     )
     .showHelpAfterError()
     .action(async (tool: string) => {
@@ -54,7 +53,13 @@ Supported tools: claude`
             const hooks = settings.hooks![hookType as keyof typeof settings.hooks];
             return (
               hooks &&
-              hooks.some((h) => h.hooks.some((hook) => hook.command?.includes('stts hook')))
+              hooks.some((h) =>
+                h.hooks.some(
+                  (hook) =>
+                    hook.command?.includes('stts hook') ||
+                    hook.command?.includes('~/.stts/hooks/stts-')
+                )
+              )
             );
           });
 
@@ -69,7 +74,13 @@ Supported tools: claude`
               const hooks = settings.hooks![hookType as keyof typeof settings.hooks];
               if (
                 hooks &&
-                hooks.some((h) => h.hooks.some((hook) => hook.command?.includes('stts hook')))
+                hooks.some((h) =>
+                  h.hooks.some(
+                    (hook) =>
+                      hook.command?.includes('stts hook') ||
+                      hook.command?.includes('~/.stts/hooks/stts-')
+                  )
+                )
               ) {
                 installedHooks.push(hookType);
               }

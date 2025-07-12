@@ -10,12 +10,11 @@ export function enableCommand(): Command {
     .argument('<tool>', 'Tool to enable TTS for (currently supports: claude)')
     .addHelpText(
       'after',
-      `
-Examples:
-  stts enable claude                Enable TTS hooks
-
-Note: Hooks are installed in .claude/settings.local.json (not tracked by git)
-Supported tools: claude`
+      `Examples:
+       stts enable claude Enable TTS hooks
+       
+       Note: Hooks are installed in .claude/settings.local.json (not tracked by git)
+       Supported tools: claude`
     )
     .showHelpAfterError()
     .action(async (tool: string, _options: Record<string, unknown>) => {
@@ -37,11 +36,8 @@ Supported tools: claude`
       const manager = new SettingsManager(actualSettingsPath, tool);
 
       try {
-        // Install global wrapper in ~/.stts/hooks/
-        await manager.installGlobalWrapper();
-
         // Install hooks in settings.local.json
-        await manager.installHooks('local');
+        await manager.installHooks();
 
         console.log(chalk.green('\n✨ TTS hooks installed successfully!'));
 

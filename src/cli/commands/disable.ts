@@ -10,12 +10,11 @@ export function disableCommand(): Command {
     .argument('<tool>', 'Tool to disable TTS for (currently supports: claude)')
     .addHelpText(
       'after',
-      `
-Examples:
-  stts disable claude              Remove TTS hooks from local settings
-
-Note: Removes hooks from .claude/settings.local.json
-Supported tools: claude`
+      `Examples:
+       stts disable claude Remove TTS hooks from local settings
+       
+       Note: Removes hooks from .claude/settings.local.json
+       Supported tools: claude`
     )
     .showHelpAfterError()
     .action(async (tool: string) => {
