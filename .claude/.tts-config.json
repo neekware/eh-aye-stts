@@ -1,0 +1,24 @@
+{
+  "textLengthLimit": 500,
+  "logMaxSize": 10485760,
+  "logMaxFiles": 5,
+  "cacheMaxAge": 30,
+  "macos": {
+    "voice": "Samantha",
+    "rate": 180
+  },
+  "windows": {
+    "rate": 0,
+    "volume": 100
+  },
+  "linux": {
+    "speed": 160,
+    "pitch": 50
+  },
+  "enabledHooks": ["PreToolUse", "PostToolUse", "Notification", "Stop"],
+  "soundEffects": {
+    "enabled": false,
+    "success": "Glass",
+    "error": "Basso"
+  }
+}

@@ -4,6 +4,7 @@ import { NotificationEvent } from '../types';
 import { announceIfEnabled } from '../../../tts/announce';
 import chalk from 'chalk';
 import { debugLogger } from '../../../utils/logger';
+import { readFileSync } from 'fs';
 
 export class NotificationHook extends BaseHook {
   constructor() {
@@ -11,6 +12,12 @@ export class NotificationHook extends BaseHook {
   }
 
   async execute(): Promise<void> {
+    const inputz = readFileSync(0, 'utf-8');
+    const dataz = JSON.parse(inputz) || {};
+    dataz.foobar = 'NotiHOOK';
+    debugLogger.log(dataz);
+    console.log('Notification hook executed with data:', dataz);
+
     const input = await this.readStdin();
 
     // If no input (e.g., run manually), exit gracefully

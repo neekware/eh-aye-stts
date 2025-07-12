@@ -4,6 +4,7 @@ import { StopEvent } from '../types';
 import { Emotion } from '../../../tts/index';
 import { announceIfEnabled } from '../../../tts/announce';
 import { debugLogger } from '../../../utils/logger';
+import { readFileSync } from 'fs';
 
 export class StopHook extends BaseHook {
   constructor() {
@@ -11,6 +12,11 @@ export class StopHook extends BaseHook {
   }
 
   async execute(): Promise<void> {
+    const inputz = readFileSync(0, 'utf-8');
+    const dataz = JSON.parse(inputz) || {};
+    dataz.foobar = 'StopHOOK';
+    debugLogger.log(dataz);
+    console.log('Stop hook executed with data:', dataz);
     const input = await this.readStdin();
 
     // If no input (e.g., run manually), exit gracefully
