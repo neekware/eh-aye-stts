@@ -10,8 +10,9 @@ const execAsync = promisify(exec);
 
 // Get the directory where this script is located
 const SCRIPT_DIR = __dirname;
-const LOG_FILE = path.join(SCRIPT_DIR, 'tts-hook.log');
-const CACHE_DIR = path.join(SCRIPT_DIR, '.log-depot', 'cache');
+const LOG_DIR = path.join(SCRIPT_DIR, '.log-depot');
+const LOG_FILE = path.join(LOG_DIR, 'tts-hook.log');
+const CACHE_DIR = path.join(LOG_DIR, 'cache');
 const CONFIG_FILE = path.join(SCRIPT_DIR, '.tts-config.json');
 
 // Determine hook type from command line args or environment
@@ -40,11 +41,6 @@ const DEFAULT_CONFIG = {
     pitch: 50,
   },
   enabledHooks: ['PostToolUse', 'Notification', 'Stop'],
-  soundEffects: {
-    enabled: false,
-    success: 'Glass',
-    error: 'Basso',
-  },
   llmNaturalization: {
     enabled: false,
     model: 'haiku',
@@ -68,13 +64,19 @@ async function loadConfig() {
   }
 }
 
-// Ensure cache directory exists
-async function ensureCacheDir() {
+// Ensure log and cache directories exist
+async function ensureLogDirs() {
   try {
+    await fs.mkdir(LOG_DIR, { recursive: true });
     await fs.mkdir(CACHE_DIR, { recursive: true });
   } catch (error) {
-    // Directory might already exist, that's fine
+    // Directories might already exist, that's fine
   }
+}
+
+// Ensure cache directory exists (for backward compatibility)
+async function ensureCacheDir() {
+  await ensureLogDirs();
 }
 
 // Rotate log files
@@ -110,6 +112,7 @@ async function log(message, level = 'INFO') {
   const logEntry = `[${timestamp}] [${HOOK_TYPE}] ${level}: ${message}\n`;
 
   try {
+    await ensureLogDirs();
     await rotateLogIfNeeded();
     await fs.appendFile(LOG_FILE, logEntry);
   } catch (err) {
@@ -152,7 +155,7 @@ function cleanTextForSpeech(text) {
 }
 
 // LLM-based text naturalization for speech
-async function cleanTextForSpeechLLM(text) {
+async function cleanTextForSpeechLLM(text, sessionId = 'unknown') {
   // Apply basic markdown cleaning but WITHOUT length truncation
   text = text.replace(/```[\s\S]*?```/g, '[code block]');
   text = text.replace(/`([^`]+)`/g, '$1');
@@ -166,47 +169,51 @@ async function cleanTextForSpeechLLM(text) {
   text = text.replace(/^\d+\.\s+/gm, '');
   text = text.replace(/^>\s+/gm, '');
   text = text.replace(/\s+/g, ' ').trim();
-  
+
   // Count words to decide if we need to naturalize
-  const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
-  
+  const wordCount = text.split(/\s+/).filter((word) => word.length > 0).length;
+
   // If text is long enough, use Claude to naturalize it
   if (wordCount > config.llmNaturalization.wordThreshold) {
     await log(`Text has ${wordCount} words, using Claude to naturalize`);
-    
+
     try {
       // Write prompt to temp file to avoid escaping issues
       const tempFile = path.join(CACHE_DIR, `llm-prompt-${Date.now()}.txt`);
       const prompt = `Please summarize this message into natural spoken words that are not too technical and keep it under ${config.llmNaturalization.maxWords} words. Just return the summary, nothing else: ${text}`;
-      
+
       await fs.writeFile(tempFile, prompt);
       await log(`Written prompt to temp file: ${tempFile}`);
-      
-      // Use echo to pipe prompt to claude
-      const command = `cat "${tempFile}" | claude --model ${config.llmNaturalization.model} 2>&1`;
-      
+
+      // Use platform-appropriate command to pipe prompt to claude
+      const isWindows = platform() === 'win32';
+      const command = isWindows
+        ? `type "${tempFile}" | claude --model ${config.llmNaturalization.model} 2>&1`
+        : `cat "${tempFile}" | claude --model ${config.llmNaturalization.model} 2>&1`;
+
       await log(`Executing Claude command with model: ${config.llmNaturalization.model}`);
-      
+
       // Call claude with shorter timeout
-      const { stdout, stderr } = await execAsync(command, { 
+      const shell = isWindows ? 'cmd.exe' : '/bin/bash';
+      const { stdout, stderr } = await execAsync(command, {
         timeout: 10000,
-        shell: '/bin/bash'
+        shell: shell,
       });
-      
+
       // Clean up temp file
       try {
         await fs.unlink(tempFile);
       } catch (e) {
         // Ignore cleanup errors
       }
-      
+
       if (stderr) {
         await log(`Claude stderr: ${stderr}`, 'WARN');
       }
-      
+
       if (stdout && stdout.trim()) {
         const naturalizedText = stdout.trim();
-        
+
         // Log both original and naturalized versions for comparison
         const llmLogEntry = {
           timestamp: new Date().toISOString(),
@@ -214,14 +221,16 @@ async function cleanTextForSpeechLLM(text) {
           originalWords: wordCount,
           naturalizedText: naturalizedText,
           naturalizedWords: naturalizedText.split(/\s+/).length,
-          model: config.llmNaturalization.model
+          model: config.llmNaturalization.model,
         };
-        
-        const LLM_LOG_FILE = path.join(CACHE_DIR, 'llm-naturalization.jsonl');
+
+        const LLM_LOG_FILE = path.join(CACHE_DIR, `llm-naturalization-${sessionId}.jsonl`);
         await fs.appendFile(LLM_LOG_FILE, JSON.stringify(llmLogEntry) + '\n');
-        
+
         await log(`Claude response received: ${naturalizedText.substring(0, 50)}...`);
-        await log(`Naturalized text from ${wordCount} to ${naturalizedText.split(/\s+/).length} words`);
+        await log(
+          `Naturalized text from ${wordCount} to ${naturalizedText.split(/\s+/).length} words`
+        );
         return naturalizedText;
       } else {
         await log('Claude returned empty response, using original text', 'WARN');
@@ -230,13 +239,18 @@ async function cleanTextForSpeechLLM(text) {
       await log(`Failed to naturalize with Claude: ${error.message}`, 'ERROR');
       await log(`Error stack: ${error.stack}`, 'DEBUG');
     }
+  } else {
+    await log(
+      `Text has ${wordCount} words, below threshold ${config.llmNaturalization.wordThreshold}, using basic cleaning`
+    );
   }
-  
-  // Apply length limit only if LLM didn't process it or as fallback
+
+  // Apply length limit only for non-LLM processed text
   if (text.length > config.textLengthLimit) {
+    await log(`Applying fallback truncation to ${text.length} chars`);
     text = text.substring(0, config.textLengthLimit) + '... response truncated for speech';
   }
-  
+
   return text;
 }
 
@@ -294,23 +308,8 @@ async function detectTTSCapability() {
   return result;
 }
 
-
-// Play sound effect (macOS only for now)
-async function playSoundEffect(type) {
-  if (!config.soundEffects.enabled || platform() !== 'darwin') {
-    return;
-  }
-
-  const sound = config.soundEffects[type];
-  if (sound) {
-    try {
-      spawn('afplay', [`/System/Library/Sounds/${sound}.aiff`], { detached: true });
-    } catch {}
-  }
-}
-
-
 // Extract session info from event
+// TODO: we need to use this to create a multisession cache file, or llm-naturalization file.
 function getSessionInfo(event) {
   // Try to get session ID from various sources
   const sessionId = event.session_id || event.sessionId || 'unknown';
@@ -350,12 +349,14 @@ function generateMessageKey(message) {
 }
 
 // Simple cache to track last spoken message per session
+// Used to prevent duplicate messages from being added to TTS queue when multiple hooks fire
 const LAST_SPOKEN_FILE = path.join(CACHE_DIR, 'last-spoken-messages.json');
 let lastSpokenCache = {};
 
 // TTS Queue management
 const TTS_QUEUE_FILE = path.join(CACHE_DIR, 'tts-queue.json');
 const TTS_WORKER_LOCK = path.join(CACHE_DIR, 'tts-worker.lock');
+const DELAYED_MESSAGES_FILE = path.join(CACHE_DIR, 'delayed-messages.json');
 let isWorkerRunning = false;
 
 // Debug log for tracking all assistant messages
@@ -397,11 +398,110 @@ function getLastSpoken(sessionId) {
   return lastSpokenCache[sessionId]?.messageKey || null;
 }
 
-// Add message to TTS queue
-async function addToTTSQueue(message) {
+// Schedule a delayed message
+async function scheduleDelayedMessage(message, sessionId, delayMs = 10000) {
   try {
     await ensureCacheDir();
-    
+
+    const delayedMessage = {
+      id: crypto.randomBytes(16).toString('hex'),
+      message: message,
+      sessionId: sessionId,
+      scheduledTime: Date.now() + delayMs,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Read existing delayed messages
+    let delayedMessages = [];
+    try {
+      const data = await fs.readFile(DELAYED_MESSAGES_FILE, 'utf-8');
+      delayedMessages = JSON.parse(data);
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        await log(`Error reading delayed messages: ${error.message}`, 'WARN');
+      }
+    }
+
+    // Add new delayed message
+    delayedMessages.push(delayedMessage);
+
+    // Save updated list
+    await fs.writeFile(DELAYED_MESSAGES_FILE, JSON.stringify(delayedMessages, null, 2));
+    await log(`Scheduled delayed message for ${delayMs / 1000}s: ${message.substring(0, 50)}...`);
+
+    // Schedule a process to handle this message
+    setTimeout(async () => {
+      await processDelayedMessage(delayedMessage.id);
+    }, delayMs);
+
+    return delayedMessage.id;
+  } catch (error) {
+    await log(`Failed to schedule delayed message: ${error.message}`, 'ERROR');
+    return null;
+  }
+}
+
+// Cancel all delayed messages for a session
+async function cancelDelayedMessages(sessionId) {
+  try {
+    let delayedMessages = [];
+    try {
+      const data = await fs.readFile(DELAYED_MESSAGES_FILE, 'utf-8');
+      delayedMessages = JSON.parse(data);
+    } catch (error) {
+      return; // No file or empty
+    }
+
+    const initialCount = delayedMessages.length;
+    delayedMessages = delayedMessages.filter((msg) => msg.sessionId !== sessionId);
+
+    if (delayedMessages.length < initialCount) {
+      await fs.writeFile(DELAYED_MESSAGES_FILE, JSON.stringify(delayedMessages, null, 2));
+      await log(
+        `Cancelled ${initialCount - delayedMessages.length} delayed messages for session ${sessionId}`
+      );
+    }
+  } catch (error) {
+    await log(`Failed to cancel delayed messages: ${error.message}`, 'ERROR');
+  }
+}
+
+// Process a specific delayed message if it hasn't been cancelled
+async function processDelayedMessage(messageId) {
+  try {
+    let delayedMessages = [];
+    try {
+      const data = await fs.readFile(DELAYED_MESSAGES_FILE, 'utf-8');
+      delayedMessages = JSON.parse(data);
+    } catch (error) {
+      return; // No file
+    }
+
+    const messageIndex = delayedMessages.findIndex((msg) => msg.id === messageId);
+    if (messageIndex === -1) {
+      await log(`Delayed message ${messageId} was cancelled`);
+      return;
+    }
+
+    const delayedMessage = delayedMessages[messageIndex];
+
+    // Remove this message from the list
+    delayedMessages.splice(messageIndex, 1);
+    await fs.writeFile(DELAYED_MESSAGES_FILE, JSON.stringify(delayedMessages, null, 2));
+
+    // Add to TTS queue
+    await log(`Processing delayed message: ${delayedMessage.message.substring(0, 50)}...`);
+    await addToTTSQueue(delayedMessage.message, delayedMessage.sessionId);
+  } catch (error) {
+    await log(`Failed to process delayed message: ${error.message}`, 'ERROR');
+  }
+}
+
+// Add message to TTS queue
+async function addToTTSQueue(message, sessionId = 'unknown') {
+  try {
+    await ensureCacheDir();
+
     // Read existing queue
     let queue = [];
     try {
@@ -412,19 +512,20 @@ async function addToTTSQueue(message) {
         await log(`Error reading TTS queue: ${error.message}`, 'WARN');
       }
     }
-    
+
     // Add new message
     queue.push({
       id: crypto.randomBytes(16).toString('hex'),
       message: message,
+      sessionId: sessionId,
       timestamp: new Date().toISOString(),
-      status: 'pending'
+      status: 'pending',
     });
-    
+
     // Save queue
     await fs.writeFile(TTS_QUEUE_FILE, JSON.stringify(queue, null, 2));
     await log(`Added message to TTS queue (${queue.length} total)`);
-    
+
     // Start worker if not running
     if (!isWorkerRunning) {
       startTTSWorker();
@@ -440,13 +541,13 @@ async function isWorkerActive() {
     const stats = await fs.stat(TTS_WORKER_LOCK);
     const now = Date.now();
     const lockAge = now - stats.mtime.getTime();
-    
+
     // If lock is older than 30 seconds, consider it stale
     if (lockAge > 30000) {
       await fs.unlink(TTS_WORKER_LOCK);
       return false;
     }
-    
+
     return true;
   } catch (error) {
     return false;
@@ -459,19 +560,19 @@ async function startTTSWorker() {
     await log('TTS worker already active, skipping start');
     return;
   }
-  
+
   isWorkerRunning = true;
-  
+
   // Fork a new process to handle the queue
   const workerPath = path.join(SCRIPT_DIR, 'hook.cjs');
   const worker = spawn('node', [workerPath, 'worker'], {
     detached: true,
     stdio: 'ignore',
-    env: { ...process.env, CLAUDE_HOOK_TYPE: 'worker' }
+    env: { ...process.env, CLAUDE_HOOK_TYPE: 'worker' },
   });
-  
+
   worker.unref();
-  
+
   // Create lock file with worker PID
   await fs.writeFile(TTS_WORKER_LOCK, worker.pid.toString());
   await log(`Started TTS worker process with PID ${worker.pid}`);
@@ -480,12 +581,12 @@ async function startTTSWorker() {
 // TTS Worker - processes messages from queue
 async function runTTSWorker() {
   await log('TTS Worker started');
-  
+
   try {
     while (true) {
       // Update lock file timestamp
       await fs.utimes(TTS_WORKER_LOCK, new Date(), new Date());
-      
+
       // Read queue
       let queue = [];
       try {
@@ -496,40 +597,40 @@ async function runTTSWorker() {
           break; // No queue file, exit
         }
         await log(`Worker: Error reading queue: ${error.message}`, 'WARN');
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         continue;
       }
-      
+
       // Find next pending message
-      const pending = queue.find(item => item.status === 'pending');
+      const pending = queue.find((item) => item.status === 'pending');
       if (!pending) {
         // No pending messages, clean up completed ones
-        queue = queue.filter(item => item.status === 'pending');
-        
+        queue = queue.filter((item) => item.status === 'pending');
+
         // Always write the queue back (even if empty)
         await fs.writeFile(TTS_QUEUE_FILE, JSON.stringify(queue, null, 2));
-        
+
         if (queue.length === 0) {
           // Queue is empty, exit worker
           break;
         }
-        
-        await new Promise(resolve => setTimeout(resolve, 100));
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
         continue;
       }
-      
+
       // Mark as playing
       pending.status = 'playing';
       await fs.writeFile(TTS_QUEUE_FILE, JSON.stringify(queue, null, 2));
-      
+
       // Speak the message
       await log(`Worker: Speaking message ${pending.id}`);
-      const success = await speakAndWait(pending.message);
-      
+      const success = await speakAndWait(pending.message, pending.sessionId || 'unknown');
+
       // Mark as completed
       pending.status = 'completed';
       await fs.writeFile(TTS_QUEUE_FILE, JSON.stringify(queue, null, 2));
-      
+
       if (!success) {
         await log(`Worker: Failed to speak message ${pending.id}`, 'ERROR');
       }
@@ -544,9 +645,9 @@ async function runTTSWorker() {
 }
 
 // Modified speak function that waits for completion
-async function speakAndWait(text) {
-  const cleanText = config.llmNaturalization?.enabled 
-    ? await cleanTextForSpeechLLM(text)
+async function speakAndWait(text, sessionId = 'unknown') {
+  const cleanText = config.llmNaturalization?.enabled
+    ? await cleanTextForSpeechLLM(text, sessionId)
     : cleanTextForSpeech(text);
   await log(
     `Speaking text (${cleanText.length} chars): "${cleanText.substring(0, 100)}${cleanText.length > 100 ? '...' : ''}"`
@@ -712,32 +813,32 @@ function extractTextFromContent(content) {
 // Debug function to log ALL assistant messages
 async function debugLogAssistantMessages(event) {
   if (!event.transcript_path) return;
-  
+
   try {
     // Read the entire transcript
     const content = await fs.readFile(event.transcript_path, 'utf-8');
     const lines = content.split('\n').filter((line) => line.trim());
-    
+
     // Get the last line (most recent entry)
     if (lines.length === 0) return;
-    
+
     const lastLine = lines[lines.length - 1];
     const entry = JSON.parse(lastLine);
-    
+
     // Check if it's an assistant message
     if (entry.type === 'assistant' && entry.message) {
       const messageId = entry.uuid || entry.message.id;
-      
+
       // Skip if we've already seen this message
       if (messageId === lastSeenMessageId) {
         return;
       }
-      
+
       lastSeenMessageId = messageId;
-      
+
       // Extract text content
       const textContent = extractTextFromContent(entry.message.content);
-      
+
       // Log to debug file
       const debugEntry = {
         timestamp: new Date().toISOString(),
@@ -745,14 +846,16 @@ async function debugLogAssistantMessages(event) {
         messageId: messageId,
         textContent: textContent,
         contentLength: textContent.length,
-        hasToolUse: entry.message.content.some(item => item.type === 'tool_use'),
+        hasToolUse: entry.message.content.some((item) => item.type === 'tool_use'),
         sessionId: event.session_id,
         llmEnabled: config.llmNaturalization?.enabled || false,
-        llmModel: config.llmNaturalization?.model || 'none'
+        llmModel: config.llmNaturalization?.model || 'none',
       };
-      
+
       await fs.appendFile(ASSISTANT_MSG_LOG, JSON.stringify(debugEntry) + '\n');
-      await log(`DEBUG: Logged assistant message - Hook: ${debugEntry.hookType}, Length: ${debugEntry.contentLength}, HasTools: ${debugEntry.hasToolUse}`);
+      await log(
+        `DEBUG: Logged assistant message - Hook: ${debugEntry.hookType}, Length: ${debugEntry.contentLength}, HasTools: ${debugEntry.hasToolUse}`
+      );
     }
   } catch (error) {
     await log(`DEBUG: Error logging assistant messages: ${error.message}`, 'WARN');
@@ -862,9 +965,11 @@ async function getLastAssistantMessage(event) {
     } else {
       await log('No assistant messages found in transcript');
 
-      // If no messages but this is a PostToolUse event from main agent, still notify
+      // If no messages but this is a PostToolUse event from main agent, schedule delayed notification
       if (event.hook_event_name === 'PostToolUse' && !isSubagent) {
-        return 'Waiting for your input.';
+        const sessionId = event.session_id || 'unknown';
+        await scheduleDelayedMessage('Waiting for your input.', sessionId, 10000);
+        return null; // Don't speak immediately
       }
     }
   }
@@ -878,24 +983,26 @@ async function getLastAssistantMessage(event) {
   // For Stop events, check if there's a final message to speak
   if (event.hook_event_name === 'Stop' && event.transcript_path) {
     await log('Stop event - checking for final assistant message');
-    
+
     // Read the last line of the transcript
     const transcript = await readLastTranscriptLines(event.transcript_path, 1);
-    
+
     if (transcript && transcript.messages && transcript.messages.length > 0) {
       const lastMessage = transcript.messages[0];
       const sessionId = event.session_id || 'unknown';
       const lastSpokenKey = getLastSpoken(sessionId);
       const messageKey = generateMessageKey(lastMessage);
-      
+
       // If this is a new message we haven't spoken, speak it
       if (messageKey !== lastSpokenKey && lastMessage.content) {
-        await log(`Stop: Found unspoken final message: ${lastMessage.content.substring(0, 100)}...`);
+        await log(
+          `Stop: Found unspoken final message: ${lastMessage.content.substring(0, 100)}...`
+        );
         await saveLastSpoken(sessionId, messageKey);
         return lastMessage.content + '. Session completed.';
       }
     }
-    
+
     // Default completion message
     const message = 'Session completed successfully';
     await log(`Stop: ${message}`);
@@ -969,11 +1076,24 @@ async function main() {
     // Debug log ALL assistant messages
     await debugLogAssistantMessages(event);
 
+    // Cancel any delayed messages for this session when new activity occurs
+    const sessionId = event.session_id || 'unknown';
+    const isSubagent = event.parentUuid && event.parentUuid !== 'main';
+
+    // Cancel delayed messages on any hook that might indicate new activity
+    if (
+      event.hook_event_name === 'PreToolUse' ||
+      (event.hook_event_name === 'PostToolUse' && !isSubagent) ||
+      event.hook_event_name === 'Notification'
+    ) {
+      await cancelDelayedMessages(sessionId);
+    }
+
     // Get the message to speak
     const message = await getLastAssistantMessage(event);
 
     if (message) {
-      await addToTTSQueue(message);
+      await addToTTSQueue(message, sessionId);
       await log('=== TTS Hook Completed ===');
       process.exit(0);
     } else {
@@ -985,7 +1105,6 @@ async function main() {
     await log(`Main execution error: ${error.message}`, 'ERROR');
     await log(`Stack trace: ${error.stack}`, 'DEBUG');
     await log('=== TTS Hook Failed ===');
-    await playSoundEffect('error');
     process.exit(1);
   }
 }
@@ -1003,3 +1122,5 @@ main().catch(async (error) => {
   await log(`Uncaught error: ${error.message}`, 'ERROR');
   process.exit(1);
 });
+
+// TODO: nice to have: pressing on scape, should stop the audio from futher processing and empty the queue and kill all players in-play
