@@ -45,6 +45,12 @@ const DEFAULT_CONFIG = {
     success: 'Glass',
     error: 'Basso',
   },
+  llmNaturalization: {
+    enabled: false,
+    model: 'haiku',
+    wordThreshold: 15,
+    maxWords: 100,
+  },
 };
 
 // Load configuration
@@ -143,6 +149,79 @@ function cleanTextForSpeech(text) {
   }
 
   return text.trim();
+}
+
+// LLM-based text naturalization for speech
+async function cleanTextForSpeechLLM(text) {
+  // First apply basic cleaning
+  text = cleanTextForSpeech(text);
+  
+  // Count words to decide if we need to naturalize
+  const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
+  
+  // If text is long enough, use Claude to naturalize it
+  if (wordCount > config.llmNaturalization.wordThreshold) {
+    await log(`Text has ${wordCount} words, using Claude to naturalize`);
+    
+    try {
+      // Write prompt to temp file to avoid escaping issues
+      const tempFile = path.join(CACHE_DIR, `llm-prompt-${Date.now()}.txt`);
+      const prompt = `Please summarize this message into natural spoken words that are not too technical and keep it under ${config.llmNaturalization.maxWords} words. Just return the summary, nothing else: ${text}`;
+      
+      await fs.writeFile(tempFile, prompt);
+      await log(`Written prompt to temp file: ${tempFile}`);
+      
+      // Use echo to pipe prompt to claude
+      const command = `cat "${tempFile}" | claude --model ${config.llmNaturalization.model} 2>&1`;
+      
+      await log(`Executing Claude command with model: ${config.llmNaturalization.model}`);
+      
+      // Call claude with shorter timeout
+      const { stdout, stderr } = await execAsync(command, { 
+        timeout: 10000,
+        shell: '/bin/bash'
+      });
+      
+      // Clean up temp file
+      try {
+        await fs.unlink(tempFile);
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+      
+      if (stderr) {
+        await log(`Claude stderr: ${stderr}`, 'WARN');
+      }
+      
+      if (stdout && stdout.trim()) {
+        const naturalizedText = stdout.trim();
+        
+        // Log both original and naturalized versions for comparison
+        const llmLogEntry = {
+          timestamp: new Date().toISOString(),
+          originalText: text,
+          originalWords: wordCount,
+          naturalizedText: naturalizedText,
+          naturalizedWords: naturalizedText.split(/\s+/).length,
+          model: config.llmNaturalization.model
+        };
+        
+        const LLM_LOG_FILE = path.join(CACHE_DIR, 'llm-naturalization.jsonl');
+        await fs.appendFile(LLM_LOG_FILE, JSON.stringify(llmLogEntry) + '\n');
+        
+        await log(`Claude response received: ${naturalizedText.substring(0, 50)}...`);
+        await log(`Naturalized text from ${wordCount} to ${naturalizedText.split(/\s+/).length} words`);
+        return naturalizedText;
+      } else {
+        await log('Claude returned empty response, using original text', 'WARN');
+      }
+    } catch (error) {
+      await log(`Failed to naturalize with Claude: ${error.message}`, 'ERROR');
+      await log(`Error stack: ${error.stack}`, 'DEBUG');
+    }
+  }
+  
+  return text;
 }
 
 async function detectTTSCapability() {
@@ -450,7 +529,9 @@ async function runTTSWorker() {
 
 // Modified speak function that waits for completion
 async function speakAndWait(text) {
-  const cleanText = cleanTextForSpeech(text);
+  const cleanText = config.llmNaturalization?.enabled 
+    ? await cleanTextForSpeechLLM(text)
+    : cleanTextForSpeech(text);
   await log(
     `Speaking text (${cleanText.length} chars): "${cleanText.substring(0, 100)}${cleanText.length > 100 ? '...' : ''}"`
   );
@@ -649,7 +730,9 @@ async function debugLogAssistantMessages(event) {
         textContent: textContent,
         contentLength: textContent.length,
         hasToolUse: entry.message.content.some(item => item.type === 'tool_use'),
-        sessionId: event.session_id
+        sessionId: event.session_id,
+        llmEnabled: config.llmNaturalization?.enabled || false,
+        llmModel: config.llmNaturalization?.model || 'none'
       };
       
       await fs.appendFile(ASSISTANT_MSG_LOG, JSON.stringify(debugEntry) + '\n');

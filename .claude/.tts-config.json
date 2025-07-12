@@ -20,5 +20,11 @@
     "enabled": false,
     "success": "Glass",
     "error": "Basso"
+  },
+  "llmNaturalization": {
+    "enabled": true,
+    "model": "sonnet",
+    "wordThreshold": 15,
+    "maxWords": 100
   }
 }

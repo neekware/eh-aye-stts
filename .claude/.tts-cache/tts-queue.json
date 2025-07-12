@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "id": "12ff0026796a8ad5884c3181ac6b7a7a",
+    "message": "I'll move the cache files from `.claude/.tts-cache` to `.claude/.log-depot/cache`. Let me create the new directory structure and move the files:",
+    "timestamp": "2025-07-12T16:55:07.716Z",
+    "status": "playing"
+  }
+]
